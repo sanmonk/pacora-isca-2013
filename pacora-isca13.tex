@@ -1,0 +1,50 @@
+\documentclass[pageno]{jpaper}
+
+%replace XXX with the submission number you are given from the ISCA submission site.
+\newcommand{\iscasubmissionnumber}{XXX}
+
+\usepackage[normalem]{ulem}
+
+\usepackage{graphicx}
+\usepackage{fancybox}
+\usepackage{pseudocode}
+%\usepackage{subfigure}
+\usepackage{cite}
+
+% Useful macros
+
+\newcommand{\note}[1]{{\bf [ NOTE: #1 ]}}
+\newcommand{\fixme}[1]{{\bf [ FIXME: #1 ]}}
+\newcommand{\wunits}[2]{\mbox{#1\,#2}}
+\newcommand{\um}{\mbox{$\mu$m}}
+\newcommand{\xum}[1]{\wunits{#1}{\um}}
+\newcommand{\by}[2]{\mbox{#1$\times$#2}}
+\newcommand{\fix}[1]{\textcolor{red}{\bf #1}}
+\def\eg{{\it e.g.}}
+
+
+\begin{document}
+
+\title{PACORA: Optimizing Resource Allocations for Dynamic Interactive Workloads}
+
+\date{}
+\maketitle
+
+\thispagestyle{empty}
+
+\input{abstract}
+\input{intro}
+\input{sys-design}
+\input{functions}
+\input{optimization}
+\input{eval}
+\input{discussion}
+\input{related-work}
+\input{conclusion}
+
+\bstctlcite{bstctl:etal, bstctl:nodash, bstctl:simpurl}
+\bibliographystyle{IEEEtranS}
+\bibliography{references}
+
+\end{document}
+
