@@ -1,1 +1,63 @@
 \section{PACORA Architecture}
+\subsection*{Resource Management As Optimization}
+The resource management approach taken here attempts to address the new resource allocation challenges described above as follows:
+\begin{enumerate}
+\item The \emph{process} is the entity to which the operating system allocates resources.  Micro-management of the resources within a process is generally application dependent and should be under the control of components of the runtime environment such as a user-mode work scheduler for processor cores or a memory garbage collector for memory pages.
+\item The objective function to be minimized is the total \emph{penalty}, which is the sum of the penalties of the runnable processes.
+\item The penalty of a process is a function rather than a single value
+    and the argument of each penalty function, the \emph{runtime},
+    is an appropriate measure of the responsiveness of the process.
+    For example,the runtime of a process might be one of these:
+    \begin{list}{}{}
+    \item The time from a mouse click to its result;
+    \item The time from a service request to its response;
+    \item The time from job launch to job completion;
+    \item The time to execute a specified amount of work.
+    \end{list}
+\item The runtime of a process is measured or predicted from its history of resource usage.
+\end{enumerate}
+A succinct mathematical characterization of this resource management scheme is the following:
+\begin{eqnarray*}
+& \makebox[1in][r]{Minimize}   & \sum_{p\epsilon P} {\pi_p(\tau_p(a_{p,1}\ldots a_{p,n}))}  \\
+& \makebox[1in][r]{Subject to} & \sum_{p\epsilon P} a_{p,r} \leq A_r, r = 1,\ldots n        \\
+& \makebox[1in][r]{and}        & a_{p,r} \geq 0
+\end{eqnarray*}
+Here $\pi_p$ is the penalty function for process $p$,
+$\tau_p$ is its runtime function,
+$a_{p,r}$ is the allocation of resource $r$ to process $p$,
+and $A_r$ is the total amount of resource $r$ available.
+\subsection*{Convex Optimization}
+If the penalty functions, runtime functions, and resource constraints were arbitrarily,
+little could be done to optimize the total penalty beyond searching at random for the best allocation.
+However, if resource management can be framed as a \emph{convex optimization problem}\cite{BV},
+two benefits will accrue: an optimal solution will exist without multiple local extrema, and
+fast, incremental solutions will become feasible.
+
+A constrained optimization problem will be convex if both the objective function to be minimized
+and the constraint functions that define its feasible solutions are convex functions.
+A function $f$ is convex if its domain is a convex set and
+$F(\theta x + (1-\theta)y) \leq \theta F(x) + (1-\theta)F(y)$
+for all $\theta$ between 0 and 1.
+A set is convex if for any two points $x$ and $y$ in the set, the point
+$\theta x + (1-\theta)y$
+is also in the set for all $\theta$ between 0 and 1.
+If $F$ is differentiable, it is convex if its domain is an open convex set and
+$F(y) \geq F(x) + \nabla F^T(y-x)$ where $\nabla F$ is the gradient of $F$.
+Put another way, $F$ is convex if its first-order Taylor approximations
+are always global underestimates of its true value.
+
+A convex optimization problem is one that can be expressed in this form:
+\begin{eqnarray*}
+& \makebox[1in][r]{Minimize}   & f_0(x_1,\ldots x_m)                              \\
+& \makebox[1in][r]{Subject to} & f_i(x_1,\ldots f_m) \leq 0, i = 1,\ldots k        \\
+& \makebox[1in][r]{where}      & \forall i \quad f_i:\Re^m \rightarrow \Re \mbox{ is convex.}
+\end{eqnarray*}
+A few more facts about convex functions will be useful in what follows.
+First, a \emph{concave} function is one whose negative is convex.
+Maximization of a concave function is equivalent to minimization of its convex negative.
+An affine function, one whose graph is a straight line in two dimensions or a hyperplane in n dimensions,
+is both convex and concave.  A non-negative weighted sum or point-wise maximum (minimum) of convex (concave) functions is convex (concave), as is either kind of function composed with an affine function.  The composition of a convex non-decreasing (concave non-increasing) scalar function with a convex function remains convex (concave).
+
+As a consequence, the resource management problem posed above can be transformed into a convex optimization problem in the $m = |P|\cdot n$ variables $a_{p,r}$ as long as the penalty functions $\pi_p$ are convex non-decreasing and the runtime functions $\tau_p$ are convex.
+Note that the resource constraints are all affine and can be rewritten as
+$\sum_{p\epsilon P} a_{p,r} - A_r \leq 0$ and $-a_{p,r} \leq 0$.

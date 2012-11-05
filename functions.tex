@@ -1,1 +1,201 @@
 \section{Application Functions}
+\subsection*{Penalty Functions}
+
+Penalty functions  are generically defined as members of a family of such functions so that user preferences for a process $p$ (elided in the discussion below) can be implemented by assigning values to a few well-understood parameters.  As a process grows or diminishes in importance,its penalty function's parameters can be modified to effect the change.  In a client operating system,the instantaneous management of penalty function modifications should be highly automated by the system to avoid unduly burdening the user.
+One possible generic penalty function idea is a family of piecewise linear functions of the form
+$\pi(\tau) = \max(0, s(\tau - d)$.
+Two representative graphs of this sort are shown below.
+
+\includegraphics*{Penalty1.eps}
+\includegraphics*{Penalty2.eps}
+
+The two parameters $d$ and $s$ define the penalty function.
+To guarantee it is convex and non-decreasing, $s$ must be non-negative.
+The runtime $\tau$  is of course non-negative,
+and it may be sensible (if not strictly necessary) to convene that $d$ is also.
+A service-time constrained process has a marked change in slope, namely from 0 to $s$, at the point $\tau= d$.
+In the most extreme case $s = \infty$ (implying infinite penalty for the system as a whole when $\tau > d$).  ``Softer'' requirements will doubtless be the rule.
+For processes without service time constraints one can set $d = 0$.
+This defines linear behavior with $s$ as the rate of penalty increase with runtime.
+
+The gradient of process penalty with respect to its resource allocations is useful in controlling the optimization algorithm.  By the chain rule,
+$\partial\pi/\partial a_r = \partial\pi/\partial\tau\cdot\partial\tau/\partial a_r$.
+The first term is well-defined but discontinuous at $\tau = d$ with
+$\partial\pi/\partial\tau = \mbox{ if } (\tau - d) \leq 0 \mbox{ then } 0 \mbox{ else } s$.
+The problem of estimating the partial derivatives $\partial\tau/\partial a_r$ is dealt with below.
+
+\subsection*{Runtime Functions}
+
+Unlike penalty functions, which describe user preference, runtime functions measure performance of processes as functions of their resource assignments.  Runtime will commonly vary with time as a process changes ``phase'' and can make better or worse use of certain resources.  To guarantee the objective function is convex, $\tau$ must be also,and this is at first glance a plausible requirement akin to the proverbial ``Law of Diminishing Returns''.  An equivalent statement is that incrementally increasing the allocated quantity of a resource results in a runtime that is never better (smaller) than one extrapolated by a first-order Taylor extrapolation from the current allocation.
+
+Besides the value of the runtime function, its gradient or an approximation of it is useful to estimate the relative runtime improvement from each type of resource.  A user-level runtime scheduler that manages allocation internal to the process may be a good source of data.  Additionally, the resource manager can allocate a modest amount of a resource and measure the change in runtime. Finally, a parameterized analytic model can be constructed and the partial derivatives evaluated from the model \emph{a priori}.
+
+There are examples of runtime versus resource behavior that violate convexity.  One such example sometimes occurs in memory allocation, where “plateaus” can sometimes be seen:
+
+\includegraphics*{Plateau1.eps}
+\includegraphics*{Plateau2.eps}
+
+Typically,these plateaus are caused by major algorithm adaptations within the process to accommodate variable resource availability.  The runtime is really the minimum of two or more runtime functions, one for each range of algorithm applicability, and the point-wise minimum that the process implements fails to preserve convexity.  The effect of the plateaus will be corresponding plateaus of penalty as shown in the right-hand figure, and multiple extrema in the optimization problem will be the result.
+
+There are several ways to avoid this problem.  One is based on the observation that such runtime functions
+will be at least \emph{quasiconvex}.  A function $f$ is quasiconvex if all of its \emph{sublevel sets}
+$S_a = \{x | f(x) \leq a\}$ are convex sets.
+Alternatively, $f$ is quasiconvex if its domain is convex and
+\begin{displaymath}
+f(\theta x + (1-\theta)y) \leq \max(f(x),f(y)), 0 \leq \theta \leq 1
+\end{displaymath}
+
+Quasiconvex optimization can be performed by selecting a threshold $a$ and replacing the objective function
+with a convex constraint function whose sublevel set $S_a$ is the same as that of $f$.
+Next, one determines whether there is a feasible solution for that particular threshold $a$.
+Repeated application with a binary search on $a$ will shrink the size of $S_a$
+until it becomes small enough to approximate the solution sufficiently well.
+
+Another idea is to use additional constraints to explore convex sub-domains of $\tau$.
+For example,the affine constraint $a_{p,r} - \mu \leq 0$ excludes process $p$ from any assignment of resource $r$ exceeding $\mu$.  Similarly, $\mu - a_{p,r} \leq 0$ exludes the opposite possibility.
+A binary (or even linear)search of such sub-domains could be used to find the optimal value.
+
+We will adopt a simpler procedure, modeling runtimes by functions that are convex by construction
+and do not distort runtime behavior seriously.  This approach is developed more fully below.
+
+\subsection*{Power and Battery Energy}
+
+It is useful to designate a ``process'' to receive allocations of all resources
+that are not used elsewhere and are therefore to be powered off if possible.
+Process 0 will play this role in what follows.
+The measure of runtime for process 0, $\tau_0$,
+is artificially defined to be the total system power consumption.
+This function is affine and monotone nonincreasing in its arguments $a_{0,r}$.
+
+The penalty function $\pi_0$ can now be used to keep total system power below the parameter $d_0$
+to the extent the penalties of other processes cannot overcome its penalty slope $s_0$.
+Both $s_0$ and $d_0$ can be adjusted to reflect the current battery charge state.
+As the battery depletes, $\pi_0$ can be used to force other processes to slow or even cease execution.
+
+The introduction of ``slack'' resources into Process 0 turns the resource upper bounds into equalities:
+$\sum_{p\epsilon P} a_{p,r} - A_r = 0, r = 1,\dots n$.
+
+\subsection*{Runtime Modeling}
+
+While it might be possible to model runtimes by recording past values and interpolating among them,
+this idea has serious shortcomings:
+\begin{itemize}
+\item The size of the multidimensional runtime function tables will be large;
+\item Interpolation in many dimensions is computationally expensive;
+\item The measurements will be “noisy” and require smoothing;
+\item Convexity in the resources may be violated;
+\item Gradient estimation may be infeasible.
+\end{itemize}
+
+An alternative approach is to model the runtime functions using parameterized expressions that are convex by construction.
+For example, the runtime might be modeled as a weighted sum of component terms,
+one per bandwidth resource, where each term $w_r/a_r$ is
+the amount of work $w_r \geq 0$ divided by $a_r$, the allocation of that bandwidth resource\cite{Sn}.
+For example,
+one term might model the number of instructions executed divided by total processor MIPS,
+another might model storage accesses divided by storage bandwidth allocation and so forth.
+Such models will automatically be convex in the allocations because $1/a$ is convex for positive $a$
+and because a positively-weighted sum of convex functions is convex.
+
+It is obviously important to guarantee the positivity of the resource allocations.
+This can be enforced as the allocations are selected during penalty optimization,
+or the runtime model can be made to return $\infty$ if any allocation is less than or equal to zero.
+This latter idea preserves the convexity of the model and extends its domain to all of $\Re^n$.
+
+Asynchrony and latency tolerance may make runtime components overlap partly or fully;
+if the latter, then the maximum of the terms might be more appropriate than their sum.
+The result will still be convex, though, as will any other norm including the 2-norm,
+\emph{i.e.} the square root of the sum of the squares.
+This last variation could be viewed as a ``partially overlapped'' compromise between
+the 1-norm (sum) describing no overlap and the $\infty$-norm (maximum) describing full overlap.
+
+This scheme can also be made to accommodate non-bandwidth resources such as memory,
+the general idea being to roughly approximate ``diminishing returns'' in the runtime with increasing resources.
+For clarity's sake, rather than using $a_r$ indiscriminately for all allocations,
+we will denote allocations of a bandwidth resource by $b_r$ and of a memory resource by $m_r$.
+
+Sometimes a runtime component might be better modeled by a term involving a combination of resources.
+For example, runtime due to memory accesses might be approximated
+by a combination of memory bandwidth allocation $b_{r1}$ and cache allocation $m_{r2}$.
+Such a model could use the geometric mean of the two allocations in the denominator,
+\emph{viz.} $w_{r1,r2}/\sqrt{b_{r1}\cdot m_{r2}}$, without compromising convexity.
+This begs the question of how memory affects the runtime, the subject we address next.
+
+The effect of memory resources on runtime is largely an indirect one.
+Meory permits exploitation of temporal locality and thereby \emph{amplifies} an associated bandwidth.
+For example, additional main memory may reduce the need for storage or network bandwidth,
+and of course increased cache capacity may reduce the need for memory bandwidth.
+The effectiveness of ``the cache effect'' in reducing the need for bandwidth has been studied by
+H. T. Kung\cite{Ku}, who developed tight asymptotic bounds on the bandwidth amplification
+factor $\alpha(m)$ resulting from a quantity of memory $m$ acting as cache in a variety of situations.
+He shows that
+\begin{displaymath}
+\begin{array}{lll}
+\alpha(m) &= \Theta(\sqrt m) & \mbox{for dense linear algebra solvers} \\
+          &= \Theta(m^{1/d}) & \mbox{for d-dimensional PDE solvers} \\
+          &= \Theta(\log m)  & \mbox{for comparison sorting and FFTs} \\
+          &= \Theta(1)       & \mbox{when there is no temporal locality}
+\end{array}
+\end{displaymath}
+
+For these expressions to make sense, the argument of $\alpha$ should be dimensionless and greater than 1.
+Ensuring this might be as simple as letting it be the number of memory resource quanta
+(\emph{e.g.} hundreds of memory pages) assigned to the process.
+If a process shows diminished bandwidth amplification as its memory allocation increases, we can let
+\begin{eqnarray*}
+\alpha(m) &=& \min(c_1\alpha_1(m),c_2\alpha_2(m)) \\
+          & &c_1,c_2 \geq 0
+\end{eqnarray*}
+
+Each bandwidth amplification factor might be described by one of the functions above
+and included in the denominator of the appropriate component in the runtime function model.
+For example, the storage runtime component for the model of an out-of-core sort process might be
+the quantity of storage accesses divided by the product of the storage bandwidth allocation and $\log m$,
+the amplification function associated with sorting given a memory allocation of $m$.
+Amplification functions for each application might be learned from runtime measurements
+by observing the effect of varying the associated memory resource while keeping the bandwidth allocation constant.
+Alternatively, redundant components, similar except for amplification function, could be included in the model
+to let the amounts of work decide among them.
+
+The gradient $\nabla\tau$ is needed by the penalty optimization algorithm.
+Since $\tau$ is generic across processes and differentiable symbolically,
+it is a simple matter to compute the gradient once the model is defined.
+
+\subsection*{Runtime Model Convexity}
+
+We now show that the model including bandwidth amplification functions is convex
+in both the bandwidth and memory resources $b_r$ and $m_r$ given any of the various possibilities listed above.
+Since norms preserve convexity,this reduces to proving each term in the norm is convex.
+Notice further that since all quantities are positive and both maximum and scaling by a positive constant preserve convexity,
+\begin{eqnarray*}
+w/(b\cdot\min(c_1\alpha_1(m),c_2\alpha_2(m))) &=& \max(w/(b\cdot c_1\alpha_1(m)),w/(b\cdot c_2\alpha_2(m)))
+\end{eqnarray*}
+It only remains to be shown that $1/(b\cdot\alpha(m))$ is convex in $b$ and $m$.
+A function is defined to be \emph{log-convex} if its logarithm is convex.
+A log-convex function is itself convex because exponentiation preserves convexity,
+and the product of log-convex functions is convex because the log of the product is the sum of the logs,
+each of which is convex by hypothesis.
+Now $1/b$ is log-convex for positive $b$ because $– \log b$ is convex on that domain.
+In a similar way, $\log(1/\sqrt{b\cdot m}) = -(\log b + \log m)/2$
+and $\log m^{-1/d} = -(\log m)/d$ are convex.
+Finally, $\log (1/\log m)$ is convex because its second derivative is
+\begin{eqnarray*}
+\frac{d^2}{dm^2}\log (1/\log m) &=& \frac{d^2}{dm^2}(-\log\log m)  \\
+                                  &=& \frac{d}{dm}\left(\frac{-1}{m\log m}\right) \\
+                                  &=& \frac{1 + \log m}{(m\log m)^2}   \\
+\end{eqnarray*}
+This expression is positive for $m \geq 1$.
+
+Summing up, a runtime function for a process might be modeled by the convex function
+\begin{eqnarray*}
+\tau(w,b,\alpha,m) &=& \sqrt[p]{\sum_j \left(\frac{w_j}{b_j\cdot\alpha_j(m_j)}\right)^p}  \\
+                   &=& \left\|\frac{w}{b \cdot \alpha(m)}\right\|_p \\
+                   &=& \|d \cdot w \|_p
+\end{eqnarray*}
+where the $w_j$ are the parameters of the model (the “quantities of work”) to be learned,
+the $b_j$  are the allocations of the bandwidth resources,
+the $\alpha_j$ are the bandwidth amplification functions (also to be learned),
+and the $m_j$ are the allocations of the memory or cache resources that are responsible for the amplifications.
+This formulation allows the process runtime $\tau$ to be modeled as the $p$-norm of
+the component-wise product of a vector $d$ that is computed from the resource allocation
+and a learned vector of work parameters $w$.
