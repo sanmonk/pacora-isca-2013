@@ -165,12 +165,12 @@ pip-log.txt
 ##############
 ## LaTeX
 ##############
-*.bak
-*.aux
-*.log
-*.dvi
-*.synctex
-*.out
+.bak
+.aux
+.log
+.dvi
+.synctex
+.out
 
 
 
