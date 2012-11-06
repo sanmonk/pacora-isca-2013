@@ -12,11 +12,11 @@
 }
 
 @book{BoVa,
-  author = "Stephen Boyd and Lieven Vandenberghe",
-  title = "Convex Optimization",
-  year = "2004",
-  publisher = "Cambridge University Press",
-  address = "Cambridge, England"
+author = "Stephen Boyd and Lieven Vandenberghe",
+title = "Convex Optimization",
+year = "2004",
+publisher = "Cambridge University Press",
+address = "Cambridge, England"
 }
 
 @inproceedings{Snav,
@@ -33,28 +33,20 @@
 }
 
 @inproceedings{Kung,
-  author = "H. T. Kung",
-  title = "Memory Requirements for Balanced Computer Architectures",
-  year = "1986",
-  booktitle = "International Symposium on Computer Architecture",
-  pages = "49-54"
+author = "H. T. Kung",
+title = "Memory Requirements for Balanced Computer Architectures",
+year = "1986",
+booktitle = "International Symposium on Computer Architecture",
+pages = "49-54"
 }
 
 @book{GoVL,
-  author = "Gene H. Golub and Charles F. {Van Loan}",
-  title = "Matrix Computations",
-  year = "1996",
-  publisher = "Johns Hopkins University Press",
-  edition = "third",
-  address = "Baltimore, Maryland"
-}
-
-@misc{ChPl,
-  author = "Donghui Chen and Robert J. Plemmons",
-  title = "Nonnegativity Constraints in Numerical Analysis",
-  howpublished = "Lecture presented at the symposium to celebrate the 60th birthday of numerical analysis, Leuven, Belgium",
-  month = "October",
-  year = "2007"
+author = "Gene H. Golub and Charles F. {Van Loan}",
+title = "Matrix Computations",
+year = "1996",
+publisher = "Johns Hopkins University Press",
+edition = "third",
+address = "Baltimore, Maryland"
 }
 
 @article{LuDu,

@@ -139,8 +139,8 @@ The effect of memory on runtime is largely indirect.
 Memory permits exploitation of temporal locality and thereby \emph{amplifies} associated bandwidths.
 For example, additional main memory may reduce the need for storage or network bandwidth,
 and of course increased cache capacity may reduce the need for memory bandwidth.
-The effectiveness of cache in reducing bandwidth was studied by
-H. T. Kung\cite{Kung}, who developed tight asymptotic bounds on the bandwidth amplification
+The effectiveness of cache in reducing the need for bandwidth has been studied by
+H. T. Kung\cite{Ku}, who developed tight asymptotic bounds on the bandwidth amplification
 factor $\alpha(m)$ resulting from a quantity of memory $m$ acting as cache for a variety of computations.
 He shows that
 \begin{displaymath}

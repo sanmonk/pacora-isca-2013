@@ -171,6 +171,7 @@ pip-log.txt
 *.dvi
 *.synctex
 *.out
+*~
 
 
 
