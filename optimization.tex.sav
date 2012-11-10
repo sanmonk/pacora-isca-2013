@@ -6,8 +6,8 @@ $t=Dw$
 where $t$ is a column vector of actual response times measured for the process
 and $D$ is a matrix whose ith row $D_{i,*}$ contains the reciprocals of the amplified bandwidth allocations
 that generated the corresponding response time measurement $t_i$.
-Estimating $w$ is relatively straightforward: a least-squares solution accomplished via
-\emph{Q-R factorization}\cite{GoVL} of $D$ will determine the $w$ that minimizes the \emph residual error $\|t - Dw\|_2 = \|\varepsilon\|_2$.
+Estimating $w$ given this formulation is straightforward.  A least-squares solution accomplished via
+\emph{QR factorization}\cite{GoVL} of $D$ will determine the $w$ that minimizes the residual error $\|t - Dw\|_2 = \|\varepsilon\|_2$.
 The solution proceeds as follows:
 \begin{eqnarray*}
 t    &=& Dw  + \varepsilon    \\
@@ -18,8 +18,8 @@ Q^Tt &=& Rw  + Q^T\varepsilon
 It is not always necessary to materialize the orthogonal matrix $Q^T = Q^{-1}$;
 the individual elementary orthogonal transformations (Householder reflections or Givens rotations)
 that triangularize $R$ by progressively zeroing out partial columns of $D$ can simultaneously be applied to $t$.
-The elements of the resulting vector $Q^Tt$ that correspond to zero rows in $R$ comprise $Q^T\varepsilon$.
-Since $Rw$ exactly equals the upper part of $Q^Tt$, the upper part of $Q^T\varepsilon$ is zero. The residual error for the $t_i$
+The elements of the resulting vector $Q^Tt$ that correspond to zero rows in $R$ comprise the \emph{residual} $Q^T\varepsilon$.
+Since $Rw$ exactly equals the upper part of $Q^Tt$, the upper part of $Q^T\varepsilon$ is zero. The error for each $t_i$
 can be found by premultiplying $Q^T\varepsilon$ by $Q$.
 
 Suppose a different model norm $p$ is desired.  If $p = 2$, we might first square each measurement in $t$
@@ -56,9 +56,9 @@ and the diagonal element will have absolute value 1.
 These same rotations are concurrently applied to the elements of $Q^T t$ and to the rows of $R$ $(= Q^T D)$
 to reflect the effect that these transformations had on $Q^T$.
 
-It is crucial to select the row pairs and the order of rotations that will
+There are a few ways to select the row pairs and the order of rotations that will
 preserve the upper triangular structure of $R$ while zeroing almost all of a column of $Q^T$.
-Since $dd$ is below the diagonal of $R$ it initially will contain only zeros.
+Since $dd$ is below the diagonal of $R$ it initially contains only zeros.
 It therefore suffices to rotate every non-$dd$ row with row $dd$, proceeding from bottom to top.
 The first $m - n - 1$ rotations will keep row $R_{dd,*}$ entirely zero,
 and the remaining $n$ rotations will introduce nonzeros in $R_{dd,*}$ from right to left.

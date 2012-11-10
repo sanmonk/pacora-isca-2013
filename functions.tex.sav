@@ -7,29 +7,20 @@ can be implemented by assigning values to a few well-understood parameters.
 As a process grows or diminishes in importance, its penalty function can be modified accordingly.
 In a client operating system,the instantaneous management of penalty function modifications
 should be highly automated by the system to avoid unduly burdening the user.
-PACORA's penalty functions are non-decreasing piecewise linear functions of the form
+The penalty functions used in PACORA are non-decreasing piecewise linear functions of the form
 $\pi(\tau) = \max(0, s(\tau - d)$.
-Two representative graphs of this type appear in Figures \ref{f:pen1} and \ref{f:pen2}.
+Two representative graphs of this type are shown below.
 
-\begin{figure}[b]
-\parbox{1.6in}{
 \includegraphics*{Penalty1.eps}
-\caption{\label{f:pen1}A penalty function with a response time constraint.}
-}  
-\hspace{\fill}
-\parbox{1.6in}{
 \includegraphics*{Penalty2.eps}
-\caption{\label{f:pen2}Penalty function without such a constraint.}
-}
-\end{figure}
 
 The two parameters $d$ and $s$ define the penalty function.
 To guarantee it is convex and non-decreasing, $s$ must be non-negative.
 The response time $\tau$  is of course non-negative,
 and it may be sensible (if not strictly necessary) to convene that $d$ is also.
-A response time constrained process has a marked change in slope, namely from 0 to $s$, at the point $\tau= d$.
+A service-time constrained process has a marked change in slope, namely from 0 to $s$, at the point $\tau= d$.
 In the most extreme case $s = \infty$ (implying infinite penalty for the system as a whole when $\tau > d$).  ``Softer'' requirements will doubtless be the rule.
-For processes without response time constraints one can set $d = 0$.
+For processes without service time constraints one can set $d = 0$.
 This defines linear behavior with $s$ as the rate of penalty increase with response time.
 
 The gradient of process penalty with respect to its resource allocations is useful in controlling the optimization algorithm.
@@ -40,28 +31,23 @@ The problem of estimating the partial derivatives $\partial\tau/\partial a_r$ is
 
 \subsection*{Response Time Functions}
 
-Unlike penalty functions, which describe user preference, a response time function describes process performance based on its resource assignments.
-Response time will commonly vary with time as a process changes phase and makes better or worse use of its resources.
-To guarantee the objective function is convex, the response time must be also;
-this is a plausible requirement akin to the proverbial ``Law of Diminishing Returns''.
+Unlike penalty functions, which describe user preference, response time functions measure performance of processes as functions of their resource assignments.
+Response time will commonly vary with time as a process changes phase and can make better or worse use of certain resources
+To guarantee the objective function is convex, $\tau$ must be also,
+and this is at first glance a plausible requirement akin to the proverbial ``Law of Diminishing Returns''.
+An equivalent statement is that incrementally increasing the allocated quantity of a resource results in a response time that is never better (smaller) than
+a first-order Taylor extrapolation from the current allocation.
 
 Besides the value of the response time function, its gradient or an approximation to it is useful to estimate the relative response time improvement from each type of resource.  A user-level runtime scheduler that schedules work internal to the process may be a good source of data.
 Additionally, the resource manager can allocate a modest amount of a resource and measure the change in response time.
 Instead of these, PACORA maintains a parameterized analytic response time model with the partial derivatives evaluated from the model \emph{a priori}.
 
-There are examples of response time versus resource behavior that violate convexity.  One such example sometimes occurs in memory allocation, where “plateaus” can sometimes be seen as in Figure \ref{f:plat}.
-\begin{figure}[b]
-\parbox{1.6in}{
+There are examples of response time versus resource behavior that violate convexity.  One such example sometimes occurs in memory allocation, where “plateaus” can sometimes be seen:
+
 \includegraphics*{Plateau1.eps}
-\caption{\label{f:plat}Response time function with some resource "plateaus".}
-}  
-\hspace{\fill}
-\parbox{1.6in}{
 \includegraphics*{Plateau2.eps}
-\caption{\label{f:plateffect}Net effect of the resource plateaus on the process penalty.}
-}
-\end{figure}
-Such plateaus are typically caused by algorithm adaptations within the process to accommodate variable resource availability.  The response time is really the \emph{minimum} of several convex functions depending on allocation and the point-wise minimum that the process implements fails to preserve convexity.  The effect of the plateaus will be a non-convex penalty as shown in Figure \ref{f:plateffect} and multiple extrema in the optimization problem will be a likely result.
+
+Typically,these plateaus are caused by algorithm adaptations within the process to accommodate variable resource availability.  The response time is really the \emph{minimum} of several convex functions depending on allocation and the point-wise minimum that the process implements fails to preserve convexity.  The effect of the plateaus will be a non-convex penalty as shown in the right-hand figure, and multiple extrema in the optimization problem will be a likely result.
 
 There are several ways to avoid this problem.  One is based on the observation that such response time functions
 will at least be \emph{quasiconvex}.  A function $f$ is quasiconvex if all of its \emph{sublevel sets}
@@ -88,24 +74,22 @@ and do not distort response time behavior too much.  This approach is developed 
 
 It is useful to designate a ``process'' to receive allocations of all resources
 that are not used elsewhere and are therefore to be powered off if possible.
-In PACORA, process 0 plays this role.
-The ``response time'' for process 0, $\tau_0$,
+Process 0 plays this role in PACORA.
+The measure of ``response time'' for process 0, $\tau_0$,
 is artificially defined to be the total system power consumption.
 This response function is affine and monotone nonincreasing in its arguments $a_{0,r}$.
 
 The penalty function $\pi_0$ can now be used to keep total system power below the parameter $d_0$
 to the extent the penalties of other processes cannot overcome its penalty slope $s_0$.
-Both $s_0$ and $d_0$ can be adjusted to reflect the current battery charge in mobile devices.
-As the battery depletes, $\pi_0$ can be used to force other processes to slow or cease execution.
-In any event, the slope $s_0$ establishes a system tradeoff between power and performance that
-will determine which processor cores are used for each process and which cores are left idle. 
+Both $s_0$ and $d_0$ can be adjusted to reflect the current battery charge.
+As the battery depletes, $\pi_0$ can force other processes to slow or cease execution.
 
 This introduction of \emph{slack} resource allocations into Process 0 turns the resource bounds into equalities:
 \begin{displaymath}
 \sum_{p\epsilon P} a_{p,r} - A_r = 0, r = 1,\dots n.
 \end{displaymath}
 
-\subsection*{Response Time Modeling}
+\subsection*{Response time Modeling}
 
 While it might be possible to model response times by recording past values and interpolating among them,
 this idea has serious shortcomings:
@@ -171,7 +155,7 @@ He shows that
 For these expressions to make sense, the argument of $\alpha$ should be dimensionless and greater than 1.
 Ensuring this might be as simple as letting it be the number of memory resource quanta
 (\emph{e.g.} hundreds of memory pages) assigned to the process.
-If a process shows diminishing bandwidth amplification as its memory allocation increases, this can be accommodated:
+If a process shows diminished bandwidth amplification as its memory allocation increases, we can even let
 \begin{eqnarray*}
 \alpha(m) &=& \min(c_1\alpha_1(m),c_2\alpha_2(m)) \\
           & &c_1,c_2 \geq 0
@@ -220,13 +204,13 @@ Finally, $\log (1/\log m)$ is convex because its second derivative is positive f
 Summing up, a response time function for a process might be modeled by the convex function
 \begin{eqnarray*}
 \tau(w,b,\alpha,m) &=& \sqrt[p]{\sum_j \left(\frac{w_j}{b_j\cdot\alpha_j(m_j)}\right)^p}  \\
+                   &=& \left\|\frac{w}{b \cdot \alpha(m)}\right\|_p \\
                    &=& \|d \cdot w \|_p
 \end{eqnarray*}
 where the $w_j$ are the parameters of the model (the “quantities of work”) to be learned,
-the components of $d$ satisfy $d_j = 1/(b_j\cdot\alpha_j(m_j))$,
 the $b_j$  are the allocations of the bandwidth resources,
 the $\alpha_j$ are the bandwidth amplification functions (also to be learned),
-the $m_j$ are the allocations of the memory or cache resources that are responsible for the amplifications.
+and the $m_j$ are the allocations of the memory or cache resources that are responsible for the amplifications.
 This formulation allows the process response time $\tau$ to be modeled as the $p$-norm of
 the component-wise product of a vector $d$ that is computed from the resource allocation
 and a learned vector of work quantities $w$.
