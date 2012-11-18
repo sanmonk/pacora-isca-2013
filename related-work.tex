@@ -1,1 +1,79 @@
 \section{Related Work}
+
+Resource Allocation for Autonomic Data Centers using Analytic Performance Models
+	\cite{1078472}
+	
+Autonomic QoS-aware resource management in grid computing using online performance models
+	\cite{1345325}
+
+On the use of hybrid reinforcement learning for autonomic resource allocation
+\cite{1285843}
+	
+Utility-Function-Driven Resource Allocation in Autonomic Systems
+\cite{1078493}
+
+Redline: First Class Support for Interactivity in Commodity OSs \cite{Redline}
+Paper presented in OSDI'08.
+
+AcOS: an Autonomic Management Layer Enhancing Commodity Operating Systems \cite{AcOS}
+Work at the Politecnico di Milano, Italy.
+Master Thesis
+Paper and slides at the CHANGE 2012 Workshop (DAC)
+
+Metronome: OS Level Performance Management via Self Adaptive Computing \cite{Metronome}
+Work related to AcOS, done by people from the Politecnico di Milano (Italy), MIT and Harvard.
+Paper presented in DAC 2012.
+
+Jockey: Guaranteed Job Latency in Data Parallel Clusters \cite{Jockey}
+Work from Microsoft about the system they built on top of their Cosomos cluster (Dryad???)
+Discusses how they do the dynamic resource allocation for jobs running in a cluster
+Paper from Eurosys 2012
+
+Automatic Exploration of Datacenter Performance Regimes
+\cite{bodik-acdc09}
+
+A resource allocation model for QoS management
+\cite{828990}
+
+CQoS: a framework for enabling QoS in shared caches of CMP platforms
+\cite{1006246}
+
+\subsection{Partitioning Mechanisms}
+\label{sec:rel:pm}
+
+Utility-Based Cache Partitioning: A Low-Overhead, High-Performance, Runtime Mechanism to Partition Shared Caches
+\cite{1194855}
+
+Most hardware partitioning mechanism work has looked at shared cache structures and provided mechanisms to partition them according to a varied set of goals.  Suh et al. \cite{876484, 967444} and Qureshi and Patt \cite{1194855} monitor individual applications' cache performance and use this monitoring to inform their partitioning mechanism in an attempt to reduce the total amount of cache misses and off-chip memory traffic. A wide variety of proposals exist for multicore last-level cache structures that partition the spatial resources between private and shared data, in an attempt to create a manageable trade-off between capacity for shared data and low latency for private data \cite{1275005,1194858,1318096,1088154,1399973,1069998,1399982}.
+
+Further cache partitioning work has focused on providing QoS guarantees to applications. Early work focused on providing adaptive, fair policies that ensure equal performance degradation \cite{605420,1086328}, while more recent proposals have incorporated more sophisticated policy management \cite{1241608,1331730,1152161,1254886}. Other partitioning work has focused on interconnect bandwidth QoS \cite{1382130} or partitioning cache capacity and bandwidth simultaneously \cite{1250671}. In general, these papers focus on designing and proving the effectiveness of particular mechanisms for particular goals, without a concrete notion of a general framework in which a variety of application-specific QoS requirements can be communicated to an all-purpose resource allocator and scheduler.
+
+\subsection{Resource Allocation Frameworks}
+
+Guo et al. \cite{1331730} point out that most prior work is insufficient for true QoS -- merely partitioning hardware is not enough, because there must also be a way to specify performance targets and an admission control policy for jobs. 
+%They argue that targets should be expressed in terms of capacity requirements rather than rates.  
+The framework they present incorporates a scheduler that supports multiple execution modes.
+
+Nesbit et al. \cite{1436097} introduce Virtual Private Machines (VPM), a framework for resource allocation and management in multicore systems. A VPM consists of a set of virtual hardware resources, both spatial (physical allocations) and temporal (scheduled time-slices).  Unlike traditional virtual machines that only virtualize resource functionality, VPMs virtualize a system's performance and power characteristics, meaning that a VPM has the same performance and power profile as a real machine with an equivalent set of hardware resources.
+
+They break down the framework components into policies and mechanisms which may be implemented in hardware or software. Critical software components of the VPM framework are VPM {\em modeling}, which maps high-level application objectives into VPM configurations, and VPM {\em translation}, which uses VPM models to assign an acceptable VPM to the application while adhering to system-level policies. A VPM scheduler then decides if the system can accommodate all applications or whether resources need to be revoked.
+
+The VPM approach and terminology mesh well with our study, which can be seen as a specific implementation of several key aspects of the type of framework they describe (i.e. VPM modeling and translation). Nesbit et al. did not perform any evaluations of the modeling, translation, or scheduling processes suggested in their paper.
+
+\cite{aiken-mspc06}
+\cite{1006707}
+\cite{genbrugge-isca07}
+\cite{merkel-eurosys08}
+
+Ganapathi et al. have had success using machine learning to model application performance and select the best perform- ing configuration in \cite{Archana}
+
+\cite{unc}
+
+\cite{1078411}
+utility functions
+
+\cite{1380585,975344,wasserman-book}
+
+
+Scheduling threads for constructive cache sharing on CMPs
+\cite{1248396}
