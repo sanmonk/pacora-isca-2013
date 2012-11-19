@@ -166,6 +166,7 @@ pip-log.txt
 ## LaTeX
 ##############
 *.bak
+*.sav
 *.aux
 *.log
 *.blg
