@@ -92,6 +92,13 @@ S.~Cho and L.~Jin, ``Managing distributed, shared l2 caches through os-level
 I.~CVX~Research, ``{CVX}: Matlab software for disciplined convex programming,
   version 2.0 beta,'' \url{http://cvxr.com/cvx}, Sep. 2012.
 
+\bibitem{mapreduce}
+\BIBentryALTinterwordspacing
+J.~Dean and S.~Ghemawat, ``Mapreduce: simplified data processing on large
+  clusters,'' \emph{Commun. ACM}, vol.~51, no.~1, pp. 107--113, Jan. 2008.
+  Available: \url{http://doi.acm.org/10.1145/1327452.1327492}
+\BIBentrySTDinterwordspacing
+
 \bibitem{dhodapkar-micro03}
 A.~S. Dhodapkar and J.~E. Smith, ``Comparing program phase detection
   techniques,'' in \emph{Proc. MICRO 36}.\hskip 1em plus 0.5em minus
@@ -250,6 +257,11 @@ H.~Pan, B.~Hindman, and K.~Asanovi{\'c}, ``Lithe: Enabling efficient
   composition of parallel libraries,'' in \emph{HotPar09}, Berkeley, CA,
   03/2009 2009. Available: \url{http://www.usenix.org/event/hotpar09/tech/}
 \BIBentrySTDinterwordspacing
+
+\bibitem{Phansalkar:ISCA2007}
+A.~Phansalkar, A.~Joshi, and L.~K. John, ``Analysis of redundancy and
+  application balance in the spec cpu2006 benchmark suite,'' in \emph{ISCA},
+  2007, pp. 412--423.
 
 \bibitem{1194855}
 M.~K. Qureshi and Y.~N. Patt, ``Utility-based cache partitioning: A
