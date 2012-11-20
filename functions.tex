@@ -1,7 +1,13 @@
 \section{Application Functions}
-
-%III.	Application Functions%	a.	Resource Value Functions%		i.	Structure%		ii.	Model Building Approach%			1.	Who measures the data?%	b.	Penalty Functions%		i.	Where do the deadlines come from?%		ii.	How do we set the slopes?%	c.	Power Model
-
+%III.	Application Functions
+%	a.	Resource Value Functions
+%		i.	Structure
+%		ii.	Model Building Approach
+%			1.	Who measures the data?
+%	b.	Penalty Functions
+%		i.	Where do the deadlines come from?
+%		ii.	How do we set the slopes?
+%	c.	Power Model
 \subsection*{Penalty Functions}
 
 Penalty functions  are generically defined as members of a family of such functions
@@ -12,13 +18,13 @@ In a client operating system,the instantaneous management of penalty function mo
 should be highly automated by the system to avoid unduly burdening the user.
 PACORA's penalty functions are non-decreasing piecewise linear functions of the form
 $\pi(\tau) = \max(0, s(\tau - d)$.
-Two representative graphs of this type appear in Figures \ref{f:pen1} and \ref{f:pen2}.
+Two representative graphs of this type appear in Figures~\ref{f:pen1} and~\ref{f:pen2}.
 
-\begin{figure}[b]
+\begin{figure}[hb]
 \parbox{1.6in}{
 \includegraphics*{Penalty1.eps}
 \caption{\label{f:pen1}A penalty function with a response time constraint.}
-}  
+}
 \hspace{\fill}
 \parbox{1.6in}{
 \includegraphics*{Penalty2.eps}
@@ -52,19 +58,19 @@ Besides the value of the response time function, its gradient or an approximatio
 Additionally, the resource manager can allocate a modest amount of a resource and measure the change in response time.
 Instead of these, PACORA maintains a parameterized analytic response time model with the partial derivatives evaluated from the model \emph{a priori}.
 
-There are examples of response time versus resource behavior that violate convexity.  One such example sometimes occurs in memory allocation, where “plateaus” can sometimes be seen as in Figure \ref{f:plat}.
+There are examples of response time versus resource behavior that violate convexity.  One such example sometimes occurs in memory allocation, where “plateaus” can sometimes be seen as in Figure~\ref{f:plat}.
 \begin{figure}[b]
 \parbox{1.6in}{
 \includegraphics*{Plateau1.eps}
 \caption{\label{f:plat}Response time function with some resource "plateaus".}
-}  
+}
 \hspace{\fill}
 \parbox{1.6in}{
 \includegraphics*{Plateau2.eps}
 \caption{\label{f:plateffect}Net effect of the resource plateaus on the process penalty.}
 }
 \end{figure}
-Such plateaus are typically caused by algorithm adaptations within the process to accommodate variable resource availability.  The response time is really the \emph{minimum} of several convex functions depending on allocation and the point-wise minimum that the process implements fails to preserve convexity.  The effect of the plateaus will be a non-convex penalty as shown in Figure \ref{f:plateffect} and multiple extrema in the optimization problem will be a likely result.
+Such plateaus are typically caused by algorithm adaptations within the process to accommodate variable resource availability.  The response time is really the \emph{minimum} of several convex functions depending on allocation and the point-wise minimum that the process implements fails to preserve convexity.  The effect of the plateaus will be a non-convex penalty as shown in Figure~\ref{f:plateffect} and multiple extrema in the optimization problem will be a likely result.
 
 There are several ways to avoid this problem.  One is based on the observation that such response time functions
 will at least be \emph{quasiconvex}.  A function $f$ is quasiconvex if all of its \emph{sublevel sets}
@@ -101,7 +107,7 @@ to the extent the penalties of other processes cannot overcome its penalty slope
 Both $s_0$ and $d_0$ can be adjusted to reflect the current battery charge in mobile devices.
 As the battery depletes, $\pi_0$ can be used to force other processes to slow or cease execution.
 In any event, the slope $s_0$ establishes a system tradeoff between power and performance that
-will determine which processor cores are used for each process and which cores are left idle. 
+will determine which processor cores are used for each process and which cores are left idle.
 
 This introduction of \emph{slack} resource allocations into Process 0 turns the resource bounds into equalities:
 \begin{displaymath}
@@ -175,10 +181,9 @@ For these expressions to make sense, the argument of $\alpha$ should be dimensio
 Ensuring this might be as simple as letting it be the number of memory resource quanta
 (\emph{e.g.} hundreds of memory pages) assigned to the process.
 If a process shows diminishing bandwidth amplification as its memory allocation increases, this can be accommodated:
-\begin{eqnarray*}
-\alpha(m) &=& \min(c_1\alpha_1(m),c_2\alpha_2(m)) \\
-          & &c_1,c_2 \geq 0
-\end{eqnarray*}
+\begin{displaymath}
+\alpha(m) = \min(c_1\alpha_1(m),c_2\alpha_2(m)),\;c_1,c_2 \geq 0
+\end{displaymath}
 
 Each bandwidth amplification factor might be described by one of the functions above
 and included in the denominator of the appropriate component in the response time function model.

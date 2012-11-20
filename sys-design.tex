@@ -1,6 +1,17 @@
 \section{PACORA Architecture}
 
-%II.	System Architecture%	a.	Convex by construction%		i.	Fairly representative of the actual system%			1.	(Systems should be more convex)%		ii.	Low Overhead%	b.	Explanation of resources%	c.	Performance Models Built Online%		i.	Explanation of performance%		ii.	When does it run?%	d.	Penalty functions%	e.	Dynamic Optimization%		i.	When does it run?
+%II.	System Architecture
+%	a.	Convex by construction
+%		i.	Fairly representative of the actual system
+%			1.	(Systems should be more convex)
+%		ii.	Low Overhead
+%	b.	Explanation of resources
+%	c.	Performance Models Built Online
+%		i.	Explanation of performance
+%		ii.	When does it run?
+%	d.	Penalty functions
+%	e.	Dynamic Optimization
+%		i.	When does it run?
 
 
 
@@ -46,9 +57,8 @@ for all $\theta$ between 0 and 1.
 A set is convex if for any two points $x$ and $y$ in the set, the point
 $\theta x + (1-\theta)y$
 is also in the set for all $\theta$ between 0 and 1.
-If $F$ is differentiable, it is convex if
-$F(y) \geq F(x) + \nabla F^T(y-x)$ where $\nabla F$ is the gradient of $F$
-and its domain is an open convex set.
+If $F$ is differentiable, it is convex if its domain is an open convex set and
+$F(y) \geq F(x) + \nabla F^T(y-x)$ where $\nabla F$ is the gradient of $F$.
 Put another way, $F$ is convex if its first-order Taylor approximations
 are always global underestimates of its true value.
 
