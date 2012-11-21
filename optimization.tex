@@ -1,7 +1,9 @@
 \section{Dynamic Optimization}
 
-%IV.	Dynamic Optimization%	a.	Gradient Descent w/ Backtracking Search
-%		i. boundary conditions clean up%	b.	Dealing with Fractional Results
+%IV.	Dynamic Optimization
+%	a.	Gradient Descent w/ Backtracking Search
+%		i. boundary conditions clean up
+%	b.	Dealing with Fractional Results
 
 \subsection*{On-line Response Time Modeling}
 
@@ -33,7 +35,8 @@ The elements of the result $w$ will be squares as well, and the 2-norm of the di
 \subsection*{Incremental Least Squares}
 
 As resource allocation continues, more measurements will become available to augment $t$ and $D$.
-Moreover, older data may become a poor representation of the current behavior of the process if its characteristics have changed, presumably as reflected in $Q^T\varepsilon$. .
+Moreover, older data may become a poor representation of the current behavior of the process if its characteristics have changed,
+presumably as reflected in $Q^T\varepsilon$.
 What is needed is a factorization $\tilde{Q}\tilde{R}$ of a new matrix $\tilde{D}$
 derived from $D$ by dropping a row, perhaps from the bottom,
 and adding a row, perhaps at the top.
@@ -66,7 +69,7 @@ Since $dd$ is below the diagonal of $R$ it initially will contain only zeros.
 It therefore suffices to rotate every non-$dd$ row with row $dd$, proceeding from bottom to top.
 The first $m - n - 1$ rotations will keep row $R_{dd,*}$ entirely zero,
 and the remaining $n$ rotations will introduce nonzeros in $R_{dd,*}$ from right to left.
-The effect on $R$ will be to replace zero elements by nonzero elements only in row $dd$.
+The effect on $R$ will be to replace zero elements by nonzero elements only within row $dd$.
 At this point, except for a possible difference in overall sign, $R_{dd,*} = D_{dd,*}$.
 
 Now the rows from the top down through $dd$ of the modified matrices $Q^Tt$ and $R$ and both the rows and columns of the new $Q^T$
@@ -109,35 +112,34 @@ These rotations are applied not just to $R$ $(= Q^T D)$ but also to $Q^Tt$ and o
 
 \subsection*{Non-negativity}
 
-The solution $w$ to $t \approx QRw$ must have no negative components to guarantee convexity of the response time model.
-If a resource allocation is associated with multiple $w_j$
-or if measured response time increases with the allocation,
+To guarantee convexity of the response time model, the solution $w$ to $t \approx QRw$ must have no negative components.
+If a resource allocation is associated with more than a single $w_j$
+or if measured response time increases with the allocation
 then negative $w_j$ may occur.
 
 The need for non-negative solutions to least-squares linear algebra problems is common,
 so much so that it has a name: \emph{Non-Negative Least Squares}, or NNLS.
-There are several well-known techniques \cite{ChPl},
+There are several well-known techniques\cite{ChPl},
 but since the method proposed here for online model maintenance calls for
 incremental downdates and updates to rows of $Q^T$, $Q^Tt$ and $R$,
 the NNLS problem is handled with a complementary scheme that
 downdates and updates the \emph{columns} of $R$ incrementally,
-somewhat in the style of Algorithm 3 in \cite{LuDu}.
-The scheme is too complex to be adequately described here.
+somewhat in the style of Algorithm~3 in~\cite{LuDu}.
+The scheme is too complex to be described here.
 
 \subsection*{Model Rank Preservation}
 
 If care is not taken in the allocation process,
 the rows of $R$ may become linearly dependent
 to such an extent that its rank is insufficient to determine $w$.
-This might be the result of repetitions in resource assignment updates,
-perhaps caused by small process response time fluctuations.
+This might be the result of repetitions in resource assignment updates.
 There are several possible ways to avoid this \emph{rank-deficiency} problem.
 The characteristics of $R$ depend on both the resource optimization trajectory and the
 choices made in the downdate-update algorithm.
 In particular, deciding whether to downdate the bottom row of $R$ or some ``younger'' row
 will depend on whether the result would become rank-deficient.
 This approach decouples allocation optimization from performance model maintenance
-and places responsibility upon the latter to always keep enough history to determine $w$.
+and places responsibility upon the latter to always keep enough history to determine a $w$.
 
 Deciding in advance whether downdating a row of $R$ will reduce its rank
 is equivalent to predicting whether one of the Givens rotations, when applied to $R$,
@@ -175,7 +177,7 @@ PACORA simply lets $g(i) = i$.
 The weighting factor for the $i$th row is then $\eta^{g(i)}$ where $\eta$ is a constant somewhat greater than 1.
 The candidate row to downdate is the row with the largest weighted error, \emph{i.e.}
 \begin{displaymath}
-dd = \arg\max_i \varepsilon_i \cdot \eta^{g(i)}
+dd = \arg\max_i |\varepsilon_i| \cdot \eta^{g(i)}
 \end{displaymath}
 
 \subsection*{Penalty Optimization}
@@ -184,7 +186,6 @@ Convex optimization is simplest when it is unconstrained.
 Extending the response time model functions to all of $\Re^n$
 moves the requirement that allocations must be positive into the objective function,
 and introducing Process 0 for slack resources turns the affine inequalities into equalities:
-
 \begin{eqnarray*}
 & \makebox[1in][r]{Minimize}   & \sum_{p\epsilon P} {\pi_p(\tau_p(a_{p,1}\ldots a_{p,n}))}  \\
 & \makebox[1in][r]{Subject to} & \sum_{p\epsilon P} a_{p,r} = A_r, r = 1,\ldots n           \\
@@ -194,13 +195,11 @@ The only remaining constraints are those on the $a_{p,r}$.
 These can be removed by letting the $a_{p,r}$ be unbounded above for $p \neq 0$
 and changing the domain of $\tau_0$  to be the whole resource allocation matrix.
 The definition of $\tau_0$ might take the form
-
 \begin{eqnarray*}
-\tau_0 &=& \sum_r d_r a_{0,r}     \\
-       &=& \sum_r d_r ( A_r - \sum_{p \neq 0} a_{p,r} )
+\tau_0 &=& \sum_r \Delta_r a_{0,r}     \\
+       &=& \sum_r \Delta_r ( A_r - \sum_{p \neq 0} a_{p,r} )
 \end{eqnarray*}
-
-where $d_r$ is the (constant) power dissipation associated with resource $r$.
+where $\Delta_r$ is the (constant) power dissipation associated with resource $r$.
 However,if any of the allocations $a_{0,r}$ is negative then $\tau_0$  should instead return the value $+\infty$.
 This modification of the objective function transforms the resource allocation problem
 to unconstrained convex optimization.
@@ -216,9 +215,9 @@ it means the penalty will be reduced by increasing the associated allocation if 
 The gradient search at the boundaries of the feasible region
 must ignore components that lead in infeasible directions;
 these can be detected by noting whether for some $p$ and $r$, $a_{p,r} = 0$ with $(-\nabla\pi)_{p,r} > 0$.
-In such cases, the associated step component should be set to zero.
+In such cases, the associated step component is set to zero.
 Since the only constraint is variable positivity
-then either the variable or its gradient component will be zero at a solution point; see \cite{BoVa}, page 142.
+then either the variable or its gradient component will be zero at a solution point; see~\cite{BoVa}, page~142.
 
 The rate of convergence of gradient descent depends on how well the sublevel sets of the objective function
 are conditioned (basically, how “spherical” they are).

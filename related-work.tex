@@ -50,8 +50,8 @@ Further cache partitioning work has focused on providing QoS guarantees to appli
 
 \subsection{Resource Allocation Frameworks}
 
-Guo et al. \cite{1331730} point out that most prior work is insufficient for true QoS -- merely partitioning hardware is not enough, because there must also be a way to specify performance targets and an admission control policy for jobs. 
-%They argue that targets should be expressed in terms of capacity requirements rather than rates.  
+Guo et al. \cite{1331730} point out that most prior work is insufficient for true QoS -- merely partitioning hardware is not enough, because there must also be a way to specify performance targets and an admission control policy for jobs.
+%They argue that targets should be expressed in terms of capacity requirements rather than rates.
 The framework they present incorporates a scheduler that supports multiple execution modes.
 
 Nesbit et al. \cite{1436097} introduce Virtual Private Machines (VPM), a framework for resource allocation and management in multicore systems. A VPM consists of a set of virtual hardware resources, both spatial (physical allocations) and temporal (scheduled time-slices).  Unlike traditional virtual machines that only virtualize resource functionality, VPMs virtualize a system's performance and power characteristics, meaning that a VPM has the same performance and power profile as a real machine with an equivalent set of hardware resources.
@@ -65,9 +65,9 @@ The VPM approach and terminology mesh well with our study, which can be seen as 
 \cite{genbrugge-isca07}
 \cite{merkel-eurosys08}
 
-Ganapathi et al. have had success using machine learning to model application performance and select the best perform- ing configuration in \cite{Archana}
+Ganapathi et al. have had success using machine learning to model application performance and select the best perform- ing configuration in \cite{Archana}.
 
-\cite{unc}
+Calandrino \emph{et al.}\cite{unc} use working set sizes to make co-scheduling decisions and enhance soft real-time behavior.
 
 \cite{1078411}
 utility functions
