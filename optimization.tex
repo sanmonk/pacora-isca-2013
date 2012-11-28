@@ -114,7 +114,7 @@ These rotations are applied not just to $R$ but also to $Q^Tt$ and of course to 
 \subsection*{Non-Negativity}
 
 To guarantee convexity of the response time model, the solution $w$ to $t \approx QRw$ must have no negative components.
-For example, when a resource is associated with more than a single $w_j$
+Intuitively, when a resource is associated with more than a single $w_j$
 or measured response time increases with allocation then negative $w_j$ may occur.
 
 A requirement for non-negative solutions to least-squares linear algebra problems is common,
@@ -123,7 +123,7 @@ There are several well-known techniques\cite{ChPl},
 but since the method proposed here for online model maintenance calls for
 incremental downdates and updates to rows of $Q^T$, $Q^Tt$ and $R$,
 the NNLS problem is handled with a complementary scheme
-based on the \emph{active-set} method that
+based on the \emph{active-set} method\cite{LaHa} that
 also downdates and updates the \emph{columns} of $R$ incrementally,
 roughly in the spirit of Algorithm~3 in~\cite{LuDu}.
 However, PACORA's algorithm cannot discard downdated columns of $R$
@@ -132,14 +132,42 @@ on these columns to allow their reintroduction via column updates as necessary.
 
 The active-set NNLS method is based on the idea that since the only constraints are variable positivity
 then for all components either the variable or its gradient will be zero at a solution point; see~\cite{BoVa}, page~142.
-The active set, denoted by $z$, comprises the column subscripts $j$ for which the variable $w_j$ is zero and the gradient is positive.
-If a column not currently in $z$ happens to acquire a negative value after a back-solve, it is zeroed, moved into $z$ and downdated in $R$
-(thereby making its gradient become positive rather than zero).
-Conversely, if a column in $z$ happens to acquire a negative gradient it is removed from $z$ and updated in $R$,
+The active set, denoted by $z$, comprises the column subscripts $j$ for which the variable $w_j$ is zero and the gradient $v_j$ is positive.
+If a column $j$ not currently in $z$ happens to acquire a negative $w_j$ after a back-solve, $w_j$ is zeroed,
+$j$ is moved into $z$ and column $j$ is downdated in $R$ (thereby making the gradient become positive there).
+Conversely, if a column in $z$ happens to acquire a negative gradient $v_j$ it is removed from $z$ and updated in $R$,
 allowing it to become positive as it reduces the objective function.
 The set $z$ is implemented as a bit vector.
 
-When a column $j$ is downdated in $R$ because $w_j < 0$ after a back-solve, $j$ is added to $z$ and $w_j$ is set to zero.
+A NNLS algorithm combining incremental row and column downdates and updates proceeds as follows:
+
+\begin{pseudocode}{IncrementalNNLS}{t_0,d_0}
+\LOCAL{w,v,Q^T,Q^Tt,R,z,prevz}                              \\
+Q^T,Q^Tt,R \GETS \textsc{DowndateRow}(Q^T,Q^Tt,R,z)         \\
+Q^T,Q^Tt,R \GETS \textsc{UpdateRow}(t_0,d_0,Q^T,Q^Tt,R,z)   \\
+w \GETS \textsc{BackSolve}(Q^Tt,R,z)                        \\
+v \GETS \textsc{ComputeGradient}(Q^Tt,R,z)                  \\
+\REPEAT     
+  prevz \GETS z                                             \\
+  \IF w_j < 0 \AND \not z_j \textbf{ for some }j \THEN
+  \BEGIN
+    Q^T,Q^Tt,R \GETS \textsc{DowndateCol}(j,Q^T,Q^Tt,R,z)   \\
+    z_j \GETS \TRUE                                         \\
+    w \GETS \textsc{BackSolve}(Q^Tt,R,z)                    \\
+    v \GETS \textsc{ComputeGradient}(Q^Tt,R,z)              \\
+  \END
+  \ELSEIF v_j < 0 \AND z_j \textbf{ for some }j \THEN
+  \BEGIN
+    Q^T,Q^Tt,R \GETS \textsc{UpdateCol}(j,Q^T,Q^Tt,R,z)     \\
+    z_j \GETS \FALSE                                        \\
+    w \GETS \textsc{BackSolve}(Q^Tt,R,z)                    \\
+    v \GETS \textsc{ComputeGradient}(Q^Tt,R,z)              \\
+  \END                                                      \\
+\UNTIL z = prevz                                            \\ 
+\RETURN{w,v}                                                \\     
+\end{pseudocode}
+ 
+When a column $j$ is downdated in $R$ because $w_j < 0$, $j$ is added to $z$ and $w_j$ is set to zero.
 The $j$th element of $Q^Tt$ now becomes a nonzero part of the error $-Q^T\varepsilon$.
 To reflect this last requirement, the $j$th row of $R$ must be cleared except for $R_{j,j}$ by performing
 a sequence of Givens rotations between $R_{j,*}$ and the rows $R_{k,*}$ for $k$ increasing from $j+1$ up to $n-1$.
@@ -149,19 +177,20 @@ The result is a ``spike'' of nonzeros in the column $R_{*,j}$ extending below th
 The loop that back-solves for $w$ contains a test that simply sets $w_j$ to zero if $z_j$ is true (\emph{i.e.} set).
 This measure leaves $w_j$ zero rather than setting it to $(Q^Tt)_j/R_{j,j}$ as would otherwise happen.
 
-Removals from $z$ are based on the gradient of the objective function, namely
+Removals from $z$ are based on the gradient $v$ of the objective function, namely
 \begin{eqnarray*}
-\nabla(1/2\|Dw - t\|^2_2)   &=& D^T(Dw - t)      \\
-                            &=& R^TQ^T(QRw - t)  \\
-                            &=& R^T(Rw - Q^Tt)   \\
-                            &=& -R^TQ^T\varepsilon.
+v &=& 1/2\nabla\|Dw - t\|^2_2 \\
+  &=& D^T(Dw - t)             \\
+  &=& R^TQ^T(QRw - t)         \\
+  &=& R^T(Rw - Q^Tt)          \\
+  &=& -R^TQ^T\varepsilon.
 \end{eqnarray*}
-If for some column $j$ in $z$ the inner product of the spike $R^T_{j,*}$ and $-Q^T\varepsilon$ is negative,
+If for some $v_j$ with $j$ in $z$ the inner product of the spike $R^T_{j,*}$ and $-Q^T\varepsilon$ is negative,
 $w_j$ must be permitted to increase and so column $j$ is removed from $z$ and updated in $R$.
 This update reverses the downdating steps by eliminating the spike below $R_{j,j}$
 via a sequence of Givens rotations between row $R_{j,*}$ and rows $R_{k,*}$ with $k$ decreasing down to $j+1$.
 As usual, the rotations are also applied to $Q^Tt$ and $Q^T$.
-A new back-solve for $w$ is clearly necessary after either downdates or updates to columns of $R$.
+A new gradient computation and new back-solve for $w$ is clearly necessary after either downdates or updates to columns of $R$.
 
 Downdates of \emph{rows} of $R$ in the presence of spikes in its columns present no special challenge
 as long as the bottom-to-top order of Givens rotations is maintained.
@@ -173,8 +202,6 @@ This keeps the row subscripts of elements of $z$ the same as before the row upda
 The spikes now extend one row lower than formerly even after all of the subdiagonals are eliminated,
 and additional row updates will extend them still further.  The result is that column updates may have a longer spike to eliminate,
 possibly extending upward from the bottom row of $R$.
-
-Pictures of  
 
 \subsection*{Model Rank Preservation}
 
