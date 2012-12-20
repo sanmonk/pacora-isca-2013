@@ -93,7 +93,7 @@ The following is the result:
    \end{array}\right] w
    \\
    \\
-   &+&
+   &-&
    \left[\begin{array}{cc}
       \pm1  &  0 \\
       0     &  \tilde{Q}^T
@@ -139,7 +139,8 @@ Conversely, if a column in $z$ happens to acquire a negative gradient $v_j$ it i
 allowing it to become positive as it reduces the objective function.
 The set $z$ is implemented as a bit vector.
 
-A NNLS algorithm combining incremental row and column downdates and updates proceeds as follows:
+After initial acquisition of data and $QR$ factorization, each step of PACORA's NNLS algorithm
+combines incremental row and column downdates and updates as follows:
 
 \begin{pseudocode}{IncrementalNNLS}{t_0,d_0}
 \LOCAL{w,v,Q^T,Q^Tt,R,z,prevz}                              \\
@@ -185,7 +186,7 @@ v &=& 1/2\nabla\|Dw - t\|^2_2 \\
   &=& R^T(Rw - Q^Tt)          \\
   &=& -R^TQ^T\varepsilon.
 \end{eqnarray*}
-If for some $v_j$ with $j$ in $z$ the inner product of the spike $R^T_{j,*}$ and $-Q^T\varepsilon$ is negative,
+If for some $j$ in $z$ the inner product $v_j$ of the spike $R^T_{j,*}$ and $-Q^T\varepsilon$ is negative,
 $w_j$ must be permitted to increase and so column $j$ is removed from $z$ and updated in $R$.
 This update reverses the downdating steps by eliminating the spike below $R_{j,j}$
 via a sequence of Givens rotations between row $R_{j,*}$ and rows $R_{k,*}$ with $k$ decreasing down to $j+1$.
