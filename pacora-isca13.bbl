@@ -65,8 +65,8 @@ S.~Boyd and L.~Vandenberghe, \emph{Convex Optimization}.\hskip 1em plus 0.5em
 
 \bibitem{unc}
 J.~M. Calandrino and J.~H. Anderson, ``On the design and implementation of a
-  cache-aware multicore real-time scheduler,'' \emph{Proceedings of the 21st
-  Euromicro Conference on Real-Time Systems, to appear. IEEE}, vol.~0, 2009.
+  cache-aware multicore real-time scheduler,'' in \emph{ECRTS}, 2009, pp.
+  194--204.
 
 \bibitem{1275005}
 J.~Chang and G.~S. Sohi, ``Cooperative cache partitioning for chip
@@ -80,8 +80,8 @@ D.~Chen and R.~J. Plemmons, ``Nonnegativity constraints in numerical
 
 \bibitem{1248396}
 S.~Chen \emph{et~al.}, ``Scheduling threads for constructive cache sharing on
-  cmps,'' in \emph{Proc. SPAA '07}.\hskip 1em plus 0.5em minus 0.4em\relax New
-  York, NY, USA: ACM, 2007, pp. 105--115.
+  {CMP}s,'' in \emph{Proc. SPAA '07}.\hskip 1em plus 0.5em minus 0.4em\relax
+  New York, NY, USA: ACM, 2007, pp. 105--115.
 
 \bibitem{1194858}
 S.~Cho and L.~Jin, ``Managing distributed, shared l2 caches through os-level
