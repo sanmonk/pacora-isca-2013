@@ -28,7 +28,7 @@ Two representative graphs of this type appear in Figures~\ref{f:pen1} and~\ref{f
 \hspace{\fill}
 \parbox{1.6in}{
 \includegraphics*{Penalty2.eps}
-\caption{\label{f:pen2}Penalty function without such a constraint.}
+\caption{\label{f:pen2}A penalty function with no response time constraint.}
 }
 \end{figure}
 
@@ -228,7 +228,7 @@ Finally, $\log (1/\log m)$ is convex because its second derivative is positive f
 Summing up, a response time function for a process might be modeled by the convex function
 \begin{eqnarray*}
 \tau(w,b,\alpha,m) &=& \sqrt[p]{\sum_j \left(\frac{w_j}{b_j\cdot\alpha_j(m_j)}\right)^p}  \\
-                   &=& \|d \cdot w \|_p
+                   &=& \|\mbox{diag} wd^T \|_p
 \end{eqnarray*}
 where the $w_j$ are the parameters of the model (the “quantities of work”) to be learned,
 the components of $d$ satisfy $d_j = 1/(b_j\cdot\alpha_j(m_j))$,

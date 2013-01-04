@@ -202,6 +202,10 @@ R.~Kumar \emph{et~al.}, ``Single-isa heterogeneous multi-core architectures for
 H.~T. Kung, ``Memory requirements for balanced computer architectures,'' in
   \emph{International Symposium on Computer Architecture}, 1986, pp. 49--54.
 
+\bibitem{LaHa}
+C.~L. Lawson and R.~J. Hanson, \emph{Solving Least Squares Problems}.\hskip 1em
+  plus 0.5em minus 0.4em\relax Englewood Cliffs, NJ: Prentice Hall, 1974.
+
 \bibitem{1382130}
 J.~W. Lee, M.~C. Ng, and K.~Asanovic, ``Globally-synchronized frames for
   guaranteed quality-of-service in on-chip networks,'' in \emph{Proc. ISCA

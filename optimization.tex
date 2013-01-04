@@ -13,24 +13,25 @@ where $t$ is a column vector of actual response times measured for the process
 and $D$ is a matrix whose ith row $D_{i,*}$ contains the reciprocals of the amplified bandwidth allocations
 that generated the corresponding response time measurement $t_i$.
 Estimating $w$ is relatively straightforward: a least-squares solution accomplished via
-\emph{Q-R factorization}\cite{GoVL} of $D$ will determine the $w$ that minimizes the \emph residual error $\|t - Dw\|_2 = \|\varepsilon\|_2$.
+\emph{Q-R factorization}\cite{GoVL} of $D$ will determine the $w$ that minimizes (half the)
+square of the \emph residual error $1/2 \|Dw - t\|^2_2 = 1/2 \|\varepsilon\|^2_2$.
 The solution proceeds as follows:
 \begin{eqnarray*}
-t    &=& Dw  + \varepsilon    \\
-        &=& QRw + \varepsilon    \\
-Q^Tt &=& Rw  + Q^T\varepsilon
+t     &=& Dw  - \varepsilon    \\
+      &=& QRw - \varepsilon    \\
+Q^Tt  &=& Rw  - Q^T\varepsilon
 \end{eqnarray*}
 
 It is not always necessary to materialize the orthogonal matrix $Q^T = Q^{-1}$;
 the individual elementary orthogonal transformations (Householder reflections or Givens rotations)
 that triangularize $R$ by progressively zeroing out partial columns of $D$ can simultaneously be applied to $t$.
-The elements of the resulting vector $Q^Tt$ that correspond to zero rows in $R$ comprise $Q^T\varepsilon$.
+The elements of the resulting vector $Q^Tt$ that correspond to zero rows in $R$ comprise $-Q^T\varepsilon$.
 Since $Rw$ exactly equals the upper part of $Q^Tt$, the upper part of $Q^T\varepsilon$ is zero. The residual error for the $t_i$
 can be found by premultiplying $Q^T\varepsilon$ by $Q$.
 
 Suppose a different model norm $p$ is desired.  If $p = 2$, we might first square each measurement in $t$
 and each reciprocal bandwidth term in $D$ and then follow the foregoing procedure.
-The elements of the result $w$ will be squares as well, and the 2-norm of the difference in the squared quantities will be minimized.  This is not the same as minimizing the 4-norm; what is being minimized is $\|t^2 - D^2w^2\|_2$.
+The elements of the result $w$ will be squares as well, and the 2-norm of the difference in the squared quantities will be minimized.  This is not the same as minimizing the 4-norm; what is being minimized is $1/2\|\mbox{diag}(Dww^TD^T - tt^T)\|^2_2$.
 
 \subsection*{Incremental Least Squares}
 
@@ -54,27 +55,27 @@ will be maintained at twice the number of columns $n$.
 Rows selected for downdating will always be in the lower $m - n$ rows of $R$,
 guaranteeing that the most recent $n$ updates are always part of the model.
 
-Downdating makes an instructive example. A downdate applies
+Downdating makes an instructive example. A row downdate operation applies
 a sequence of Givens rotations to the rows of $Q^T$.
 The rotations are calculated to set every $Q^T_{i,dd}$, $i \neq dd$ to zero.
 In the end only the diagonal element $Q^T_{dd,dd}$ of column $dd$ will be nonzero.
-Since $Q^T$ is still orthogonal, the non-diagonal elements of row $dd$ must also be zero
+Since $Q^T$ remains orthogonal, the non-diagonal elements of row $dd$ will also have been zeroed automatically
 and the diagonal element will have absolute value 1.
 These same rotations are concurrently applied to the elements of $Q^T t$ and to the rows of $R$ $(= Q^T D)$
 to reflect the effect that these transformations had on $Q^T$.
 
-It is crucial to select the row pairs and the order of rotations that will
-preserve the upper triangular structure of $R$ while zeroing almost all of a column of $Q^T$.
-Since $dd$ is below the diagonal of $R$ it initially will contain only zeros.
-It therefore suffices to rotate every non-$dd$ row with row $dd$, proceeding from bottom to top.
+It is crucial to select pairs of rows and an order of rotations that preserves the upper triangular structure of $R$
+while zeroing all but the diagonal entry of the chosen column $dd$ of $Q^T$.
+Since $dd$ is always below the diagonal of $R$ it initially will contain only zeros.
+It is therefore sufficient to rotate every non-$dd$ row with row $dd$, proceeding from bottom to top.
 The first $m - n - 1$ rotations will keep row $R_{dd,*}$ entirely zero,
 and the remaining $n$ rotations will introduce nonzeros in $R_{dd,*}$ from right to left.
 The effect on $R$ will be to replace zero elements by nonzero elements only within row $dd$.
 At this point, except for a possible difference in overall sign, $R_{dd,*} = D_{dd,*}$.
 
-Now the rows from the top down through $dd$ of the modified matrices $Q^Tt$ and $R$ and both the rows and columns of the new $Q^T$
-are circularly shifted one position down, moving row $dd$ to the top (and column $dd$ of $Q^T$ to the left edge).
-The following picture is the result:
+Now the rows from 0 down through $dd$ of the modified matrices $Q^Tt$ and $R$ and both the rows and columns of the modified $Q^T$
+are circularly shifted by one position, moving row $dd$ to the top (and column $dd$ of $Q^T$ to the left edge).
+The following is the result:
 \begin{displaymath}
 \begin{array}{lll}
     \left[\begin{array}{cc}
@@ -92,7 +93,7 @@ The following picture is the result:
    \end{array}\right] w
    \\
    \\
-   &+&
+   &-&
    \left[\begin{array}{cc}
       \pm1  &  0 \\
       0     &  \tilde{Q}^T
@@ -105,27 +106,103 @@ The following picture is the result:
 \end{displaymath}
 The top row has thus been decoupled from the rest of the factorization and may either be deleted or updated with new data.
 
-The update process more or less reverses these steps, adding a new top row to R and $t$ and a row and column to $Q^T$.
+The update process more or less reverses these steps, adding a new top row to $R$ and $t$ and a row and column to $Q^T$.
 Then $R$ is made upper triangular once more by a sequence of Givens rotations that zero its sub-diagonal elements
 (formerly the diagonal elements of $\tilde{R}$).
-These rotations are applied not just to $R$ $(= Q^T D)$ but also to $Q^Tt$ and of course to $Q^T$ itself.
+These rotations are applied not just to $R$ but also to $Q^Tt$ and of course to $Q^T$ itself.
 
-\subsection*{Non-negativity}
+\subsection*{Non-Negativity}
 
 To guarantee convexity of the response time model, the solution $w$ to $t \approx QRw$ must have no negative components.
-If a resource allocation is associated with more than a single $w_j$
-or if measured response time increases with the allocation
-then negative $w_j$ may occur.
+Intuitively, when a resource is associated with more than a single $w_j$
+or measured response time increases with allocation then negative $w_j$ may occur.
 
-The need for non-negative solutions to least-squares linear algebra problems is common,
-so much so that it has a name: \emph{Non-Negative Least Squares}, or NNLS.
+A requirement for non-negative solutions to least-squares linear algebra problems is common,
+so much so that it has a name: \emph{Non Negative Least Squares}, or NNLS.
 There are several well-known techniques\cite{ChPl},
 but since the method proposed here for online model maintenance calls for
 incremental downdates and updates to rows of $Q^T$, $Q^Tt$ and $R$,
-the NNLS problem is handled with a complementary scheme that
-downdates and updates the \emph{columns} of $R$ incrementally,
-somewhat in the style of Algorithm~3 in~\cite{LuDu}.
-The scheme is too complex to be described here.
+the NNLS problem is handled with a complementary scheme
+based on the \emph{active-set} method\cite{LaHa} that
+also downdates and updates the \emph{columns} of $R$ incrementally,
+roughly in the spirit of Algorithm~3 in~\cite{LuDu}.
+However, PACORA's algorithm cannot discard downdated columns of $R$
+because subsequent \emph{row} updates and downdates must have due effect
+on these columns to allow their reintroduction via column updates as necessary.
+
+The active-set NNLS method is based on the idea that since the only constraints are variable positivity
+then for all components either the variable or its gradient will be zero at a solution point; see~\cite{BoVa}, page~142.
+The active set, denoted by $z$, comprises the column subscripts $j$ for which the variable $w_j$ is zero and the gradient $v_j$ is positive.
+If a column $j$ not currently in $z$ happens to acquire a negative $w_j$ after a back-solve, $w_j$ is zeroed,
+$j$ is moved into $z$ and column $j$ is downdated in $R$ (thereby making the gradient become positive there).
+Conversely, if a column in $z$ happens to acquire a negative gradient $v_j$ it is removed from $z$ and updated in $R$,
+allowing it to become positive as it reduces the objective function.
+The set $z$ is implemented as a bit vector.
+
+After initial acquisition of data and $QR$ factorization, each step of PACORA's NNLS algorithm
+combines incremental row and column downdates and updates as follows:
+
+\begin{pseudocode}{IncrementalNNLS}{t_0,d_0}
+\LOCAL{w,v,Q^T,Q^Tt,R,z,prevz}                              \\
+Q^T,Q^Tt,R \GETS \textsc{DowndateRow}(Q^T,Q^Tt,R,z)         \\
+Q^T,Q^Tt,R \GETS \textsc{UpdateRow}(t_0,d_0,Q^T,Q^Tt,R,z)   \\
+w \GETS \textsc{BackSolve}(Q^Tt,R,z)                        \\
+v \GETS \textsc{ComputeGradient}(Q^Tt,R,z)                  \\
+\REPEAT     
+  prevz \GETS z                                             \\
+  \IF w_j < 0 \AND \not z_j \textbf{ for some }j \THEN
+  \BEGIN
+    Q^T,Q^Tt,R \GETS \textsc{DowndateCol}(j,Q^T,Q^Tt,R,z)   \\
+    z_j \GETS \TRUE                                         \\
+    w \GETS \textsc{BackSolve}(Q^Tt,R,z)                    \\
+    v \GETS \textsc{ComputeGradient}(Q^Tt,R,z)              \\
+  \END
+  \ELSEIF v_j < 0 \AND z_j \textbf{ for some }j \THEN
+  \BEGIN
+    Q^T,Q^Tt,R \GETS \textsc{UpdateCol}(j,Q^T,Q^Tt,R,z)     \\
+    z_j \GETS \FALSE                                        \\
+    w \GETS \textsc{BackSolve}(Q^Tt,R,z)                    \\
+    v \GETS \textsc{ComputeGradient}(Q^Tt,R,z)              \\
+  \END                                                      \\
+\UNTIL z = prevz                                            \\ 
+\RETURN{w,v}                                                \\     
+\end{pseudocode}
+ 
+When a column $j$ is downdated in $R$ because $w_j < 0$, $j$ is added to $z$ and $w_j$ is set to zero.
+The $j$th element of $Q^Tt$ now becomes a nonzero part of the error $-Q^T\varepsilon$.
+To reflect this last requirement, the $j$th row of $R$ must be cleared except for $R_{j,j}$ by performing
+a sequence of Givens rotations between $R_{j,*}$ and the rows $R_{k,*}$ for $k$ increasing from $j+1$ up to $n-1$.
+As usual, these rotations are also applied to $Q^Tt$ (adjusting the error in its $j$th element) and to $Q^T$ itself.
+In effect, these rotations remove $j$ from the upper triangle of $R$.
+The result is a ``spike'' of nonzeros in the column $R_{*,j}$ extending below the diagonal to row $n-1$.
+The loop that back-solves for $w$ contains a test that simply sets $w_j$ to zero if $z_j$ is true (\emph{i.e.} set).
+This measure leaves $w_j$ zero rather than setting it to $(Q^Tt)_j/R_{j,j}$ as would otherwise happen.
+
+Removals from $z$ are based on the gradient $v$ of the objective function, namely
+\begin{eqnarray*}
+v &=& 1/2\nabla\|Dw - t\|^2_2 \\
+  &=& D^T(Dw - t)             \\
+  &=& R^TQ^T(QRw - t)         \\
+  &=& R^T(Rw - Q^Tt)          \\
+  &=& -R^TQ^T\varepsilon.
+\end{eqnarray*}
+If for some $j$ in $z$ the inner product $v_j$ of the spike $R^T_{j,*}$ and $-Q^T\varepsilon$ is negative,
+$w_j$ must be permitted to increase and so column $j$ is removed from $z$ and updated in $R$.
+This update reverses the downdating steps by eliminating the spike below $R_{j,j}$
+via a sequence of Givens rotations between row $R_{j,*}$ and rows $R_{k,*}$ with $k$ decreasing down to $j+1$.
+As usual, the rotations are also applied to $Q^Tt$ and $Q^T$.
+A new gradient computation and new back-solve for $w$ is clearly necessary after either downdates or updates to columns of $R$.
+
+Downdates of \emph{rows} of $R$ in the presence of spikes in its columns present no special challenge
+as long as the bottom-to-top order of Givens rotations is maintained.
+Row updating in the presence of nonempty $z$ and column spikes is somewhat more challenging.
+The downdated columns are associated with row subscripts as well because of the essentially triangular nature of $R$.
+To keep these elements in place, the rotations that remove the sub-diagonal nonzeros in row-updating $R$
+are made to be full exchanges (a rotation with cosine = -1) when the affected column is in $z$.
+This keeps the row subscripts of elements of $z$ the same as before the row update and does not zero the sub-diagonal at the spike.
+The spikes now extend one row lower than formerly even after all of the subdiagonals are eliminated,
+and additional row updates will extend them still further.  The result is that column updates may have a longer spike to eliminate,
+possibly extending upward from the bottom row of $R$.
 
 \subsection*{Model Rank Preservation}
 
@@ -216,8 +293,6 @@ The gradient search at the boundaries of the feasible region
 must ignore components that lead in infeasible directions;
 these can be detected by noting whether for some $p$ and $r$, $a_{p,r} = 0$ with $(-\nabla\pi)_{p,r} > 0$.
 In such cases, the associated step component is set to zero.
-Since the only constraint is variable positivity
-then either the variable or its gradient component will be zero at a solution point; see~\cite{BoVa}, page~142.
 
 The rate of convergence of gradient descent depends on how well the sublevel sets of the objective function
 are conditioned (basically, how “spherical” they are).
