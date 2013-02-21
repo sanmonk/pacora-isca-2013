@@ -24,7 +24,7 @@
 %			4.	Measure Energy
 %		ii.	Video, Animation, and Throughput Applications w/o phase changes
 %			1.	Show throughput and missed deadlines for all the possible mixes
-%			2.	Is it possible to show optimal?  
+%			2.	Is it possible to show optimal?
 %			3.	What is the baseline?
 %		iii.	Video, Animation, and Throughput Applications w/ phase changes
 %			1.	Show throughput and missed deadlines for all the possible mixes
@@ -79,7 +79,7 @@ of the assigned ways according to the updated allocation
 configuration.
 
 We use a customized BIOS that enables the cache partitioning
-mechanism, 
+mechanism,
 
 To measure on-chip energy, we use the energy counters available on
 Sandy Bridge to collect the energy used by the entire socket and also
@@ -100,7 +100,7 @@ access various performance-monitoring counters available on the
 machine~\cite{Intel:Manual2012}.
 
 We access these counters using the Running Average Power Limit
-(RAPL) interfaces~\cite{Intel:Manual2012}.  
+(RAPL) interfaces~\cite{Intel:Manual2012}.
 
 \subsection{Description of Workloads}
 
@@ -175,15 +175,15 @@ grid~\cite{Kamil:Stencilprobe}.
 
 \begin{figure*}[!t]
 	\begin{center}	
-		\includegraphics[width=\textwidth]{model_accuracy.pdf}
+%		\includegraphics[width=\textwidth]{model_accuracy.pdf}
 		\caption{L1 Norm of Relative Error of Response-Time model predicted runtime vs. actual runtime.  Data is from 3 complete trials.}
 		\label{fig:model_accuracy}
 	\end{center}
 \end{figure*}
 \begin{figure*}[!t]
 	\begin{center}	
-		\includegraphics[width=.45\textwidth]{cluster_decision_accuracy.pdf}
-		\includegraphics[width=.45\textwidth]{parsec_decision_accuracy.pdf}
+%		\includegraphics[width=.45\textwidth]{cluster_decision_accuracy.pdf}
+%		\includegraphics[width=.45\textwidth]{parsec_decision_accuracy.pdf}
 		\caption{}
 		\label{fig:model_accuracy}
 	\end{center}
@@ -193,8 +193,8 @@ grid~\cite{Kamil:Stencilprobe}.
 \subsection{Resource Allocation Decisions}
 \begin{figure*}[!t]
 	\begin{center}	
-		\includegraphics[width=.45\textwidth]{cluster_decision_points.pdf}
-		\includegraphics[width=.45\textwidth]{parsec_decision_points.pdf}
+%		\includegraphics[width=.45\textwidth]{cluster_decision_points.pdf}
+%		\includegraphics[width=.45\textwidth]{parsec_decision_points.pdf}
 		\caption{}
 		\label{fig:model_accuracy}
 	\end{center}
@@ -204,8 +204,8 @@ grid~\cite{Kamil:Stencilprobe}.
 
 %In addition, we use a FitPC external multimeter to measure the power
 %consumed at the wall socket by the entire system, at a
-%\wunits{1}{second} granularity.  
-%%Total system power is generally between \wunits{185}{W} and \wunits{240}{W}.  
+%\wunits{1}{second} granularity.
+%%Total system power is generally between \wunits{185}{W} and \wunits{240}{W}.
 %The system-level values
 %are correlated with data collected from the hardware energy counters
 %using time stamps.  We observed less than one second of delay in these
