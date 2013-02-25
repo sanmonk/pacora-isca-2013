@@ -16,7 +16,7 @@ can be implemented by assigning values to a few well-understood parameters.
 As a process grows or diminishes in importance, its penalty function can be modified accordingly.
 In a client operating system,the instantaneous management of penalty function modifications
 should be highly automated by the system to avoid unduly burdening the user.
-PACORA's penalty functions are non-decreasing piecewise linear functions of the form
+\pacora's penalty functions are non-decreasing piecewise linear functions of the form
 $\pi(\tau) = \max(0, s(\tau - d)$.
 Two representative graphs of this type appear in Figures~\ref{f:pen1} and~\ref{f:pen2}.
 
@@ -56,7 +56,7 @@ this is a plausible requirement akin to the proverbial ``Law of Diminishing Retu
 
 Besides the value of the response time function, its gradient or an approximation to it is useful to estimate the relative response time improvement from each type of resource.  A user-level runtime scheduler that schedules work internal to the process may be a good source of data.
 Additionally, the resource manager can allocate a modest amount of a resource and measure the change in response time.
-Instead of these, PACORA maintains a parameterized analytic response time model with the partial derivatives evaluated from the model \emph{a priori}.
+Instead of these, \pacora maintains a parameterized analytic response time model with the partial derivatives evaluated from the model \emph{a priori}.
 
 There are examples of response time versus resource behavior that violate convexity.  One such example sometimes occurs in memory allocation, where “plateaus” can sometimes be seen as in Figure~\ref{f:plat}.
 \begin{figure}[b]
@@ -90,14 +90,14 @@ Another idea is to use additional constraints to explore convex sub-domains of $
 For example,the affine constraint $a_{p,r} - \mu \leq 0$ excludes process $p$ from any assignment of resource $r$ exceeding $\mu$.  Similarly, $\mu - a_{p,r} \leq 0$ exludes the opposite possibility.
 A binary (or even linear)search of such sub-domains could be used to find the optimal value.
 
-PACORA adopts a simpler idea, modeling response times by functions that are convex by construction
+\pacora adopts a simpler idea, modeling response times by functions that are convex by construction
 and do not distort response time behavior too much.  This approach is developed more fully below.
 
 \subsection*{Power and Battery Energy}
 
 It is useful to designate a ``process'' to receive allocations of all resources
 that are not used elsewhere and are therefore to be powered off if possible.
-In PACORA, process 0 plays this role.
+In \pacora, process 0 plays this role.
 The ``response time'' for process 0, $\tau_0$,
 is artificially defined to be the total system power consumption.
 This response function is affine and monotone nonincreasing in its arguments $a_{0,r}$.

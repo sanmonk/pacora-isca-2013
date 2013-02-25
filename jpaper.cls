@@ -64,7 +64,7 @@
 \setlength{\droptitle}{-3.5em}
 
 \pretitle{\begin{center}\vspace{-.5in}
-ISCA Submission \#\iscasubmissionnumber -- Confidential Draft -- Do Not Distribute!!\\
+%ISCA Submission \#\iscasubmissionnumber -- Confidential Draft -- Do Not Distribute!!\\
 \vspace{.35in}
 \normalfont\Large\bfseries}
 \posttitle{\par\end{center}}
