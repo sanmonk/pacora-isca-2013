@@ -1,24 +1,39 @@
 \section{Related Work}
 
-Resource Allocation for Autonomic Data Centers using Analytic Performance Models
-	\cite{1078472}
-	
-Autonomic QoS-aware resource management in grid computing using online performance models
-	\cite{1345325}
+%Resource Allocation for Autonomic Data Centers using Analytic Performance Models
+%	\cite{1078472}
+%	
+%Autonomic QoS-aware resource management in grid computing using online performance models
+%	\cite{1345325}
+%
+%On the use of hybrid reinforcement learning for autonomic resource allocation
+%\cite{1285843}
+%	
+%Utility-Function-Driven Resource Allocation in Autonomic Systems
+%\cite{1078493}
+%
+In much of the autonomic system work\cite{1078472,1078493,1285843,1345325}
+the performance models are not learned from on-line measurement but are
+interpolated from tables or are analytic functions based on queueing theory.
+The utility functions typically map the number of servers each environment receives
+to its performance relative to its required SLA.
+A central arbiter maximizes total utility. The utility functions are not necessarily concave,
+so reinforcement learning or combinatorial search is used by the arbiter to make allocations. .
 
-On the use of hybrid reinforcement learning for autonomic resource allocation
-\cite{1285843}
-	
-Utility-Function-Driven Resource Allocation in Autonomic Systems
-\cite{1078493}
-
-Redline: First Class Support for Interactivity in Commodity OSs \cite{Redline}
-Paper presented in OSDI'08.
+%Redline: First Class Support for Interactivity in Commodity OSs \cite{Redline}
+%Paper presented in OSDI'08.
+%
+In the Redline system\cite{Redline}, compact resource requirement specifications are written by hand to guarantee response times.
+Isolation of resources is strong, as in this work.  Scheduling is Earliest-Deadline-First.
+Admission control is lenient but oversubscription situations are remedied by deadmitting non-interactive applications.
 
 AcOS: an Autonomic Management Layer Enhancing Commodity Operating Systems \cite{AcOS}
 Work at the Politecnico di Milano, Italy.
 Master Thesis
 Paper and slides at the CHANGE 2012 Workshop (DAC)
+
+Hardware thread-centric maintenance of ``Heart Rate'' targets using adaptive reinforcement learning techniques.
+AcOS also senses thermal conditions and can exploit DVFS.
 
 Metronome: OS Level Performance Management via Self Adaptive Computing \cite{Metronome}
 Work related to AcOS, done by people from the Politecnico di Milano (Italy), MIT and Harvard.
