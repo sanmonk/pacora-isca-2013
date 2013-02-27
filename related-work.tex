@@ -52,8 +52,15 @@ Jockey does not optimize total utility but simply increases processors until uti
 \emph{i.e.} each deadline is met.
 A fairly sophisticated control loop prevents oscillatory behavior.
 
-Automatic Exploration of Datacenter Performance Regimes
-\cite{bodik-acdc09}
+%Automatic Exploration of Datacenter Performance Regimes
+%\cite{bodik-acdc09}
+%
+Bodik \emph{et al.}\cite{bodik-acdc09} is also like \pacora in that it builds on-line performance models.
+Initially, it uses an \emph{exploration policy} that avoids nearly all SLA violations while it builds the model;
+later, it shifts to a controller based on the model it has built.
+The models are statistical, and bootstrapping is used to estimate performance variance.
+Major changes in the application model are detected and cause model exploration to resume.
+The models are not convex or concave in general, and all SLAs must be met with high probability.
 
 %A resource allocation model for QoS management
 %\cite{828990}
