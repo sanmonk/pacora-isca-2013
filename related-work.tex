@@ -67,13 +67,12 @@ The models are not convex or concave in general, and all SLAs must be met with h
 %
 Rajkumar \emph{et al.}\cite{828990} propose a system Q-RAM that maximizes the weighted sum of utility functions,
 each of which is a function of the resource allocation to the associated application.
-The definitions of the utility functions are assumed as input to the system rather than being discovered by it.
+Unlike \pacora, there is no distinction between performance and utility, and
+the utility functions are assumed as input rather than being discovered by the system.
 They are always nondecreasing in every resource and sometimes are piecewise-linear and concave;
-in these cases the optimal allocation is easily found by a trivial gradient ascent.
+in these cases the optimal allocation is easily found by a form of gradient ascent.
 When the utility functions are not concave, a suboptimal greedy algorithm is proposed.
 
-CQoS: a framework for enabling QoS in shared caches of CMP platforms
-\cite{1006246}
 
 \subsection{Partitioning Mechanisms}
 \label{sec:rel:pm}
@@ -84,6 +83,12 @@ Utility-Based Cache Partitioning: A Low-Overhead, High-Performance, Runtime Mech
 Most hardware partitioning mechanism work has looked at shared cache structures and provided mechanisms to partition them according to a varied set of goals.  Suh et al. \cite{876484, 967444} and Qureshi and Patt \cite{1194855} monitor individual applications' cache performance and use this monitoring to inform their partitioning mechanism in an attempt to reduce the total amount of cache misses and off-chip memory traffic. A wide variety of proposals exist for multicore last-level cache structures that partition the spatial resources between private and shared data, in an attempt to create a manageable trade-off between capacity for shared data and low latency for private data \cite{1275005,1194858,1318096,1088154,1399973,1069998,1399982}.
 
 Further cache partitioning work has focused on providing QoS guarantees to applications. Early work focused on providing adaptive, fair policies that ensure equal performance degradation \cite{605420,1086328}, while more recent proposals have incorporated more sophisticated policy management \cite{1241608,1331730,1152161,1254886}. Other partitioning work has focused on interconnect bandwidth QoS \cite{1382130} or partitioning cache capacity and bandwidth simultaneously \cite{1250671}. In general, these papers focus on designing and proving the effectiveness of particular mechanisms for particular goals, without a concrete notion of a general framework in which a variety of application-specific QoS requirements can be communicated to an all-purpose resource allocator and scheduler.
+%CQoS: a framework for enabling QoS in shared caches of CMP platforms
+%\cite{1006246}
+%
+For example, Iyer\cite{1006246} suggests a priority-based cache QoS framework, CQoS, for shared cache way-partitioning.
+The priorities might be specified per core, per application, per memory type, or even per memory reference.
+Simultaneous achievement of performance targets is not addressed.
 
 \subsection{Resource Allocation Frameworks}
 
@@ -102,15 +107,24 @@ The VPM approach and terminology mesh well with our study, which can be seen as 
 \cite{genbrugge-isca07}
 \cite{merkel-eurosys08}
 
-Ganapathi et al. have had success using machine learning to model application performance and select the best perform- ing configuration in \cite{Archana}.
+Ganapathi et al. have had success using machine learning to model application performance and select the best performing configuration in \cite{Archana}.
 
 Calandrino \emph{et al.}\cite{unc} use working set sizes to make co-scheduling decisions and enhance soft real-time behavior.
 
-\cite{1078411}
-utility functions
+%\cite{1078411}
+%utility functions
+%
+Walsh \emph{et al.}\cite{1078411} note the importance of basing utility functions
+on the metrics in which QoS is expressed rather than on the quantities of raw resources.
+Each application has a manager that manages the set of resources given to it by a global arbiter.
+There are other philosophical similarities to \pacora,
+but since the objective function is neither continuous nor convex the optimization problem is difficult.
 
 \cite{1380585,975344,wasserman-book}
 
 
-Scheduling threads for constructive cache sharing on CMPs
-\cite{1248396}
+%Scheduling threads for constructive cache sharing on CMPs
+%\cite{1248396}
+%
+Chen \emph{et al.} propose parallel depth-first thread scheduling as an alternative to work-stealing for constructive cache sharing.
+The paper discusses the automation of task granularity selection to match cache capacity. This kind of tuning is particularly appropriate for a user-level runtime system. 
