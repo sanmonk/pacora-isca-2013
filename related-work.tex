@@ -1,5 +1,6 @@
 \section{Related Work}
 
+\subsection{Autonomic Systems}
 %Resource Allocation for Autonomic Data Centers using Analytic Performance Models
 %	\cite{1078472}
 %	
@@ -12,20 +13,21 @@
 %Utility-Function-Driven Resource Allocation in Autonomic Systems
 %\cite{1078493}
 %
-In much of the autonomic system work\cite{1078472,1078493,1285843,1345325}
-the performance models are not learned from on-line measurement but are
-interpolated from tables or are analytic functions based on queueing theory.
-The utility functions typically map the number of servers each environment receives
-to its performance relative to its required SLA.
+In much of this research area\cite{1078472,1078493,1285843,1345325}
+the performance models are derived from off-line measurements and are either
+interpolations from tables or analytic functions based on queueing theory.
+The utility functions typically map the number of servers each execution environment receives
+to its performance relative to its requirements, which may be multiple.
 A central arbiter maximizes total utility. The utility functions are not necessarily concave,
-so reinforcement learning or combinatorial search is used by the arbiter to make allocations. .
-
-%Redline: First Class Support for Interactivity in Commodity OSs \cite{Redline}
-%Paper presented in OSDI'08.
+so the arbiter must use reinforcement learning or combinatorial search to make allocations.
+%\cite{1078411}
+%utility functions
 %
-In the Redline system\cite{Redline}, compact resource requirement specifications are written by hand to guarantee response times.
-Isolation of resources is strong, as in this work.  Scheduling is Earliest-Deadline-First.
-Admission control is lenient but oversubscription situations are remedied by deadmitting non-interactive applications.
+Walsh \emph{et al.}\cite{1078411} note the importance of basing utility functions
+on the metrics in which QoS is expressed rather than on the raw quantities of resources.
+Each application has a manager that schedules the resources given to it by a global arbiter.
+There are other philosophical similarities to \pacora,
+but since the objective functions are neither continuous nor convex their optimization is difficult.
 
 %AcOS: an Autonomic Management Layer Enhancing Commodity Operating Systems \cite{AcOS}
 %Work at the Politecnico di Milano, Italy.
@@ -40,8 +42,32 @@ The related systems AcOS\cite{AcOS} and Metronome\cite{Metronome} feature hardwa
 targets using adaptive reinforcement learning techniques.
 AcOS also senses thermal conditions and can exploit Dynamic Voltage and Frequency Scaling (DVFS).
 
+A survey of autonomic systems research appears in \cite{1380585}.
+
+\subsection{Soft Real-Time and SLAs}
+Soft real-time systems typically modify an existing operating system to improve responsiveness.
+Calandrino \emph{et al.}\cite{unc} use working set sizes to make co-scheduling decisions and enhance soft real-time behavior.
+
+%A resource allocation model for QoS management
+%\cite{828990}
+%
+Rajkumar \emph{et al.}\cite{828990} propose a system Q-RAM that maximizes the weighted sum of utility functions,
+each of which is a function of the resource allocation to the associated application.
+Unlike \pacora, there is no distinction between performance and utility, and
+the utility functions are assumed as input rather than being discovered by the system.
+They are always nondecreasing in every resource and sometimes are piecewise-linear and concave;
+in these cases the optimal allocation is easily found by a form of gradient ascent.
+When the utility functions are not concave, a suboptimal greedy algorithm is proposed.
+
+%Redline: First Class Support for Interactivity in Commodity OSs \cite{Redline}
+%Paper presented in OSDI'08.
+%
+In the Redline system\cite{Redline}, compact resource requirement specifications are written by hand to guarantee response times.
+Isolation of resources is strong, as in \pacora.  Scheduling is Earliest-Deadline-First.
+Admission control is lenient but oversubscription situations are remedied by de-admitting some of the non-interactive applications.
 %Jockey: Guaranteed Job Latency in Data Parallel Clusters \cite{Jockey}
 %Work from Microsoft about the system they built on top of their Cosomos cluster (Dryad???)
+
 %Discusses how they do the dynamic resource allocation for jobs running in a cluster
 %Paper from Eurosys 2012
 %
@@ -62,25 +88,13 @@ The models are statistical, and bootstrapping is used to estimate performance va
 Major changes in the application model are detected and cause model exploration to resume.
 The models are not convex or concave in general, and all SLAs must be met with high probability.
 
-%A resource allocation model for QoS management
-%\cite{828990}
-%
-Rajkumar \emph{et al.}\cite{828990} propose a system Q-RAM that maximizes the weighted sum of utility functions,
-each of which is a function of the resource allocation to the associated application.
-Unlike \pacora, there is no distinction between performance and utility, and
-the utility functions are assumed as input rather than being discovered by the system.
-They are always nondecreasing in every resource and sometimes are piecewise-linear and concave;
-in these cases the optimal allocation is easily found by a form of gradient ascent.
-When the utility functions are not concave, a suboptimal greedy algorithm is proposed.
-
-
 \subsection{Partitioning Mechanisms}
 \label{sec:rel:pm}
 
-Utility-Based Cache Partitioning: A Low-Overhead, High-Performance, Runtime Mechanism to Partition Shared Caches
-\cite{1194855}
-
-Most hardware partitioning mechanism work has looked at shared cache structures and provided mechanisms to partition them according to a varied set of goals.  Suh et al. \cite{876484, 967444} and Qureshi and Patt \cite{1194855} monitor individual applications' cache performance and use this monitoring to inform their partitioning mechanism in an attempt to reduce the total amount of cache misses and off-chip memory traffic. A wide variety of proposals exist for multicore last-level cache structures that partition the spatial resources between private and shared data, in an attempt to create a manageable trade-off between capacity for shared data and low latency for private data \cite{1275005,1194858,1318096,1088154,1399973,1069998,1399982}.
+%Utility-Based Cache Partitioning: A Low-Overhead, High-Performance, Runtime Mechanism to Partition Shared Caches
+%\cite{1194855}
+%
+Most hardware partitioning mechanism work has looked at shared cache structures and provided mechanisms to partition them according to a varied set of goals.  Suh \emph{et al.}\cite{876484, 967444} and Qureshi and Patt \cite{1194855} monitor individual applications' cache performance and use this monitoring to inform their partitioning mechanism in an attempt to reduce the total amount of cache misses and off-chip memory traffic. A wide variety of proposals exist for multicore last-level cache structures that partition the spatial resources between private and shared data, in an attempt to create a manageable trade-off between capacity for shared data and low latency for private data \cite{1275005,1194858,1318096,1088154,1399973,1069998,1399982}.
 
 Further cache partitioning work has focused on providing QoS guarantees to applications. Early work focused on providing adaptive, fair policies that ensure equal performance degradation \cite{605420,1086328}, while more recent proposals have incorporated more sophisticated policy management \cite{1241608,1331730,1152161,1254886}. Other partitioning work has focused on interconnect bandwidth QoS \cite{1382130} or partitioning cache capacity and bandwidth simultaneously \cite{1250671}. In general, these papers focus on designing and proving the effectiveness of particular mechanisms for particular goals, without a concrete notion of a general framework in which a variety of application-specific QoS requirements can be communicated to an all-purpose resource allocator and scheduler.
 %CQoS: a framework for enabling QoS in shared caches of CMP platforms
@@ -92,39 +106,33 @@ Simultaneous achievement of performance targets is not addressed.
 
 \subsection{Resource Allocation Frameworks}
 
-Guo et al. \cite{1331730} point out that most prior work is insufficient for true QoS -- merely partitioning hardware is not enough, because there must also be a way to specify performance targets and an admission control policy for jobs.
+Guo \emph{et al.}\cite{1331730} point out that much prior work is insufficient for true QoS -- merely partitioning hardware is not enough, because there must also be a way to specify performance targets and an admission control policy for jobs.
 %They argue that targets should be expressed in terms of capacity requirements rather than rates.
 The framework they present incorporates a scheduler that supports multiple execution modes.
 
-Nesbit et al. \cite{1436097} introduce Virtual Private Machines (VPM), a framework for resource allocation and management in multicore systems. A VPM consists of a set of virtual hardware resources, both spatial (physical allocations) and temporal (scheduled time-slices).  Unlike traditional virtual machines that only virtualize resource functionality, VPMs virtualize a system's performance and power characteristics, meaning that a VPM has the same performance and power profile as a real machine with an equivalent set of hardware resources.
+Nesbit \emph{et al.}\cite{1436097} introduce the \emph{Virtual Private Machines} (VPM), a framework for resource allocation and management in multicore systems. A VPM consists of a set of virtual hardware resources, both spatial (physical allocations) and temporal (scheduled time-slices).  Unlike traditional virtual machines that only virtualize resource functionality, VPMs virtualize a system's performance and power characteristics, meaning that a VPM has the same performance and power profile as a real machine with an equivalent set of hardware resources.
 
 They break down the framework components into policies and mechanisms which may be implemented in hardware or software. Critical software components of the VPM framework are VPM {\em modeling}, which maps high-level application objectives into VPM configurations, and VPM {\em translation}, which uses VPM models to assign an acceptable VPM to the application while adhering to system-level policies. A VPM scheduler then decides if the system can accommodate all applications or whether resources need to be revoked.
 
-The VPM approach and terminology mesh well with our study, which can be seen as a specific implementation of several key aspects of the type of framework they describe (i.e. VPM modeling and translation). Nesbit et al. did not perform any evaluations of the modeling, translation, or scheduling processes suggested in their paper.
+The VPM approach and terminology mesh well with our study, which can be seen as a specific implementation of several key aspects of the type of framework they describe (i.e. VPM modeling and translation). Nesbit \emph{et al.} did not perform any evaluations of the modeling, translation, or scheduling processes suggested in their paper.
 
-\cite{aiken-mspc06}
-\cite{1006707}
-\cite{genbrugge-isca07}
-\cite{merkel-eurosys08}
+The Singularity operating system\cite{aiken-mspc06} provides process isolation through software rather than hardware.  This isolation in accessibility is not the same as the performance isolation that is desirable for \pacora.
 
-Ganapathi et al. have had success using machine learning to model application performance and select the best performing configuration in \cite{Archana}.
+Kumar \emph{et al.}\cite{1006707} demonstrate the performance advantages of heterogeneous cores for mixed workloads using heuristic allocation strategies in both space and time.
 
-Calandrino \emph{et al.}\cite{unc} use working set sizes to make co-scheduling decisions and enhance soft real-time behavior.
+Genbrugge and Eeckhout\cite{genbrugge-isca07} demonstrate the importance of adapting to changes in application characteristics, in this case instructions per cycle.
 
-%\cite{1078411}
-%utility functions
-%
-Walsh \emph{et al.}\cite{1078411} note the importance of basing utility functions
-on the metrics in which QoS is expressed rather than on the quantities of raw resources.
-Each application has a manager that manages the set of resources given to it by a global arbiter.
-There are other philosophical similarities to \pacora,
-but since the objective function is neither continuous nor convex the optimization problem is difficult.
+Merkel and Bellosa\cite{merkel-eurosys08} propose \emph{Task Activity Vectors} that describe how much each application uses the various functional units; these vectors are used to balance usage across multiple cores and unbalance usage among hardware threads within each core.
+The intended effect is to distribute chip temperature more evenly, but the idea may be more broadly applicable, \emph{e.g.} for heterogeneous systems.
 
-\cite{1380585,975344,wasserman-book}
+Ganapathi \emph{et al.} have had success using machine learning to model application performance and select the best performing configuration in \cite{Archana}.
 
+I DON'T KNOW WHY
+\cite{975344,wasserman-book}
+ARE HERE.
 
 %Scheduling threads for constructive cache sharing on CMPs
 %\cite{1248396}
 %
-Chen \emph{et al.} propose parallel depth-first thread scheduling as an alternative to work-stealing for constructive cache sharing.
+Chen \emph{et al.}\cite{1248396} propose parallel depth-first thread scheduling as an alternative to work-stealing for constructive cache sharing.
 The paper discusses the automation of task granularity selection to match cache capacity. This kind of tuning is particularly appropriate for a user-level runtime system. 

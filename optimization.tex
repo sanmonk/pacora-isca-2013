@@ -275,10 +275,10 @@ These can be removed by letting the $a_{p,r}$ be unbounded above for $p \neq 0$
 and changing the domain of $\tau_0$  to be the whole resource allocation matrix.
 The definition of $\tau_0$ might take the form
 \begin{eqnarray*}
-\tau_0 &=& \sum_r \Delta_r a_{0,r}     \\
-       &=& \sum_r \Delta_r ( A_r - \sum_{p \neq 0} a_{p,r} )
+\tau_0 &=& \sum_r \Delta_r (A_r - a_{0,r})     \\
+       &=& \sum_r \Delta_r \sum_{p \neq 0} a_{p,r}
 \end{eqnarray*}
-where $\Delta_r$ is the (constant) power dissipation associated with resource $r$.
+where $\Delta_r$ is the (constant) power dissipation of one unit of resource $r$.
 However,if any of the allocations $a_{0,r}$ is negative then $\tau_0$  should instead return the value $+\infty$.
 This modification of the objective function transforms the resource allocation problem
 to unconstrained convex optimization.
