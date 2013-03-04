@@ -49,6 +49,8 @@ Lithe (LIquid THrEads)
 
 To evaluate \pacora, we use two different implementations of the framework on the same hardware platform.  Our offline framework was used to experiment with the accuracy of different types of models and test 
 
+\fix{2 implementations}
+
 \subsubsection{Experimental Platform}
 
 We use a prototype version of Intel's Sandy Bridge x86
@@ -87,7 +89,7 @@ the total combined energy of cores, their private caches, and the
 LLC. The counters measure power
 at a $1/2^{16}$ second granularity.
 
-\subsubsection{Offline Implementation}
+\subsection{Linux Analysis}
 
 and run unmodified Linux-2.6.36 for all of our experiments.
 We use the Linux {\tt taskset} command to pin each application to
@@ -102,7 +104,7 @@ machine~\cite{Intel:Manual2012}.
 We access these counters using the Running Average Power Limit
 (RAPL) interfaces~\cite{Intel:Manual2012}.
 
-\subsection{Description of Workloads}
+\subsubsection{Description of Workloads}
 
 We built our workload using a wide range of codes from three different
 popular benchmark suites: SPEC CPU 2006~\cite{SPEC2006},
@@ -157,21 +159,8 @@ speaker; {\em Stencilprobe} simulates heat transfer through a fluid
 using a parallel stencil kernel over a regular
 grid~\cite{Kamil:Stencilprobe}.
 
-\subsubsection{Manycore OS Implementation}
 
-
-
-
-
-
-
-
-
-
-
-
-
-\subsection{Response-Time Functions}
+\subsubsection{Response-Time Functions}
 
 \begin{figure*}[!t]
 	\begin{center}	
@@ -190,7 +179,7 @@ grid~\cite{Kamil:Stencilprobe}.
 \end{figure*}
 
 
-\subsection{Resource Allocation Decisions}
+\subsubsection{Resource Allocation Decisions}
 \begin{figure*}[!t]
 	\begin{center}	
 %		\includegraphics[width=.45\textwidth]{cluster_decision_points.pdf}
@@ -199,6 +188,25 @@ grid~\cite{Kamil:Stencilprobe}.
 		\label{fig:model_accuracy}
 	\end{center}
 \end{figure*}
+
+
+
+\subsubsection{Manycore OS Implementation}
+
+\subsubsection{Description of Workloads}
+
+
+\subsubsection{Response-Time Functions}
+
+\subsubsection{Resource Allocation Decisions}
+
+
+
+
+
+
+
+
 
 
 

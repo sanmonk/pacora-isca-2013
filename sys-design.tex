@@ -1,4 +1,5 @@
 \section{\pacora Architecture}
+\fix{add pacora system figure - math}
 
 %II.	System Architecture
 %		i.	Application Specific
@@ -24,6 +25,7 @@
  
 \pacora is designed to work in systems with hierarchical scheduling.  In a client system, this design just looks like classic two-level scheduling.  \pacora makes allocation decisions about resources (\emph{e.g.,} cores and memory pages), and micro-management of the resources within an application is left to user-level runtimes such as User Mode Scheduling in Windows\cite{um_sched} or Lithe\cite{lithe} and memory managers.  In a cloud environment, \pacora allocates resources (\emph{e.g.,} nodes and storage) to jobs, and scheduling is left to other entities such as the MapReduce framework\cite{mapreduce} or the operating system on the node.  Separating resource allocation from scheduling enables the use of application-specific scheduling policies, which have the potential to easier to design and more efficient than a general-purpose scheduler that has to work for everything.   This approach leaves the system to focus on the problem of \emph{how many} of each resource type of assign to each application. 
 
+\fix{add video scenario here?}
  
 \pacora takes a different approach to resource allocation than traditional systems: measurement, application-specific, resources matter, optimization 
 

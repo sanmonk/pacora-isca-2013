@@ -47,6 +47,8 @@ The first term is well-defined but discontinuous at $\tau = d$ with
 $\partial\pi/\partial\tau = \mbox{ if } (\tau - d) \leq 0 \mbox{ then } 0 \mbox{ else } s$.
 The problem of estimating the partial derivatives $\partial\tau/\partial a_r$ is dealt with below.
 
+\add{details on how to set these}
+
 \subsection*{Response Time Functions}
 
 Unlike penalty functions, which describe user preference, a response time function describes process performance based on its resource assignments.
@@ -93,6 +95,10 @@ A binary (or even linear)search of such sub-domains could be used to find the op
 \pacora adopts a simpler idea, modeling response times by functions that are convex by construction
 and do not distort response time behavior too much.  This approach is developed more fully below.
 
+\fix{why we picked out model format}
+\fix{downsides of convexity}
+\fix{model creation ptr}
+
 \subsection*{Power and Battery Energy}
 
 It is useful to designate a ``process'' to receive allocations of all resources
@@ -113,4 +119,6 @@ This introduction of \emph{slack} resource allocations into Process 0 turns the 
 \begin{displaymath}
 \sum_{p\epsilon P} a_{p,r} - A_r = 0, r = 1,\dots n.
 \end{displaymath}
+
+\fix{add details on creation}
 
