@@ -22,10 +22,17 @@
 
 \pacora is a framework designed to determine the proper amount of each resource type to assign to each application.  For our purposes an application is the entity to which the operating system allocates resources: it can viewed as a complete application (\emph{e.g.,} a video player) or a component of an application (\emph{e.g.,} a music synthesizer) or a process (\emph{e.g.,} indexing).  
  
+\pacora is designed to work in systems with hierarchical scheduling.  In a client system, this design just looks like classic two-level scheduling.  \pacora makes allocation decisions about resources (\emph{e.g.,} cores and memory pages), and micro-management of the resources within an application is left to user-level runtimes such as User Mode Scheduling in Windows\cite{um_sched} or Lithe\cite{lithe} and memory managers.  In a cloud environment, \pacora allocates resources (\emph{e.g.,} nodes and storage) to jobs, and scheduling is left to other entities such as the MapReduce framework\cite{mapreduce} or the operating system on the node.  Separating resource allocation from scheduling enables the use of application-specific scheduling policies, which have the potential to easier to design and more efficient than a general-purpose scheduler that has to work for everything.   This approach leaves the system to focus on the problem of \emph{how many} of each resource type of assign to each application. 
 
-\pacora is designed to work in systems with hierarchical scheduling.  In a client system, this design just looks like classic two-level scheduling.  \pacora makes allocation decisions about resources (\emph{e.g.,} cores and memory pages), and micro-management of the resources within an application is left to user-level runtimes such as User Mode Scheduling in Windows\cite{um_sched} or Lithe\cite{lithe} and memory managers.  In a cloud environment, \pacora allocates resources (\emph{e.g.,} nodes and storage) to jobs, and scheduling is left to other entities such as the MapReduce framework\cite{mapreduce} or the operating system on the node.  Separating resource allocation from scheduling enables the use of application-specific scheduling policies, which have the potential to easier to design and more efficient than a general-purpose scheduler that has to work for everything. 
+ 
+\pacora takes a different approach to resource allocation than traditional systems: measurement, application-specific, resources matter, optimization 
 
-\pacora formulates resource allocation as an optimization problem built from two types of application-specific functions.  \fix{why?} The following sections describe each of the functions and the optimization construction.
+Responsiveness has been described by a single value (usually called a \emph{priority}) associated with a thread of computation and adjusted within the operating system by a variety of ad-hoc mechanisms.   Other shared resources either employ independent machinery (\emph{e.g.,} memory, caches), or are deemed so abundant as to require no explicit management at all (\emph{e.g.,} I/O, network bandwidth).
+
+The assumptions underlying strategies of this sort no longer hold, especially for emerging client systems.  The value of application responsiveness is highly nonlinear for an increasing variety of applications like streaming media or gaming; for these real-time applications, performance is measured as sufficient if the deadline is met and insufficient otherwise.  Priority approaches have no mechanism to understand deadlines or the resources required to meet a deadline and as such must run the highest priority applications as fast as possible on all the resources requested.   As a result, interactive and realtime applications are often run needlessly fast with significantly over-provisioned resources --wasting power and energy and preventing other applications from using the resources.  
+
+
+\pacora formulates resource allocation as an optimization problem built from two types of application-specific functions: a Response Time Function and a Penalty function. The Response Time Function represents the measured performance of the application on different resources.  The Penalty Function represents the user-level goals for the application (i.e., the deadline and how important it is to make that deadline). The following sections describe each of the functions and the optimization construction.
 
 \subsection*{Response Time Functions}
 
@@ -48,6 +55,9 @@ The response time of a process is a function of the allocated resources and is p
 
 The penalty of a process is a function rather than a single value
     and the argument of each penalty function
+    
+    
+\subsection*{Idle Process}    
 
 \subsection*{Resource Allocation As Optimization}
 \pacora formulates resource allocation as an optimization problem 
