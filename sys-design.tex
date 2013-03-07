@@ -47,6 +47,7 @@ Response Time Functions are built from data on
     \item The time from job launch to job completion;
     \item The time to execute a specified amount of work.
     \end{itemize}
+
 The response time of a process is a function of the allocated resources and is predicted from its history of resource usage.
 
 The assumptions underlying strategies of this sort no longer hold, especially for emerging client systems.  The value of application responsiveness is highly nonlinear for an increasing variety of applications like streaming media or gaming;    
@@ -118,6 +119,8 @@ Note that the resource constraints are all affine and can be rewritten as
 $\sum_{p\epsilon P} a_{p,r} - A_r \leq 0$ and $-a_{p,r} \leq 0$.
 
 \subsection*{Resources}
+
+\fix{time scaling, heterogeneity}
 
 %Partitionable resources include CPU cores, pages in memory, and
 %guaranteed fractional services from other cells (\eg a throughput
