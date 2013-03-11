@@ -10,6 +10,10 @@
 %	c.	Power Model
 \subsection*{Penalty Functions}
 
+In tradition systems, responsiveness has been described by a single value (usually called a \emph{priority}) associated with a thread of computation and adjusted within the operating system by a variety of ad-hoc mechanisms.   Priority approaches have no mechanism to understand deadlines or the resources required to meet a deadline and as such must run the highest priority applications as fast as possible on all the resources requested. 
+
+for these real-time applications, performance is measured as sufficient if the deadline is met and insufficient otherwise.
+
 Penalty functions  are generically defined as members of a family of such functions
 so that user preferences for a process $p$ (elided in the discussion below)
 can be implemented by assigning values to a few well-understood parameters.
