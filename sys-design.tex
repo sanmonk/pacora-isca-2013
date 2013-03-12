@@ -48,9 +48,9 @@ Response Time Functions (RTF) represent the expected \emph{response time} of an 
     
 The RTFs are built to be a convex function.  All applications have a function of the same form but the application-specific weights are set using the performance history of the application.  RTFs are designed to capture information such as how well an application scales with a particular resource. As a result, RTFs naturally support heterogeneity.  Each CPU or GPU type is simply viewed as a different resource type by the system, and thus the RTFs will represent how effectively an application uses a particular type of core. The equation below shows the form of the RTF we use in \pacora. 
 
-\begin{eqnarray*}
-& \makebox[1in][r]{}   &\tau(w,a) = \tau_0 + \sum_{i\epsilon n,j\epsilon n}{\frac{w_{i,j}}{\sqrt{a_i * a_j}}} \\
-\end{eqnarray*}
+\begin{displaymath}
+\tau(w,a) = \tau_0 + \sum_{i\epsilon n,j\epsilon n}{\frac{w_{i,j}}{\sqrt{a_i * a_j}}} 
+\end{displaymath}
 
 Here $\tau$ represents the response time, $i$ and $j$ represent resource types, $n$ represents the total number of resource types, $a_{i}$ and $a_{j}$ represent the allocation of resources types $i$ and $j$, and $w_{i,j}$ represents the application-specific weight for the term representing resource $i*$ resource $j$.  The dimensionality of the function increases linearly with the number of resource types. The RTFs will be described further in Section~\ref{app_func}.
 
@@ -125,26 +125,20 @@ $\sum_{p\epsilon P} a_{p,r} - A_r \leq 0$ and $-a_{p,r} \leq 0$.
 
 \subsection*{Power and Energy}    
 
-It is useful to designate a ``process'' to receive allocations of all resources
-that are not used elsewhere and are therefore to be powered off if possible.
-In \pacora, process 0 plays this role.
-The ``response time'' for process 0, $\tau_0$,
-is artificially defined to be the total system power consumption.
-This response function is affine and monotone nonincreasing in its arguments $a_{0,r}$.
+In \pacora, we create an artificial application to represent the interests of system power and energy.  Application 0 is designated the idle application and receives allocations of all resources
+that are left idle, \emph{i.e.,} not allocated to other applications.   The idle resources can be powered off or put to sleep if possible to save power.
 
-The penalty function $\pi_0$ can now be used to keep total system power below the parameter $d_0$
-to the extent the penalties of other processes cannot overcome its penalty slope $s_0$.
-Both $s_0$ and $d_0$ can be adjusted to reflect the current battery charge in mobile devices.
-As the battery depletes, $\pi_0$ can be used to force other processes to slow or cease execution.
-In any event, the slope $s_0$ establishes a system tradeoff between power and performance that
-will determine which processor cores are used for each process and which cores are left idle.
+The ``response time'' for application 0, $\tau_0$, is artificially defined to be the total system power consumption. 
+%This response function is affine and monotone nonincreasing in its arguments $a_{0,r}$.
+The penalty function $\pi_0$ establishes a system tradeoff between power and performance that
+will determine which resources are allocated to applications to improve performance and which are left idle.
+The penalty function $\pi_0$ can be used to keep total system power below the parameter $d_0$
+to the extent the penalties of other applications cannot overcome its penalty slope $s_0$. Both $s_0$ and $d_0$ can be adjusted to reflect the current battery charge in mobile devices. For example as the battery depletes, $s_0$ could be increased to force other applications to slow or cease execution.
 
-This introduction of \emph{slack} resource allocations into Process 0 turns the resource bounds into equalities:
+Additionally Application 0 functions as \emph{slack} variables in our optimization problem turning the resource bounds into equalities:
 \begin{displaymath}
 \sum_{p\epsilon P} a_{p,r} - A_r = 0, r = 1,\dots n.
 \end{displaymath}
-
-\fix{add details on creation}
 
 \subsection*{Resources}
 
