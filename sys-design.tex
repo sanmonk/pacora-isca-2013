@@ -55,7 +55,7 @@ The RTFs are built to be a convex function.  All applications have a function of
 & \makebox[1in][r]{}   &\tau(w,a) = \tau_0 + \sum_{i\epsilon n,j\epsilon n}{\frac{w_{i,j}}{\sqrt{a_i * a_j}}} \\
 \end{eqnarray*}
 
-Here $\tau$ represents the response time, $i$ and $j$ represent resource types, $n$ represents the total number of resource types, $a_{i}$ and $a_{j}$ represent the allocation of resources types $i$ and $j$, and $w_{i,j}$ represents the application-specific weight for the term representing resource $i*$ resource $j$. RTFs will be described further in Section~\ref{app_func}.
+Here $\tau$ represents the response time, $i$ and $j$ represent resource types, $n$ represents the total number of resource types, $a_{i}$ and $a_{j}$ represent the allocation of resources types $i$ and $j$, and $w_{i,j}$ represents the application-specific weight for the term representing resource $i*$ resource $j$.  The dimensionality of the function increases linearly with the number of resource types. The RTFs will be described further in Section~\ref{app_func}.
 
 \subsection*{Penalty Functions}
 
@@ -94,14 +94,13 @@ and $A_r$ is the total amount of resource $r$ available.  Optimization details a
 
 \subsection*{Convex Optimization}
 
-\fix{time scaling}
 If the penalty functions, response time functions, and resource constraints were arbitrarily,
 little could be done to optimize the total penalty beyond searching at random for the best allocation.
-However, if resource management can be framed as a \emph{convex optimization problem}\cite{BoVa},
-two benefits will accrue: an optimal solution will exist without multiple local extrema and
+However, by framing our resource allocation problem as a \emph{convex optimization problem}\cite{BoVa},
+two benefits accrue: an optimal solution will exist without multiple local extrema and
 fast, incremental solutions will become feasible.
 
-A constrained optimization problem will be convex if both the objective function to be minimized
+A constrained optimization problem is convex if both the objective function to be minimized
 and the constraint functions that define its feasible solutions are convex functions.
 A function $f$ is convex if its domain is a convex set and
 $F(\theta x + (1-\theta)y) \leq \theta F(x) + (1-\theta)F(y)$
@@ -111,26 +110,23 @@ $\theta x + (1-\theta)y$
 is also in the set for all $\theta$ between 0 and 1.
 If $F$ is differentiable, it is convex if its domain is an open convex set and
 $F(y) \geq F(x) + \nabla F^T(y-x)$ where $\nabla F$ is the gradient of $F$.
-Put another way, $F$ is convex if its first-order Taylor approximations
-are always global underestimates of its true value.
+%Put another way, $F$ is convex if its first-order Taylor approximations
+%are always global underestimates of its true value.
 
-A convex optimization problem is one that can be expressed in this form:
+Therefore, a problem will be a convex optimization problem if it can be expressed in the form:
 \begin{eqnarray*}
 & \makebox[1in][r]{Minimize}   & f_0(x_1,\ldots x_m)                              \\
 & \makebox[1in][r]{Subject to} & f_i(x_1,\ldots f_m) \leq 0, i = 1,\ldots k        \\
 & \makebox[1in][r]{where}      & \forall i \quad f_i:\Re^m \rightarrow \Re \mbox{ is convex.}
 \end{eqnarray*}
-A few more facts about convex functions will be useful in what follows.
-First, a \emph{concave} function is one whose negative is convex.
-Maximization of a concave function is equivalent to minimization of its convex negative.
-An affine function, one whose graph is a straight line in two dimensions or a hyperplane in n dimensions,
-is both convex and concave.  A non-negative weighted sum or point-wise maximum (minimum) of convex (concave) functions is convex (concave), as is either kind of function composed with an affine function.  The composition of a convex non-decreasing (concave non-increasing) scalar function with a convex function remains convex (concave).
 
-As a consequence, the resource management problem posed above can be transformed into a convex optimization problem in the $m = |P|\cdot n$ variables $a_{p,r}$ as long as the penalty functions $\pi_p$ are convex non-decreasing and the response time functions $\tau_p$ are convex.
-Note that the resource constraints are all affine and can be rewritten as
+
+As a consequence, \pacora's resource allocation problem can be transformed into a convex optimization problem in the $m = |P|\cdot n$ variables $a_{p,r}$ as long as the penalty functions $\pi_p$ are convex non-decreasing and the response time functions $\tau_p$ are convex.  We designed our functions to meet these constraints and proofs of their convexity can be found in Appendix~\ref{convex}. Note that the resource constraints are all affine and can be rewritten as
 $\sum_{p\epsilon P} a_{p,r} - A_r \leq 0$ and $-a_{p,r} \leq 0$.
 
-\subsection*{Idle Process}    
+\pacora's convex formulation allows the time to solve the optimization to scale linearly with the number of resource types and the number of applications.   For client operating systems with around 100 application running and 10 resource dimensions the total variables in the system to be solved is 1000 --a very small problem which can be solved in microseconds on current systems.   Cloud systems could possibly have more applications running; however, the problem size scales lineearly and the benefits gained could be significantly greater given the scale of the system.
+
+\subsection*{Idle Application}    
 
 \subsection*{Resources}
 
