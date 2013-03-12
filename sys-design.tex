@@ -49,14 +49,13 @@ Response Time Functions (RTF) represent the expected \emph{response time} of an 
     \item The time to execute a specified amount of work.
     \end{itemize}
     
-The RTFs are built to be a convex function.  All applications have a function of the same form but the application-specific weights are set using the performance history of the application.
+The RTFs are built to be a convex function.  All applications have a function of the same form but the application-specific weights are set using the performance history of the application.  RTFs are designed to capture information such as how well an application scales or if it can make use of a particular resource such as a GPU. The equation below shows the form of the RTF we use in \pacora. 
 
 \begin{eqnarray*}
-& \makebox[1in][r]{}   &\tau(w,a) = \tau_0 + \sum_{i,j}^{n}{\frac{w_{i,j}}{\sqrt{a_i * a_j}}} \\
+& \makebox[1in][r]{}   &\tau(w,a) = \tau_0 + \sum_{i\epsilon n,j\epsilon n}{\frac{w_{i,j}}{\sqrt{a_i * a_j}}} \\
 \end{eqnarray*}
 
-
- RTFs are designed to capture information such as how well an application scales or if it can make use of a particular resource such as a GPU.  RTFs will be described further in Section~\ref{app_func}.
+Here $\tau$ represents the response time, $i$ and $j$ represent resource types, $n$ represents the total number of resource types, $a_{i}$ and $a_{j}$ represent the allocation of resources types $i$ and $j$, and $w_{i,j}$ represents the application-specific weight for the term representing resource $i*$ resource $j$. RTFs will be described further in Section~\ref{app_func}.
 
 \subsection*{Penalty Functions}
 
@@ -78,24 +77,24 @@ The penalty of the application is a function of the response time of the applica
 $\pi(\tau) = \max(0, s(\tau - d)$, where $d$ represents the deadline of the application and $s$ (slope) defines the rate the penalty increases as response time increases. For applications without response time constraints the deadline is set to $0$. Two representative graphs of this type appear in Figures~\ref{f:pen1} and~\ref{f:pen2}. Penalty Functions will be described further in Section~\ref{app_func}.
 
 \subsection*{Resource Allocation As Optimization}
-\pacora formulates resource allocation as an optimization problem designed to minimize the total penalty of the system. In a client system, this is similar to minimizing user dissatisfaction with the user experience due to missed deadlines; in a cloud system, this is analogous minimizing the contract penalties paid for violated service-level agreements. 
+\pacora formulates resource allocation as an optimization problem designed to minimize the total penalty of the system. This is analogous to minimizing user dissatisfaction with the user experience due to missed deadlines in a client system and minimizing the contract penalties paid for violated service-level agreements in a cloud system. 
 
-to  decide the allocations for all resources and resource types at once. 
-
+The optimization selects the allocations for all resources and resource types at once.  This approach enables the system make tradeoffs between resource types.  For example, the system could choose to allocate more memory bandwidth in lieu of on-chip cache.  It would difficult to provide predictable response times for applications considering the allocation of only one resource type at a time.
 
 A succinct mathematical characterization of this resource allocation scheme is the following:
 \begin{eqnarray*}
-& \makebox[1in][r]{Minimize}   & \sum_{p}^{P} {\pi_p(\tau_p(a_{p,1}\ldots a_{p,n}))}  \\
-& \makebox[1in][r]{Subject to} & \sum_{p}^{P} a_{p,r} \leq A_r, r = 1,\ldots n        \\
+& \makebox[1in][r]{Minimize}   & \sum_{p\epsilon P} {\pi_p(\tau_p(a_{p,1}\ldots a_{p,n}))}  \\
+& \makebox[1in][r]{Subject to} & \sum_{p\epsilon P} a_{p,r} \leq A_r, r = 1,\ldots n        \\
 & \makebox[1in][r]{and}        & a_{p,r} \geq 0
 \end{eqnarray*}
 Here $\pi_p$ is the penalty function for application $p$,
 $\tau_p$ is its response time function,
 $a_{p,r}$ is the allocation of resource $r$ to application $p$,
-and $A_r$ is the total amount of resource $r$ available.
-
+and $A_r$ is the total amount of resource $r$ available.  Optimization details are described in Section~\ref{dyn_opt}.
 
 \subsection*{Convex Optimization}
+
+\fix{time scaling}
 If the penalty functions, response time functions, and resource constraints were arbitrarily,
 little could be done to optimize the total penalty beyond searching at random for the best allocation.
 However, if resource management can be framed as a \emph{convex optimization problem}\cite{BoVa},
@@ -137,7 +136,7 @@ $\sum_{p\epsilon P} a_{p,r} - A_r \leq 0$ and $-a_{p,r} \leq 0$.
 
 In our client system, resources are anything that the system can provide QoS on in hardware or software: specifically we use cpus, network bandwidth, cache ways, and memory pages in our system.  However, other resources could easily be added as well assuming they have QoS enforcement mechanisms.  The other scenarios would have resources that perform similar functions (compute, network, capacity), but at a different scale. For warehouse-scale computing resources are more likely to be different types of nodes, network bandwidth, and storage, and distributed embedded systems would include compute devices, link bandwidth, and memory. 
 
-\fix{time scaling, heterogeneity}
+\fix{heterogeneity}
 
 %Partitionable resources include CPU cores, pages in memory, and
 %guaranteed fractional services from other cells (\eg a throughput
