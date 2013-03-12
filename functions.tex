@@ -20,23 +20,9 @@ can be implemented by assigning values to a few well-understood parameters.
 As a process grows or diminishes in importance, its penalty function can be modified accordingly.
 In a client operating system,the instantaneous management of penalty function modifications
 should be highly automated by the system to avoid unduly burdening the user.
-\pacora's penalty functions are non-decreasing piecewise linear functions of the form
-$\pi(\tau) = \max(0, s(\tau - d)$.
-Two representative graphs of this type appear in Figures~\ref{f:pen1} and~\ref{f:pen2}.
 
-\begin{figure}[hb]
-\parbox{1.6in}{
-\includegraphics*{Penalty1.eps}
-\caption{\label{f:pen1}A penalty function with a response time constraint.}
-}
-\hspace{\fill}
-\parbox{1.6in}{
-\includegraphics*{Penalty2.eps}
-\caption{\label{f:pen2}A penalty function with no response time constraint.}
-}
-\end{figure}
 
-The two parameters $d$ and $s$ define the penalty function.
+
 To guarantee it is convex and non-decreasing, $s$ must be non-negative.
 The response time $\tau$  is of course non-negative,
 and it may be sensible (if not strictly necessary) to convene that $d$ is also.
