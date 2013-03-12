@@ -8,6 +8,49 @@
 %		i.	Where do the deadlines come from?
 %		ii.	How do we set the slopes?
 %	c.	Power Model
+
+
+In this section, we describe the design of each of \pacora's application-specific functions in more detail.
+
+\subsection*{Response Time Functions}
+
+
+
+We choose application responsiveness is highly nonlinear for an increasing variety of applications like streaming media or gaming; 
+
+Unlike penalty functions, which describe user preference, a response time function describes process performance based on its resource assignments.
+Response time will commonly vary with time as a process changes phase and makes better or worse use of its resources.
+To guarantee the objective function is convex, the response time must be also;
+this is a plausible requirement akin to the proverbial ``Law of Diminishing Returns''.
+
+Besides the value of the response time function, its gradient or an approximation to it is useful to estimate the relative response time improvement from each type of resource.  A user-level runtime scheduler that schedules work internal to the process may be a good source of data.
+Additionally, the resource manager can allocate a modest amount of a resource and measure the change in response time.
+Instead of these, \pacora maintains a parameterized analytic response time model with the partial derivatives evaluated from the model \emph{a priori}.
+
+There are examples of response time versus resource behavior that violate convexity.  One such example sometimes occurs in memory allocation, where “plateaus” can sometimes be seen as in Figure~\ref{f:plat}.
+\begin{figure}[b]
+\parbox{1.6in}{
+\includegraphics*{Plateau1.eps}
+\caption{\label{f:plat}Response time function with some resource "plateaus".}
+}
+\hspace{\fill}
+\parbox{1.6in}{
+\includegraphics*{Plateau2.eps}
+\caption{\label{f:plateffect}Net effect of the resource plateaus on the process penalty.}
+}
+\end{figure}
+Such plateaus are typically caused by algorithm adaptations within the process to accommodate variable resource availability.  The response time is really the \emph{minimum} of several convex functions depending on allocation and the point-wise minimum that the process implements fails to preserve convexity.  The effect of the plateaus will be a non-convex penalty as shown in Figure~\ref{f:plateffect} and multiple extrema in the optimization problem will be a likely result.
+
+There are several ways to avoid this problem.  One is based on the observation that such response time functions will at least be \emph{quasiconvex}.  Another idea is to use additional constraints to explore convex sub-domains of $\tau$. For example,the affine constraint $a_{p,r} - \mu \leq 0$ excludes process $p$ from any assignment of resource $r$ exceeding $\mu$.  Similarly, $\mu - a_{p,r} \leq 0$ excludes the opposite possibility.
+A binary (or even linear)search of such sub-domains could be used to find the optimal value.
+
+\pacora adopts a simpler idea, modeling response times by functions that are convex by construction
+and do not distort response time behavior too much.  This approach is developed more fully below.
+
+\fix{why we picked out model format}
+\fix{downsides of convexity}
+\fix{model creation ptr}
+
 \subsection*{Penalty Functions}
 
 In tradition systems, responsiveness has been described by a single value (usually called a \emph{priority}) associated with a thread of computation and adjusted within the operating system by a variety of ad-hoc mechanisms.   Priority approaches have no mechanism to understand deadlines or the resources required to meet a deadline and as such must run the highest priority applications as fast as possible on all the resources requested. 
@@ -37,59 +80,92 @@ The first term is well-defined but discontinuous at $\tau = d$ with
 $\partial\pi/\partial\tau = \mbox{ if } (\tau - d) \leq 0 \mbox{ then } 0 \mbox{ else } s$.
 The problem of estimating the partial derivatives $\partial\tau/\partial a_r$ is dealt with below.
 
-\fix{details on how to set these}
+While it might be possible to model response times by recording past values and interpolating among them,
+this idea has serious shortcomings:
+\begin{itemize}
+\item The size of the multidimensional response time function tables will be large;
+\item Interpolation in many dimensions is computationally expensive;
+\item The measurements will be noisy and require smoothing;
+\item Convexity in the resources may be violated;
+\item Gradient estimation will be difficult.
+\end{itemize}
 
-\subsection*{Response Time Functions}
+An alternative approach is to model the response time functions using parameterized expressions that are convex by construction.
+For example, the response time might be modeled as a weighted sum of component terms,
+one per bandwidth resource, where each term $w_r/a_r$ is
+the amount of work $w_r \geq 0$ divided by $a_r$, the allocation of that bandwidth resource\cite{Snav}.
+For example,
+one term might model the number of instructions executed divided by total processor MIPS,
+another might model storage accesses divided by storage bandwidth allocation and so forth.
+Such models will automatically be convex in the allocations because $1/a$ is convex for positive $a$
+and because a positively-weighted sum of convex functions is convex.
 
-We choose application responsiveness is highly nonlinear for an increasing variety of applications like streaming media or gaming; 
+It is obviously important to guarantee the positivity of the resource allocations.
+This can be enforced as the allocations are selected during penalty optimization,
+or the response time model can be made to return $\infty$ if any allocation is less than or equal to zero.
+This latter idea preserves the convexity of the model and extends its domain to all of $\Re^n$.
 
-Unlike penalty functions, which describe user preference, a response time function describes process performance based on its resource assignments.
-Response time will commonly vary with time as a process changes phase and makes better or worse use of its resources.
-To guarantee the objective function is convex, the response time must be also;
-this is a plausible requirement akin to the proverbial ``Law of Diminishing Returns''.
+Asynchrony and latency tolerance may make response time components overlap partly or fully;
+if the latter, then the maximum of the terms might be more appropriate than their sum.
+The result will still be convex, though, as will any other norm including the 2-norm,
+\emph{i.e.} the square root of the sum of the squares.
+This last variation could be viewed as a ``partially overlapped'' compromise between
+the 1-norm (sum) describing no overlap and the $\infty$-norm (maximum) describing full overlap.
 
-Besides the value of the response time function, its gradient or an approximation to it is useful to estimate the relative response time improvement from each type of resource.  A user-level runtime scheduler that schedules work internal to the process may be a good source of data.
-Additionally, the resource manager can allocate a modest amount of a resource and measure the change in response time.
-Instead of these, \pacora maintains a parameterized analytic response time model with the partial derivatives evaluated from the model \emph{a priori}.
+This scheme also accommodates non-bandwidth resources such as memory,
+the general idea being to roughly approximate ``diminishing returns'' in the response time with increasing resources.
+For clarity's sake, rather than using $a_r$ indiscriminately for all allocations,
+we will denote an allocation of a bandwidth resource by $b_r$ and of a memory resource by $m_r$.
 
-There are examples of response time versus resource behavior that violate convexity.  One such example sometimes occurs in memory allocation, where “plateaus” can sometimes be seen as in Figure~\ref{f:plat}.
-\begin{figure}[b]
-\parbox{1.6in}{
-\includegraphics*{Plateau1.eps}
-\caption{\label{f:plat}Response time function with some resource "plateaus".}
-}
-\hspace{\fill}
-\parbox{1.6in}{
-\includegraphics*{Plateau2.eps}
-\caption{\label{f:plateffect}Net effect of the resource plateaus on the process penalty.}
-}
-\end{figure}
-Such plateaus are typically caused by algorithm adaptations within the process to accommodate variable resource availability.  The response time is really the \emph{minimum} of several convex functions depending on allocation and the point-wise minimum that the process implements fails to preserve convexity.  The effect of the plateaus will be a non-convex penalty as shown in Figure~\ref{f:plateffect} and multiple extrema in the optimization problem will be a likely result.
+Sometimes a response time component might be better modeled by a term involving a combination of resources.
+For example, response time due to memory accesses might be approximated
+by a combination of memory bandwidth allocation $b_{r1}$ and cache allocation $m_{r2}$.
+Such a model could use the geometric mean of the two allocations in the denominator,
+\emph{viz.} $w_{r1,r2}/\sqrt{b_{r1}\cdot m_{r2}}$, without compromising convexity.
 
-There are several ways to avoid this problem.  One is based on the observation that such response time functions
-will at least be \emph{quasiconvex}.  A function $f$ is quasiconvex if all of its \emph{sublevel sets}
-$S_\ell = \{x | f(x) \leq \ell\}$ are convex sets.
-Alternatively, $f$ is quasiconvex if its domain is convex and
+This begs the question of how memory affects the response time.
+The effect is largely indirect.
+Memory permits exploitation of temporal locality and thereby \emph{amplifies} associated bandwidths.
+For example, additional main memory may reduce the need for storage or network bandwidth,
+and of course increased cache capacity may reduce the need for memory bandwidth.
+The effectiveness of cache in reducing bandwidth was studied by
+H. T. Kung\cite{Kung}, who developed tight asymptotic bounds on the bandwidth amplification
+factor $\alpha(m)$ resulting from a quantity of memory $m$ acting as cache for a variety of computations.
+He shows that
 \begin{displaymath}
-f(\theta x + (1-\theta)y) \leq \max(f(x),f(y)), 0 \leq \theta \leq 1
+\begin{array}{lll}
+\alpha(m) &= \Theta(\sqrt m) & \mbox{for dense linear algebra solvers} \\
+          &= \Theta(m^{1/d}) & \mbox{for d-dimensional PDE solvers} \\
+          &= \Theta(\log m)  & \mbox{for comparison sorting and FFTs} \\
+          &= \Theta(1)       & \mbox{when temporal locality is absent}
+\end{array}
 \end{displaymath}
 
-Quasiconvex optimization can be performed by selecting a threshold $\ell$ and replacing the objective function
-with a convex constraint function whose sublevel set $S_\ell$ is the same as that of $f$.
-Next, one determines whether there is a feasible solution for that particular threshold $\ell$.
-Repeated application with a binary search on $\ell$ will reduce the level of feasibility
-until the solution is approximated well enough.
+For these expressions to make sense, the argument of $\alpha$ should be dimensionless and greater than 1.
+Ensuring this might be as simple as letting it be the number of memory resource quanta
+(\emph{e.g.} hundreds of memory pages) assigned to the process.
+If a process shows diminishing bandwidth amplification as its memory allocation increases, this can be accommodated:
+\begin{displaymath}
+\alpha(m) = \min(c_1\alpha_1(m),c_2\alpha_2(m)),\;c_1,c_2 \geq 0
+\end{displaymath}
 
-Another idea is to use additional constraints to explore convex sub-domains of $\tau$.
-For example,the affine constraint $a_{p,r} - \mu \leq 0$ excludes process $p$ from any assignment of resource $r$ exceeding $\mu$.  Similarly, $\mu - a_{p,r} \leq 0$ exludes the opposite possibility.
-A binary (or even linear)search of such sub-domains could be used to find the optimal value.
+Each bandwidth amplification factor might be described by one of the functions above
+and included in the denominator of the appropriate component in the response time function model.
+For example, the storage response time component for the model of an out-of-core sort process might be
+the quantity of storage accesses divided by the product of the storage bandwidth allocation and $\log m$,
+the amplification function associated with sorting given a memory allocation of $m$.
+Amplification functions for each application might be learned from response time measurements
+by observing the effect of varying the associated memory resource while keeping the bandwidth allocation constant.
+Alternatively, redundant components, similar except for amplification function, could be included in the model
+to let the model fitting process decide among them.
 
-\pacora adopts a simpler idea, modeling response times by functions that are convex by construction
-and do not distort response time behavior too much.  This approach is developed more fully below.
+The gradient $\nabla\tau$ is needed by the penalty optimization algorithm.
+Since $\tau$ is analytic, generic, and symbolically differentiable
+it is a simple matter to compute the gradient of $\tau$ once the model is defined.
 
-\fix{why we picked out model format}
-\fix{downsides of convexity}
-\fix{model creation ptr}
+
+
+\fix{details on how to set these}
 
 
 \subsection*{Power and Battery Energy}
