@@ -91,26 +91,5 @@ and do not distort response time behavior too much.  This approach is developed 
 \fix{downsides of convexity}
 \fix{model creation ptr}
 
+
 \subsection*{Power and Battery Energy}
-
-It is useful to designate a ``process'' to receive allocations of all resources
-that are not used elsewhere and are therefore to be powered off if possible.
-In \pacora, process 0 plays this role.
-The ``response time'' for process 0, $\tau_0$,
-is artificially defined to be the total system power consumption.
-This response function is affine and monotone nonincreasing in its arguments $a_{0,r}$.
-
-The penalty function $\pi_0$ can now be used to keep total system power below the parameter $d_0$
-to the extent the penalties of other processes cannot overcome its penalty slope $s_0$.
-Both $s_0$ and $d_0$ can be adjusted to reflect the current battery charge in mobile devices.
-As the battery depletes, $\pi_0$ can be used to force other processes to slow or cease execution.
-In any event, the slope $s_0$ establishes a system tradeoff between power and performance that
-will determine which processor cores are used for each process and which cores are left idle.
-
-This introduction of \emph{slack} resource allocations into Process 0 turns the resource bounds into equalities:
-\begin{displaymath}
-\sum_{p\epsilon P} a_{p,r} - A_r = 0, r = 1,\dots n.
-\end{displaymath}
-
-\fix{add details on creation}
-
