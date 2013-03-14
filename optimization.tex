@@ -1,12 +1,11 @@
-\section{Dynamic Optimization}\label{dyn_opt}
+\section{Dynamic Penalty Optimization}\label{dyn_opt}
 
 %IV.	Dynamic Optimization
 %	a.	Gradient Descent w/ Backtracking Search
 %		i. boundary conditions clean up
 %	b.	Dealing with Fractional Results
 
-
-\subsection*{Penalty Optimization}
+\fix{introduction}
 
 Convex optimization is simplest when it is unconstrained.
 Extending the response time model functions to all of $\Re^n$
@@ -28,7 +27,9 @@ The definition of $\tau_0$ might take the form
 where $\Delta_r$ is the (constant) power dissipation of one unit of resource $r$.
 However,if any of the allocations $a_{0,r}$ is negative then $\tau_0$  should instead return the value $+\infty$.
 This modification of the objective function transforms the resource allocation problem
-to unconstrained convex optimization.
+to unconstrained convex optimization.  
+
+\fix{however we found this didn't allow us to move along boundaries sufficiently quickly when a full resource had a large gradient, thus we scale back to fit}
 
 The penalty optimization algorithm used in \pacora is descent via backtracking line search along the negative gradient direction \cite{BoVa}.
 This algorithm rejects and refines any step that yields insufficient relative improvement in the objective function,
@@ -50,3 +51,5 @@ For example, when compared with processor allocation units,
 memory allocation units of 4MB are probably a better choice than 4 KB.
 In addition, penalty function slopes should not differ by more than perhaps two orders of magnitude.
 If these measures prove insufficient, stronger preconditioners can be used.
+
+\fix{when run-time out}

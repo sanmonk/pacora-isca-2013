@@ -125,13 +125,15 @@ The first term is well-defined but discontinuous at $\tau = d$ with
 $\partial\pi/\partial\tau = \mbox{ if } (\tau - d) \leq 0 \mbox{ then } 0 \mbox{ else } s$.
 The problem of estimating the partial derivatives $\partial\tau/\partial a_r$ is dealt with below.
 \fix{How to Set}
-In a client operating system,the instantaneous management of penalty function modifications
+In a client operating system, the instantaneous management of penalty function modifications
 should be highly automated by the system to avoid unduly burdening the user.
 \fix{dynamic adjustments}
 As a process grows or diminishes in importance, its penalty function can be modified accordingly.
 
 \subsection*{Power and Battery Energy}
-\fix{how to create rtf}
-\fix{is convexity ok?}
-\fix{how to set penalty}
+In order to control power and energy of the system, we use an artificial application named Application 0 which receives all resources not allocated to other applications. Application 0's response time function is similar to the other applications' response time functions.  The function inputs are resource allocations just as with the other applications.  However, the function output is system power rather than response time.   To create the RTF, system power can be measured directly from on-chip energy counters in systems that they are available or from a power meter.  These models can be built in advance, durning a training phase or online while the system runs, just as with the application RTFs.  Alternatively, the model could be part of the operating system platform specific information. 
+
+Although system power may not be entirely convex in reality, approximating it to be convex is reasonable because the convex model still captures the general behavior that leaving a resource idle should save some or no power.  As a result, Application 0 still fills its purpose of preventing applications using additional resources that have low performance/power ratios.  
+
+The penalty function can be adjusted to represent how important saving power and energy is in the current operating scenario.  For example, if a mobile device is plugged in to a charger than perhaps the penalty slope should be set very low.  However if the device is unplugged the penalty function could be changed to have a deadline and then an steep slope which represents creating a power cap for the system.  In this way the deadline and slope could be set to help control the minimum number of hours the battery will last.
 
