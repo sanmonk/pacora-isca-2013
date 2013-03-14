@@ -48,6 +48,8 @@ Response Time Functions (RTF) represent the expected \emph{response time} of an 
     
 The RTFs are built to be a convex function.  All applications have a function of the same form but the application-specific weights are set using the performance history of the application.  RTFs are designed to capture information such as how well an application scales with a particular resource. As a result, RTFs naturally support heterogeneity.  Each CPU or GPU type is simply viewed as a different resource type by the system, and thus the RTFs will represent how effectively an application uses a particular type of core. The equation below shows the form of the RTF we use in \pacora. 
 
+\fix{add example figure}
+
 \begin{displaymath}
 \tau(w,a) = \tau_0 + \sum_{i\epsilon n,j\epsilon n}{\frac{w_{i,j}}{\sqrt{a_i * a_j}}} 
 \end{displaymath}

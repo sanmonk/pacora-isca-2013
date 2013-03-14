@@ -1,4 +1,4 @@
-\section{Application Functions}\label{app_func}
+\section{Application-Specific Functions}\label{app_func}
 %III.	Application Functions
 %	a.	Resource Value Functions
 %		i.	Structure
@@ -36,7 +36,6 @@ this idea has serious shortcomings:
 \item Convexity in the resources may be violated;
 \item Gradient estimation will be difficult.
 \end{itemize}
-
 
 
 \fix{Model Choice}
@@ -83,11 +82,11 @@ This last variation could be viewed as a ``partially overlapped'' compromise bet
 the 1-norm (sum) describing no overlap and the $\infty$-norm (maximum) describing full overlap.
 
 \fix{non-convex behavior}
-There are examples of response time versus resource behavior that violate convexity.  One such example sometimes occurs in memory allocation, where ``plateaus" can sometimes be seen as in Figure~\ref{f:plat}.
+There are examples of response time versus resource behavior that violate convexity.  One such example sometimes occurs in memory allocation, where ``plateaus'' can sometimes be seen as in Figure~\ref{f:plat}.
 \begin{figure}[b]
 \parbox{1.6in}{
 \includegraphics*{Plateau1.eps}
-\caption{\label{f:plat}Response time function with some resource "plateaus".}
+\caption{\label{f:plat}Response time function with some resource ``plateaus''.}
 }
 \hspace{\fill}
 \parbox{1.6in}{
@@ -101,54 +100,16 @@ There are several ways to avoid this problem.  One is based on the observation t
 A binary (or even linear)search of such sub-domains could be used to find the optimal value.
 \fix{appendix ptr}
 
-
-
-
-
-
-
-
-
-
- 
-
-
-
-\fix{why we picked out model format}
-\fix{downsides of convexity}
-\fix{model creation ptr}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-\fix{details on how to set these}
-
-
-
 \subsection*{Penalty Functions}
 
-In tradition systems, responsiveness has been described by a single value (usually called a \emph{priority}) associated with a thread of computation and adjusted within the operating system by a variety of ad-hoc mechanisms.   Priority approaches have no mechanism to understand deadlines or the resources required to meet a deadline and as such must run the highest priority applications as fast as possible on all the resources requested. 
-
-for these real-time applications, performance is measured as sufficient if the deadline is met and insufficient otherwise.
-
+\fix{Purpose}
 Penalty functions  are generically defined as members of a family of such functions
 so that user preferences for a process $p$ (elided in the discussion below)
 can be implemented by assigning values to a few well-understood parameters.
-As a process grows or diminishes in importance, its penalty function can be modified accordingly.
-In a client operating system,the instantaneous management of penalty function modifications
-should be highly automated by the system to avoid unduly burdening the user.
+\fix{Model Choice}
+In traditional systems, responsiveness has been described by a single value (usually called a \emph{priority}) associated with a thread of computation and adjusted within the operating system by a variety of ad-hoc mechanisms.   Priority approaches have no mechanism to understand deadlines or the resources required to meet a deadline and as such must run the highest priority applications as fast as possible on all the resources requested. 
 
-
+for these real-time applications, performance is measured as sufficient if the deadline is met and insufficient otherwise.
 
 To guarantee it is convex and non-decreasing, $s$ must be non-negative.
 The response time $\tau$  is of course non-negative,
@@ -163,7 +124,14 @@ By the chain rule, $\partial\pi/\partial a_r = \partial\pi/\partial\tau\cdot\par
 The first term is well-defined but discontinuous at $\tau = d$ with
 $\partial\pi/\partial\tau = \mbox{ if } (\tau - d) \leq 0 \mbox{ then } 0 \mbox{ else } s$.
 The problem of estimating the partial derivatives $\partial\tau/\partial a_r$ is dealt with below.
-
-\fix{details on how to set these}
+\fix{How to Set}
+In a client operating system,the instantaneous management of penalty function modifications
+should be highly automated by the system to avoid unduly burdening the user.
+\fix{dynamic adjustments}
+As a process grows or diminishes in importance, its penalty function can be modified accordingly.
 
 \subsection*{Power and Battery Energy}
+\fix{how to create rtf}
+\fix{is convexity ok?}
+\fix{how to set penalty}
+

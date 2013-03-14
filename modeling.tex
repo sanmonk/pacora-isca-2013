@@ -1,10 +1,6 @@
-\section{Model Creation}
-\fix{genetic algorithm}
-
+\section{Response Time Model Creation}
 
 \subsection*{Response Time Modeling}
-
-\subsection*{On-line Response Time Modeling}
 
 For the moment, assume the model norm $p = 1$ and suppose several response time measurements have already been made using a variety of resource allocations to begin optimizing the application response time.  After enough measurements, discovery of the model parameters $w$ that define the function $\tau$ can be based on a solution to the over-determined linear system
 $t=Dw$
@@ -32,7 +28,10 @@ Suppose a different model norm $p$ is desired.  If $p = 2$, we might first squar
 and each reciprocal bandwidth term in $D$ and then follow the foregoing procedure.
 The elements of the result $w$ will be squares as well, and the 2-norm of the difference in the squared quantities will be minimized.  This is not the same as minimizing the 4-norm; what is being minimized is $1/2\|\mbox{diag}(Dww^TD^T - tt^T)\|^2_2$.
 
-\subsection*{Incremental Least Squares}
+\fix{point selection, genetic algorithm}
+
+\subsection*{On-line Response Time Modeling}
+\subsubsection*{Incremental Least Squares}
 
 As resource allocation continues, more measurements will become available to augment $t$ and $D$.
 Moreover, older data may become a poor representation of the current behavior of the process if its characteristics have changed,
@@ -110,7 +109,7 @@ Then $R$ is made upper triangular once more by a sequence of Givens rotations th
 (formerly the diagonal elements of $\tilde{R}$) one at a time.
 These rotations are applied not just to $R$ but also to $Q^Tt$ and of course to $Q^T$ itself.
 
-\subsection*{Non-Negativity}
+\subsubsection*{Non-Negativity}
 
 To guarantee convexity of the response time model, the solution $w$ to $t \approx QRw$ must have no negative components.
 Intuitively, when a resource is associated with more than a single $w_j$
@@ -205,7 +204,7 @@ thus restoring $R^p$ to upper triangular form. Once again, the rotations are als
 
 A new gradient computation and new back-solve for $w$ are clearly necessary after either downdates or updates to columns of $R$.
 
-\subsection*{Model Rank Preservation}
+\subsubsection*{Model Rank Preservation}
 
 If care is not taken in the allocation process,
 the rows of $R$ may become linearly dependent
@@ -238,7 +237,7 @@ A rank-preserving row to downdate will always be available as long as $R$ is suf
 Having at least twice as many rows as columns is enough since the number of available rows to downdate
 matches or exceeds the maximum possible rank of $R$.
 
-\subsection*{Outliers and Phase Changes}
+\subsubsection*{Outliers and Phase Changes}
 
 Some response time measurements may be ``noisy'' or even erroneous.
 A weakness of least-squares modeling is the high importance it gives to outlying values.
@@ -257,9 +256,6 @@ The candidate row to downdate is the row with the largest weighted error, \emph{
 \begin{displaymath}
 dd = \arg\max_i |\varepsilon_i| \cdot \eta^{g(i)}
 \end{displaymath}
-
-\subsection*{Power and Battery Energy}
-
 
 
 

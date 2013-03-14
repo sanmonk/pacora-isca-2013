@@ -49,7 +49,7 @@ and a learned vector of work quantities $w$.
 
 \subsection*{Handling Quasiconvex Response Time Functions}
 
-There are examples of response time versus resource behavior that violate convexity.  One such example sometimes occurs in memory allocation, where ``plateaus" can sometimes be seen as in Figure~\ref{f:plat}.
+There are examples of response time versus resource behavior that violate convexity.  One such example sometimes occurs in memory allocation, where ``plateaus'' can sometimes be seen as in Figure~\ref{f:plat}.
 
 Such plateaus are typically caused by algorithm adaptations within the process to accommodate variable resource availability.  The response time is really the \emph{minimum} of several convex functions depending on allocation and the point-wise minimum that the process implements fails to preserve convexity.  The effect of the plateaus will be a non-convex penalty as shown in Figure~\ref{f:plateffect} and multiple extrema in the optimization problem will be a likely result.
 
