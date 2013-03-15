@@ -1,6 +1,13 @@
 \section{Response Time Model Design}\label{rtf_choice}
 
 \subsection*{Alternative Resource Representations}
+Asynchrony and latency tolerance may make response time components overlap partly or fully;
+if the latter, then the maximum of the terms might be more appropriate than their sum.
+The result will still be convex, though, as will any other norm including the 2-norm,
+\emph{i.e.} the square root of the sum of the squares.
+This last variation could be viewed as a ``partially overlapped'' compromise between
+the 1-norm (sum) describing no overlap and the $\infty$-norm (maximum) describing full overlap.
+
 Sometimes a response time component might be better modeled by a term involving a combination of resources.
 For example, response time due to memory accesses might be approximated
 by a combination of memory bandwidth allocation $b_{r1}$ and cache allocation $m_{r2}$.

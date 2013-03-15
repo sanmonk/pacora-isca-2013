@@ -28,17 +28,14 @@ Alternatively, the resource manager could allocate a modest amount of a resource
 
 Instead of these, \pacora maintains a parameterized analytic response time model with the partial derivatives evaluated from the model \emph{a priori}. Application responsiveness is highly nonlinear for an increasing variety of applications like streaming media or gaming, thus requiring many data points to represent the response times without a model. Using models each application can be described in a small number of parameters.  Additionally models can be built from few data points and naturally smooth out noisy data. The resource gradient can be easily calculated which is essential for \pacora to solve the optimization problem efficiently.  
 
-\pacora models response times by functions that are convex by construction.  The specific function chosen for \pacora is shown in Equation~\ref{rtf_eq}.  In this equation, the response time is be modeled as a weighted sum of component terms, one per resource, where each term $w_r/a_r$ is the amount of work $w_r \geq 0$ divided by $a_r$, the allocation of that resource\cite{Snav}. For example, one term might model the number of instructions executed divided by total processor MIPS, another might model storage accesses divided by storage allocation and so forth. Additional terms represent the interactions between resources. We choose this specific function because in initial application studies we found it models response time behavior accurately enough to allow the optimization to make good decisions but it also low overhead to build.  Alternative models and the initial model evaluations are described in Appendix~\ref{rtf_choice}.
+\pacora models response times by functions that are convex by construction.  The specific function chosen for \pacora is shown in Equation~\ref{rtf_eq}.  In this equation, the response time is be modeled as a weighted sum of component terms, one per resource, where each term $w_r/a_r$ is the amount of work $w_r \geq 0$ divided by $a_r$, the allocation of that resource\cite{Snav}. For example, one term might model the number of instructions executed divided by total processor MIPS, another might model storage accesses divided by storage allocation and so forth. Asynchrony and latency tolerance may make response time components overlap partly or fully; and thus we added additional terms represent the interactions between resources. We choose this specific function because in initial application studies we found it models response time behavior accurately enough to allow the optimization to make good decisions but it also low overhead to build.  Alternative models and the initial model evaluations are described in Appendix~\ref{rtf_choice}.
 
 Such models are automatically convex in the allocations because $1/a$ is convex for positive $a$ and because a positively-weighted sum of convex functions is convex.  It is obviously important to guarantee the positivity of the resource allocations. This can be enforced as the allocations are selected during penalty optimization, or the response time model can be made to return $\infty$ if any allocation is less than or equal to zero. This latter idea preserves the convexity of the model and extends its domain to all of $\Re^n$ and consequently we used this approach in our implementation. The gradient $\nabla\tau$ is needed by the penalty optimization algorithm.
 Since $\tau$ is analytic, generic, and symbolically differentiable
 it is a simple matter to compute the gradient of $\tau$ once the model is defined.
 
 \subsubsection*{Convexity Assumption}
-Forcing our response time functions to be convex assumes that the actual response time are reasonably convex; We find is a plausible requirement as applications almost completely follow the proverbial ``Law of Diminishing Returns'' for resource allocations.   
-
-However, there are examples of response time versus resource behavior that violate convexity.  One such example sometimes occurs in memory allocation, where ``plateaus'' can sometimes be seen as in Figure~\ref{f:plat}.
-\begin{figure}[b]
+\begin{figure}[hb]
 \parbox{1.6in}{
 \includegraphics*{Plateau1.eps}
 \caption{\label{f:plat}Response time function with some resource ``plateaus''.}
@@ -50,29 +47,33 @@ However, there are examples of response time versus resource behavior that viola
 }
 \end{figure}
 
+Forcing our response time functions to be convex assumes that the actual response time are reasonably convex; We find is a plausible requirement as applications almost completely follow the proverbial ``Law of Diminishing Returns'' for resource allocations.   
+
+However, there are examples of response time versus resource behavior that violate convexity.  \fix{performance non-montinicity}
+
+One such example sometimes occurs in memory allocation, where ``plateaus'' can sometimes be seen as in Figure~\ref{f:plat}.
+
 Such plateaus are typically caused by algorithm adaptations within the process to accommodate variable resource availability.  The response time is really the \emph{minimum} of several convex functions depending on allocation and the point-wise minimum that the process implements fails to preserve convexity.  The effect of the plateaus will be a non-convex penalty as shown in Figure~\ref{f:plateffect} and multiple extrema in the optimization problem will be a likely result.
 
 There are several ways to avoid this problem.  One is based on the observation that such response time functions will at least be \emph{quasiconvex}.  Another idea is to use additional constraints to explore convex sub-domains of $\tau$.  However, we found that our simple convex models still resulted in high-quality resource allocations and thus chose not to implement any of these approaches.  Alternative approaches to handling non-convex behavior are described in Appendix~\ref{convex}.
 
-\subsubsection*{Dynamically Changing Applications}
-\fix{changing apps}
-\fix{dynamic compilation}
-\fix{phases}
-Response time will commonly vary with time as a process changes phase and makes better or worse use of its resources.
-\fix{non-determinism}
-Asynchrony and latency tolerance may make response time components overlap partly or fully;
-if the latter, then the maximum of the terms might be more appropriate than their sum.
-The result will still be convex, though, as will any other norm including the 2-norm,
-\emph{i.e.} the square root of the sum of the squares.
-This last variation could be viewed as a ``partially overlapped'' compromise between
-the 1-norm (sum) describing no overlap and the $\infty$-norm (maximum) describing full overlap.
-\fix{Input Variability}
+%\subsubsection*{Dynamically Changing Applications}
+%
+%
+%\fix{changing apps}
+%\fix{dynamic compilation}
+%\fix{phases}
+%Response time will commonly vary with time as a process changes phase and makes better or worse use of its resources.
+%\fix{non-determinism}
+%
+%\fix{Input Variability}
 
 
-
+\subsubsection*{Data Collection and Creation Time}
 There are several possible ways to collect the response time data for applications. A user-level runtime scheduler that schedules work internal to the process may be a good source of data or the operating system could measure progress using performance counters.  In our implementation applications report their own measured values: however, this solution was chosen simply as a way to test the validity of the concept.  In a production operating system, it may not be the best approach because it requires trusting applications not to lie about their performance.  In a datacenter environment this may be less of a concern. 
 
 There are also many different possible times response time functions could be created.  RTFs could be created in advance and distributed with the application. In the case of app stores this approach could make lot of sense since most app stores only cater to a limited number of platforms. Data could also be crowd sourced and the RTFs built in the cloud, which has the advantage making it easy to collect a diverse set of 
+\fix{finish}
 
 \subsection*{Penalty Functions}
 
