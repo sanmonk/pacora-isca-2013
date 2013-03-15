@@ -14,21 +14,9 @@ In this section, we describe the design of each of \pacora's application-specifi
 
 \subsection*{Response Time Functions}
 
-\fix{Purpose}
-Unlike penalty functions, which describe user preference, a response time function describes process performance based on its resource assignments.
+A response time function describes an application's performance based on its resource assignments.  These functions capture information about the value of a particular resource type to an application.  How well an application scales on a particular resource is high depend on the specific application and how it was written along with performance properties of the resources, which is why we believe it is necessary to collection application-specific data for each application. Without information of this type, it would be difficult for any resource allocation system informed decisions.  Thus forcing the system to be entirely reactive and most likely require a complex set of heuristics.  
 
-\fix{How to Measure}
-A user-level runtime scheduler that schedules work internal to the process may be a good source of data.
-
-\fix{Creation Time}
-\fix{Why Models}
-We choose application responsiveness is highly nonlinear for an increasing variety of applications like streaming media or gaming; 
-Besides the value of the response time function, its gradient or an approximation to it is useful to estimate the relative response time improvement from each type of resource. 
-Additionally, the resource manager can allocate a modest amount of a resource and measure the change in response time.
-Instead of these, \pacora maintains a parameterized analytic response time model with the partial derivatives evaluated from the model \emph{a priori}.
-
-While it might be possible to model response times by recording past values and interpolating among them,
-this idea has serious shortcomings:
+While it might be possible to model response times by recording past values and interpolating among them, this idea has serious shortcomings:
 \begin{itemize}
 \item The size of the multidimensional response time function tables will be large;
 \item Interpolation in many dimensions is computationally expensive;
@@ -36,31 +24,23 @@ this idea has serious shortcomings:
 \item Convexity in the resources may be violated;
 \item Gradient estimation will be difficult.
 \end{itemize}
+Alternatively, the resource manager could allocate a modest amount of a resource and measure the change in response time; however this is a difficult way to traverse a multidimensional space.
 
+Instead of these, \pacora maintains a parameterized analytic response time model with the partial derivatives evaluated from the model \emph{a priori}. Application responsiveness is highly nonlinear for an increasing variety of applications like streaming media or gaming, thus requiring many data points to represent the response times without a model. Using models each application can be described in a small number of parameters.  Additionally models can be built from few data points and naturally smooth out noisy data. The resource gradient can be easily calculated which is essential for \pacora to solve the optimization problem efficiently.  
 
-\fix{Model Choice}
-\pacora adopts a simpler idea, modeling response times by functions that are convex by construction
-and do not distort response time behavior too much.  This approach is developed more fully below.
-An alternative approach is to model the response time functions using parameterized expressions that are convex by construction.
-For example, the response time might be modeled as a weighted sum of component terms,
-one per bandwidth resource, where each term $w_r/a_r$ is
-the amount of work $w_r \geq 0$ divided by $a_r$, the allocation of that bandwidth resource\cite{Snav}.
-For example,
-one term might model the number of instructions executed divided by total processor MIPS,
-another might model storage accesses divided by storage bandwidth allocation and so forth.
-Such models will automatically be convex in the allocations because $1/a$ is convex for positive $a$
-and because a positively-weighted sum of convex functions is convex.
+\pacora models response times by functions that are convex by construction.  The specific function chosen for \pacora is shown in Equation~\ref{rtf_eq}.  In this equation, the response time is be modeled as a weighted sum of component terms, one per resource, where each term $w_r/a_r$ is the amount of work $w_r \geq 0$ divided by $a_r$, the allocation of that resource\cite{Snav}. For example, one term might model the number of instructions executed divided by total processor MIPS, another might model storage accesses divided by storage bandwidth allocation and so forth. Additional terms represent the interactions between resources.
+Such models are automatically convex in the allocations because $1/a$ is convex for positive $a$ and because a positively-weighted sum of convex functions is convex.  
+
+We choose this specific function because initial application studies we found it models response time behavior accurately enough 
+and we found in our initial experiments that a 
+
 
 It is obviously important to guarantee the positivity of the resource allocations.
 This can be enforced as the allocations are selected during penalty optimization,
 or the response time model can be made to return $\infty$ if any allocation is less than or equal to zero.
 This latter idea preserves the convexity of the model and extends its domain to all of $\Re^n$.
 
-Sometimes a response time component might be better modeled by a term involving a combination of resources.
-For example, response time due to memory accesses might be approximated
-by a combination of memory bandwidth allocation $b_{r1}$ and cache allocation $m_{r2}$.
-Such a model could use the geometric mean of the two allocations in the denominator,
-\emph{viz.} $w_{r1,r2}/\sqrt{b_{r1}\cdot m_{r2}}$, without compromising convexity.
+
 
 The gradient $\nabla\tau$ is needed by the penalty optimization algorithm.
 Since $\tau$ is analytic, generic, and symbolically differentiable
@@ -99,6 +79,10 @@ Such plateaus are typically caused by algorithm adaptations within the process t
 There are several ways to avoid this problem.  One is based on the observation that such response time functions will at least be \emph{quasiconvex}.  Another idea is to use additional constraints to explore convex sub-domains of $\tau$. For example,the affine constraint $a_{p,r} - \mu \leq 0$ excludes process $p$ from any assignment of resource $r$ exceeding $\mu$.  Similarly, $\mu - a_{p,r} \leq 0$ excludes the opposite possibility.
 A binary (or even linear)search of such sub-domains could be used to find the optimal value.
 \fix{appendix ptr}
+
+There are several possible ways to collect the response time data for applications. A user-level runtime scheduler that schedules work internal to the process may be a good source of data or the operating system could measure progress using performance counters.  In our implementation applications report their own measured values: however, this solution was chosen simply as a way to test the validity of the concept.  In a production operating system, it may not be the best approach because it requires trusting applications not to lie about their performance.  In a datacenter environment this may be less of a concern. 
+
+There are also many different possible times response time functions could be created.  RTFs could be created in advance and distributed with the application. In the case of app stores this approach could make lot of sense since most app stores only cater to a limited number of platforms. Data could also be crowd sourced and the RTFs built in the cloud, which has the advantage making it easy to collect a diverse set of 
 
 \subsection*{Penalty Functions}
 
