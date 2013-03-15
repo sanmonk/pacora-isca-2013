@@ -95,7 +95,7 @@ where $t$ is a column vector of actual response times measured for the process
 and $D$ is a matrix whose ith row $D_{i,*}$ contains the reciprocals of the amplified bandwidth allocations
 that generated the corresponding response time measurement $t_i$.
 Estimating $w$ is relatively straightforward: a least-squares solution accomplished via
-\emph{Q-R factorization}\cite{GoVL} of $D$ will determine the $w$ that minimizes (half the)
+\emph{QR factorization}\cite{GoVL} of $D$ will determine the $w$ that minimizes (half the)
 square of the \emph residual error $1/2 \|Dw - t\|^2_2 = 1/2 \|\varepsilon\|^2_2$.
 The solution proceeds as follows:
 \begin{eqnarray*}
@@ -230,7 +230,7 @@ Since the offset is just the size of the set \textbf{P} it is naturally called $
 
 Columns are left in place in $R$. The columns of $R$ belonging to \textbf{P} are denoted by $R^p$ and those in \textbf{Z} by $R^z$.
 The updating or downdating of a column only involves modifying the index $idx$ to redefine \textbf{P} and \textbf{Z} and then
-applying Givens rotations to (all of) the rows of $R$ to restore $R^p$ to upper triangular form. 
+applying Givens rotations to (all of) the rows of $R$ to restore $R^p$ to upper triangular form.
 
 After initial acquisition of data and $QR$ factorization, each step of \pacora's NNLS algorithm
 combines incremental row and column downdates and updates as follows:
@@ -242,7 +242,7 @@ R,Q^T,Q^Tt \GETS \textsc{UpdtRow}(t_0,d_0,R,Q^T,Q^Tt,idx)     \\
 w \GETS \textsc{BackSolve}(R,Q^Tt,idx)                          \\
 v \GETS \textsc{Gradient}(R,Q^Tt,idx)                    \\
 \REPEAT
-  done \GETS \TRUE                                              \\  
+  done \GETS \TRUE                                              \\
   d \GETS \arg\min(w)                                          \\
   \IF w_d < 0 \THEN                                            \\
   \BEGIN
@@ -259,14 +259,14 @@ v \GETS \textsc{Gradient}(R,Q^Tt,idx)                    \\
     w \GETS \textsc{BackSolve}(R,Q^Tt,idx)                    \\
     v \GETS \textsc{Gradient}(R,Q^Tt,idx)              \\
   \END                                                        \\
-\UNTIL done                                                   \\ 
-\RETURN{w,v}                                                  \\     
+\UNTIL done                                                   \\
+\RETURN{w,v}                                                  \\
 \end{pseudocode}
- 
-When a column indexed by $d$ in $R^p$ is downdated because $w_d < 0$, that column is moved from $p$ to $z$ in the index.
-To restore $R^p$ to upper triangular form, Givens rotations are applied to $R$ at rows $R_{d,*}$ and $R_{k,*}$ 
+
+When a column indexed by $d$ in $R^p$ is downdated because $w_d < 0$, that column is moved from \textbf{P} to \textbf{Z} in $idx$.
+To restore $R^p$ to upper triangular form, Givens rotations are applied to $R$ at rows $R_{d,*}$ and $R_{k,*}$
 where $d < k < p$. The row subscripts $k$ are used in decreasing order from $p-1$ down to $d+1$,
-and each rotation zeros the subdiagonal element of the column indexed by $k$. 
+and each rotation zeros the subdiagonal element in $R^p$ of the column indexed by $k$.
 As usual, these rotations are also applied to $Q^T$ and $Q^Tt$.
 The result in $R^z$ is a ``spike'' of nonzeros in the column that was moved;
 it can eventually extend to the bottom of $R$ as \emph{row} updates occur.
@@ -282,8 +282,8 @@ v &=& 1/2\nabla\|Dw - t\|^2_2 \\
 If for some column in \textbf{Z} the inner product of the corresponding spiked row in $R^T$ and $-Q^T\varepsilon$ is negative,
 the column subscript must be moved to \textsc{P}.
 Updating $R^p$ reverses the downdating steps by zeroing the spike via a sequence of Givens rotations on $R$
-between adjacent pairs of rows, starting at the bottom and ending at $m,m+1$ where $m$ is the new index of the column.
-These rotations conveniently extend the columns $k$ with $m < k < p$ by one,
+between adjacent pairs of rows, starting at the bottom and ending at $m,m+1$ where $m$ is the position of the new column in $idx$.
+These rotations conveniently extend the columns to the right of $m$ in $R^p$ by one,
 thus restoring $R^p$ to upper triangular form. Once again, the rotations are also applied to $Q^T$ and $Q^Tt$.
 
 A new gradient computation and new back-solve for $w$ are clearly necessary after either downdates or updates to columns of $R$.
@@ -332,7 +332,7 @@ with a judicious balance between age and anomaly.
 
 The downdating algorithm accomplishes this by weighting the errors in $\varepsilon = Q(Q^Tt - Rw)$
 between the predicted response times $\tau$ and the measured ones $t$ by a factor
-that increases exponentially with the age $g(i)$ of the $i$th error $\varepsilon_i$.
+that increases exponentially with the age $g(i)$ of the \em{i\/}th error $\varepsilon_i$.
 Age can be modeled coarsely by the number of time quanta of some size since the measurement;
 \pacora simply lets $g(i) = i$.
 The weighting factor for the $i$th row is then $\eta^{g(i)}$ where $\eta$ is a constant somewhat greater than 1.
