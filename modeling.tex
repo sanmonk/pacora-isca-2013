@@ -1,97 +1,13 @@
-\section{Model Creation}
-\fix{genetic algorithm}
-
+\section{Response Time Model Creation}\label{model_creation}
 
 \subsection*{Response Time Modeling}
 
-While it might be possible to model response times by recording past values and interpolating among them,
-this idea has serious shortcomings:
-\begin{itemize}
-\item The size of the multidimensional response time function tables will be large;
-\item Interpolation in many dimensions is computationally expensive;
-\item The measurements will be noisy and require smoothing;
-\item Convexity in the resources may be violated;
-\item Gradient estimation will be difficult.
-\end{itemize}
+To create RTF models either at install time or online we use a least squares approach described a below.  For the install time approach we use a genetic algorithm, Audze-Eglasis Design of Experiments\cite{bates-aes03}, to select the resource vectors to use for training data.  The data for all those vectors is collected and fed into the least squares algorithm.  In the online approach the data comes from the application's response time history.
 
-An alternative approach is to model the response time functions using parameterized expressions that are convex by construction.
-For example, the response time might be modeled as a weighted sum of component terms,
-one per bandwidth resource, where each term $w_r/a_r$ is
-the amount of work $w_r \geq 0$ divided by $a_r$, the allocation of that bandwidth resource\cite{Snav}.
-For example,
-one term might model the number of instructions executed divided by total processor MIPS,
-another might model storage accesses divided by storage bandwidth allocation and so forth.
-Such models will automatically be convex in the allocations because $1/a$ is convex for positive $a$
-and because a positively-weighted sum of convex functions is convex.
-
-It is obviously important to guarantee the positivity of the resource allocations.
-This can be enforced as the allocations are selected during penalty optimization,
-or the response time model can be made to return $\infty$ if any allocation is less than or equal to zero.
-This latter idea preserves the convexity of the model and extends its domain to all of $\Re^n$.
-
-Asynchrony and latency tolerance may make response time components overlap partly or fully;
-if the latter, then the maximum of the terms might be more appropriate than their sum.
-The result will still be convex, though, as will any other norm including the 2-norm,
-\emph{i.e.} the square root of the sum of the squares.
-This last variation could be viewed as a ``partially overlapped'' compromise between
-the 1-norm (sum) describing no overlap and the $\infty$-norm (maximum) describing full overlap.
-
-This scheme also accommodates non-bandwidth resources such as memory,
-the general idea being to roughly approximate ``diminishing returns'' in the response time with increasing resources.
-For clarity's sake, rather than using $a_r$ indiscriminately for all allocations,
-we will denote an allocation of a bandwidth resource by $b_r$ and of a memory resource by $m_r$.
-
-Sometimes a response time component might be better modeled by a term involving a combination of resources.
-For example, response time due to memory accesses might be approximated
-by a combination of memory bandwidth allocation $b_{r1}$ and cache allocation $m_{r2}$.
-Such a model could use the geometric mean of the two allocations in the denominator,
-\emph{viz.} $w_{r1,r2}/\sqrt{b_{r1}\cdot m_{r2}}$, without compromising convexity.
-
-This begs the question of how memory affects the response time.
-The effect is largely indirect.
-Memory permits exploitation of temporal locality and thereby \emph{amplifies} associated bandwidths.
-For example, additional main memory may reduce the need for storage or network bandwidth,
-and of course increased cache capacity may reduce the need for memory bandwidth.
-The effectiveness of cache in reducing bandwidth was studied by
-H. T. Kung\cite{Kung}, who developed tight asymptotic bounds on the bandwidth amplification
-factor $\alpha(m)$ resulting from a quantity of memory $m$ acting as cache for a variety of computations.
-He shows that
-\begin{displaymath}
-\begin{array}{lll}
-\alpha(m) &= \Theta(\sqrt m) & \mbox{for dense linear algebra solvers} \\
-          &= \Theta(m^{1/d}) & \mbox{for d-dimensional PDE solvers} \\
-          &= \Theta(\log m)  & \mbox{for comparison sorting and FFTs} \\
-          &= \Theta(1)       & \mbox{when temporal locality is absent}
-\end{array}
-\end{displaymath}
-
-For these expressions to make sense, the argument of $\alpha$ should be dimensionless and greater than 1.
-Ensuring this might be as simple as letting it be the number of memory resource quanta
-(\emph{e.g.} hundreds of memory pages) assigned to the process.
-If a process shows diminishing bandwidth amplification as its memory allocation increases, this can be accommodated:
-\begin{displaymath}
-\alpha(m) = \min(c_1\alpha_1(m),c_2\alpha_2(m)),\;c_1,c_2 \geq 0
-\end{displaymath}
-
-Each bandwidth amplification factor might be described by one of the functions above
-and included in the denominator of the appropriate component in the response time function model.
-For example, the storage response time component for the model of an out-of-core sort process might be
-the quantity of storage accesses divided by the product of the storage bandwidth allocation and $\log m$,
-the amplification function associated with sorting given a memory allocation of $m$.
-Amplification functions for each application might be learned from response time measurements
-by observing the effect of varying the associated memory resource while keeping the bandwidth allocation constant.
-Alternatively, redundant components, similar except for amplification function, could be included in the model
-to let the model fitting process decide among them.
-
-The gradient $\nabla\tau$ is needed by the penalty optimization algorithm.
-Since $\tau$ is analytic, generic, and symbolically differentiable
-it is a simple matter to compute the gradient of $\tau$ once the model is defined.
-
-\subsection*{On-line Response Time Modeling}
-
-For the moment, assume the model norm $p = 1$ and suppose several response time measurements have already been made using a variety of resource allocations to begin optimizing the application response time.  After enough measurements, discovery of the model parameters $w$ that define the function $\tau$ can be based on a solution to the over-determined linear system
+\subsubsection*{Model Creation using Least Squares}
+After sufficient measurements, discovery of the model parameters $w$ that define the function $\tau$ can be based on a solution to the over-determined linear system
 $t=Dw$
-where $t$ is a column vector of actual response times measured for the process
+where $t$ is a column vector of actual response times measured for the application
 and $D$ is a matrix whose ith row $D_{i,*}$ contains the reciprocals of the amplified bandwidth allocations
 that generated the corresponding response time measurement $t_i$.
 Estimating $w$ is relatively straightforward: a least-squares solution accomplished via
@@ -111,15 +27,18 @@ The elements of the resulting vector $Q^Tt$ that correspond to zero rows in $R$ 
 Since $Rw$ exactly equals the upper part of $Q^Tt$, the upper part of $Q^T\varepsilon$ is zero. The residual error for the $t_i$
 can be found by premultiplying $Q^T\varepsilon$ by $Q$.
 
-Suppose a different model norm $p$ is desired.  If $p = 2$, we might first square each measurement in $t$
+This formulation assumes a model norm $p = 1$. If a different model norm $p$ is desired, such as $p = 2$, we could first square each measurement in $t$
 and each reciprocal bandwidth term in $D$ and then follow the foregoing procedure.
 The elements of the result $w$ will be squares as well, and the 2-norm of the difference in the squared quantities will be minimized.  This is not the same as minimizing the 4-norm; what is being minimized is $1/2\|\mbox{diag}(Dww^TD^T - tt^T)\|^2_2$.
 
-\subsection*{Incremental Least Squares}
+\subsection*{On-line Response Time Modeling}
 
 As resource allocation continues, more measurements will become available to augment $t$ and $D$.
-Moreover, older data may become a poor representation of the current behavior of the process if its characteristics have changed,
-presumably as reflected in $Q^T\varepsilon$.
+Moreover, older data may become a poor representation of the current behavior of the application if its characteristics have changed,
+presumably as reflected in $Q^T\varepsilon$.  \pacora adopts the incremental least squares described below to replace old data and efficiently update RTFs. 
+
+\subsubsection*{Incremental Least Squares}
+
 What is needed is a factorization $\tilde{Q}\tilde{R}$ of a new matrix $\tilde{D}$
 derived from $D$ by dropping a row, perhaps from the bottom,
 and adding a row, perhaps at the top.
@@ -193,7 +112,7 @@ Then $R$ is made upper triangular once more by a sequence of Givens rotations th
 (formerly the diagonal elements of $\tilde{R}$) one at a time.
 These rotations are applied not just to $R$ but also to $Q^Tt$ and of course to $Q^T$ itself.
 
-\subsection*{Non-Negativity}
+\subsubsection*{Non-Negativity}
 
 To guarantee convexity of the response time model, the solution $w$ to $t \approx QRw$ must have no negative components.
 Intuitively, when a resource is associated with more than a single $w_j$
@@ -288,7 +207,7 @@ thus restoring $R^p$ to upper triangular form. Once again, the rotations are als
 
 A new gradient computation and new back-solve for $w$ are clearly necessary after either downdates or updates to columns of $R$.
 
-\subsection*{Model Rank Preservation}
+\subsubsection*{Model Rank Preservation}
 
 If care is not taken in the allocation process,
 the rows of $R$ may become linearly dependent
@@ -321,7 +240,7 @@ A rank-preserving row to downdate will always be available as long as $R$ is suf
 Having at least twice as many rows as columns is enough since the number of available rows to downdate
 matches or exceeds the maximum possible rank of $R$.
 
-\subsection*{Outliers and Phase Changes}
+\subsubsection*{Outliers and Phase Changes}
 
 Some response time measurements may be ``noisy'' or even erroneous.
 A weakness of least-squares modeling is the high importance it gives to outlying values.
@@ -340,8 +259,6 @@ The candidate row to downdate is the row with the largest weighted error, \emph{
 \begin{displaymath}
 dd = \arg\max_i |\varepsilon_i| \cdot \eta^{g(i)}
 \end{displaymath}
-
-
 
 
 

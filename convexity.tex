@@ -1,4 +1,11 @@
-\section{Problem Convexity}
+\section{Problem Convexity}\label{convex}
+
+\subsection*{Convex Functions}
+A few more facts about convex functions will be useful in what follows.
+First, a \emph{concave} function is one whose negative is convex.
+Maximization of a concave function is equivalent to minimization of its convex negative.
+An affine function, one whose graph is a straight line in two dimensions or a hyperplane in n dimensions,
+is both convex and concave.  A non-negative weighted sum or point-wise maximum (minimum) of convex (concave) functions is convex (concave), as is either kind of function composed with an affine function.  The composition of a convex non-decreasing (concave non-increasing) scalar function with a convex function remains convex (concave).
 
 \subsection*{Response Time Model Convexity}
 
@@ -26,16 +33,41 @@ Finally, $\log (1/\log m)$ is convex because its second derivative is positive f
                                   &=& \frac{1 + \log m}{(m\log m)^2}.
 \end{eqnarray*}
 
-Summing up, a response time function for a process might be modeled by the convex function
+Summing up, a response time function for a application might be modeled by the convex function
 \begin{eqnarray*}
 \tau(w,b,\alpha,m) &=& \sqrt[p]{\sum_j \left(\frac{w_j}{b_j\cdot\alpha_j(m_j)}\right)^p}  \\
                    &=& \|\mbox{diag} wd^T \|_p
 \end{eqnarray*}
-where the $w_j$ are the parameters of the model (the “quantities of work”) to be learned,
+where the $w_j$ are the parameters of the model (the quantities of work) to be learned,
 the components of $d$ satisfy $d_j = 1/(b_j\cdot\alpha_j(m_j))$,
 the $b_j$  are the allocations of the bandwidth resources,
 the $\alpha_j$ are the bandwidth amplification functions (also to be learned),
 the $m_j$ are the allocations of the memory or cache resources that are responsible for the amplifications.
-This formulation allows the process response time $\tau$ to be modeled as the $p$-norm of
+This formulation allows the application response time $\tau$ to be modeled as the $p$-norm of
 the component-wise product of a vector $d$ that is computed from the resource allocation
 and a learned vector of work quantities $w$.
+
+\subsection*{Handling Quasiconvex Response Time Functions}
+
+There are examples of response time versus resource behavior that violate convexity.  One such example sometimes occurs in memory allocation, where ``plateaus'' can sometimes be seen as in Figure~\ref{f:plat}.
+
+Such plateaus are typically caused by algorithm adaptations within the application to accommodate variable resource availability.  The response time is really the \emph{minimum} of several convex functions depending on allocation and the point-wise minimum that the application implements fails to preserve convexity.  The effect of the plateaus will be a non-convex penalty as shown in Figure~\ref{f:plateffect} and multiple extrema in the optimization problem will be a likely result.
+
+There are several ways to avoid this problem.  One is based on the observation that such response time functions
+will at least be \emph{quasiconvex}.  A function $f$ is quasiconvex if all of its \emph{sublevel sets}
+$S_\ell = \{x | f(x) \leq \ell\}$ are convex sets.
+Alternatively, $f$ is quasiconvex if its domain is convex and
+\begin{displaymath}
+f(\theta x + (1-\theta)y) \leq \max(f(x),f(y)), 0 \leq \theta \leq 1
+\end{displaymath}
+
+Quasiconvex optimization can be performed by selecting a threshold $\ell$ and replacing the objective function
+with a convex constraint function whose sublevel set $S_\ell$ is the same as that of $f$.
+Next, one determines whether there is a feasible solution for that particular threshold $\ell$.
+Repeated application with a binary search on $\ell$ will reduce the level of feasibility
+until the solution is approximated well enough.
+
+Another idea is to use additional constraints to explore convex sub-domains of $\tau$.
+For example,the affine constraint $a_{p,r} - \mu \leq 0$ excludes application $p$ from any assignment of resource $r$ exceeding $\mu$.  Similarly, $\mu - a_{p,r} \leq 0$ excludes the opposite possibility.
+A binary (or even linear)search of such sub-domains could be used to find the optimal value.
+

@@ -1,4 +1,4 @@
-\section{Application Functions}
+\section{Application-Specific Functions}\label{app_func}
 %III.	Application Functions
 %	a.	Resource Value Functions
 %		i.	Structure
@@ -8,117 +8,97 @@
 %		i.	Where do the deadlines come from?
 %		ii.	How do we set the slopes?
 %	c.	Power Model
-\subsection*{Penalty Functions}
 
-Penalty functions  are generically defined as members of a family of such functions
-so that user preferences for a process $p$ (elided in the discussion below)
-can be implemented by assigning values to a few well-understood parameters.
-As a process grows or diminishes in importance, its penalty function can be modified accordingly.
-In a client operating system,the instantaneous management of penalty function modifications
-should be highly automated by the system to avoid unduly burdening the user.
-\pacora's penalty functions are non-decreasing piecewise linear functions of the form
-$\pi(\tau) = \max(0, s(\tau - d)$.
-Two representative graphs of this type appear in Figures~\ref{f:pen1} and~\ref{f:pen2}.
 
-\begin{figure}[hb]
-\parbox{1.6in}{
-\includegraphics*{Penalty1.eps}
-\caption{\label{f:pen1}A penalty function with a response time constraint.}
-}
-\hspace{\fill}
-\parbox{1.6in}{
-\includegraphics*{Penalty2.eps}
-\caption{\label{f:pen2}A penalty function with no response time constraint.}
-}
-\end{figure}
-
-The two parameters $d$ and $s$ define the penalty function.
-To guarantee it is convex and non-decreasing, $s$ must be non-negative.
-The response time $\tau$  is of course non-negative,
-and it may be sensible (if not strictly necessary) to convene that $d$ is also.
-A response time constrained process has a marked change in slope, namely from 0 to $s$, at the point $\tau= d$.
-In the most extreme case $s = \infty$ (implying infinite penalty for the system as a whole when $\tau > d$).  ``Softer'' requirements will doubtless be the rule.
-For processes without response time constraints one can set $d = 0$.
-This defines linear behavior with $s$ as the rate of penalty increase with response time.
-
-The gradient of process penalty with respect to its resource allocations is useful in controlling the optimization algorithm.
-By the chain rule, $\partial\pi/\partial a_r = \partial\pi/\partial\tau\cdot\partial\tau/\partial a_r$.
-The first term is well-defined but discontinuous at $\tau = d$ with
-$\partial\pi/\partial\tau = \mbox{ if } (\tau - d) \leq 0 \mbox{ then } 0 \mbox{ else } s$.
-The problem of estimating the partial derivatives $\partial\tau/\partial a_r$ is dealt with below.
-
-\fix{details on how to set these}
+In this section, we describe the design of each of \pacora's application-specific functions in more detail.
 
 \subsection*{Response Time Functions}
 
-Unlike penalty functions, which describe user preference, a response time function describes process performance based on its resource assignments.
-Response time will commonly vary with time as a process changes phase and makes better or worse use of its resources.
-To guarantee the objective function is convex, the response time must be also;
-this is a plausible requirement akin to the proverbial ``Law of Diminishing Returns''.
+A response time function describes an application's performance based on its resource assignments.  These functions capture information about the value of a particular resource type to an application.  How well an application scales on a particular resource is high depend on the specific application and how it was written along with performance properties of the resources, which is why we believe it is necessary to collection application-specific data for each application. Without information of this type, it would be difficult for any resource allocation system informed decisions.  Thus forcing the system to be entirely reactive and most likely require a complex set of heuristics.  
 
-Besides the value of the response time function, its gradient or an approximation to it is useful to estimate the relative response time improvement from each type of resource.  A user-level runtime scheduler that schedules work internal to the process may be a good source of data.
-Additionally, the resource manager can allocate a modest amount of a resource and measure the change in response time.
-Instead of these, \pacora maintains a parameterized analytic response time model with the partial derivatives evaluated from the model \emph{a priori}.
+\subsubsection*{Model Selection} While it might be possible to model response times by recording past values and interpolating among them, this idea has serious shortcomings:
+\begin{itemize}
+\item The size of the multidimensional response time function tables will be large;
+\item Interpolation in many dimensions is computationally expensive;
+\item The measurements will be noisy and require smoothing;
+\item Convexity in the resources may be violated;
+\item Gradient estimation will be difficult.
+\end{itemize}
+Alternatively, the resource manager could allocate a modest amount of a resource and measure the change in response time; however this is a difficult way to traverse a multidimensional space.
 
-There are examples of response time versus resource behavior that violate convexity.  One such example sometimes occurs in memory allocation, where “plateaus” can sometimes be seen as in Figure~\ref{f:plat}.
-\begin{figure}[b]
+Instead of these, \pacora maintains a parameterized analytic response time model with the partial derivatives evaluated from the model \emph{a priori}. Application responsiveness is highly nonlinear for an increasing variety of applications like streaming media or gaming, thus requiring many data points to represent the response times without a model. Using models each application can be described in a small number of parameters.  Additionally models can be built from few data points and naturally smooth out noisy data. The resource gradient can be easily calculated which is essential for \pacora to solve the optimization problem efficiently.  
+
+\pacora models response times by functions that are convex by construction.  The specific function chosen for \pacora is shown in Equation~\ref{rtf_eq}.  In this equation, the response time is be modeled as a weighted sum of component terms, one per resource, where each term $w_r/a_r$ is the amount of work $w_r \geq 0$ divided by $a_r$, the allocation of that resource\cite{Snav}. For example, one term might model the number of instructions executed divided by total processor MIPS, another might model storage accesses divided by storage allocation and so forth. Asynchrony and latency tolerance may make response time components overlap partly or fully; and thus we added additional terms represent the interactions between resources. We choose this specific function because in initial application studies we found it models response time behavior accurately enough to allow the optimization to make good decisions but it also low overhead to build.  Alternative models and the initial model evaluations are described in Appendix~\ref{rtf_choice}.
+
+Such models are automatically convex in the allocations because $1/a$ is convex for positive $a$ and because a positively-weighted sum of convex functions is convex.  It is obviously important to guarantee the positivity of the resource allocations. This can be enforced as the allocations are selected during penalty optimization, or the response time model can be made to return $\infty$ if any allocation is less than or equal to zero. This latter idea preserves the convexity of the model and extends its domain to all of $\Re^n$ and consequently we used this approach in our implementation. The gradient $\nabla\tau$ is needed by the penalty optimization algorithm.
+Since $\tau$ is analytic, generic, and symbolically differentiable
+it is a simple matter to compute the gradient of $\tau$ once the model is defined.
+
+\subsubsection*{Convexity Assumption}
+\begin{figure}[hb]
 \parbox{1.6in}{
 \includegraphics*{Plateau1.eps}
-\caption{\label{f:plat}Response time function with some resource "plateaus".}
+\caption{\label{f:plat}Response time function with some resource ``plateaus''.}
 }
 \hspace{\fill}
 \parbox{1.6in}{
 \includegraphics*{Plateau2.eps}
-\caption{\label{f:plateffect}Net effect of the resource plateaus on the process penalty.}
+\caption{\label{f:plateffect}Net effect of the resource plateaus on the application penalty.}
 }
 \end{figure}
-Such plateaus are typically caused by algorithm adaptations within the process to accommodate variable resource availability.  The response time is really the \emph{minimum} of several convex functions depending on allocation and the point-wise minimum that the process implements fails to preserve convexity.  The effect of the plateaus will be a non-convex penalty as shown in Figure~\ref{f:plateffect} and multiple extrema in the optimization problem will be a likely result.
 
-There are several ways to avoid this problem.  One is based on the observation that such response time functions
-will at least be \emph{quasiconvex}.  A function $f$ is quasiconvex if all of its \emph{sublevel sets}
-$S_\ell = \{x | f(x) \leq \ell\}$ are convex sets.
-Alternatively, $f$ is quasiconvex if its domain is convex and
-\begin{displaymath}
-f(\theta x + (1-\theta)y) \leq \max(f(x),f(y)), 0 \leq \theta \leq 1
-\end{displaymath}
+Forcing our response time functions to be convex assumes that the actual response time are reasonably convex; We find is a plausible requirement as applications almost completely follow the proverbial ``Law of Diminishing Returns'' for resource allocations.   
 
-Quasiconvex optimization can be performed by selecting a threshold $\ell$ and replacing the objective function
-with a convex constraint function whose sublevel set $S_\ell$ is the same as that of $f$.
-Next, one determines whether there is a feasible solution for that particular threshold $\ell$.
-Repeated application with a binary search on $\ell$ will reduce the level of feasibility
-until the solution is approximated well enough.
+However, there are examples of response time versus resource behavior that violate convexity.   For example, we have particularly seen non-monotonic performance behavior in applications when dealing with hyperthreads or memory pages.  For two of our applications 5 hyperthreads resulted in significantly worse performance than 4 or 6 hyperthreads.  When studying some other applications applications we found that particular numbers of memory pages, \emph{i.e.,} 2K, resulted in much better performance than the adjacent page allocations.  One possible solution to solve this problem is keep track of points with significant error in the models and adjust resource allocations slightly to avoid these points.
 
-Another idea is to use additional constraints to explore convex sub-domains of $\tau$.
-For example,the affine constraint $a_{p,r} - \mu \leq 0$ excludes process $p$ from any assignment of resource $r$ exceeding $\mu$.  Similarly, $\mu - a_{p,r} \leq 0$ exludes the opposite possibility.
-A binary (or even linear)search of such sub-domains could be used to find the optimal value.
+Another such example sometimes occurs in memory allocation, where ``plateaus'' can sometimes be seen as in Figure~\ref{f:plat}. Such plateaus are typically caused by algorithm adaptations within the application to accommodate variable resource availability.  The response time is really the \emph{minimum} of several convex functions depending on allocation and the point-wise minimum that the application implements fails to preserve convexity.  The effect of the plateaus will be a non-convex penalty as shown in Figure~\ref{f:plateffect} and multiple extrema in the optimization problem will be a likely result. There are several ways to avoid this problem.  One is based on the observation that such response time functions will at least be \emph{quasiconvex}.  Another idea is to use additional constraints to explore convex sub-domains of $\tau$.  
 
-\pacora adopts a simpler idea, modeling response times by functions that are convex by construction
-and do not distort response time behavior too much.  This approach is developed more fully below.
+Overall, we found that our simple convex models still resulted in high-quality resource allocations and thus chose not to implement any of these approaches.  Alternative approaches to handling non-convex behavior are described in Appendix~\ref{convex}. Additional challenges to response time modeling are discussed in Section~\ref{discuss}.
 
-\fix{why we picked out model format}
-\fix{downsides of convexity}
-\fix{model creation ptr}
+%\subsubsection*{Dynamically Changing Applications}
+%
+%
+%\fix{changing apps}
+%\fix{dynamic compilation}
+%\fix{phases}
+%Response time will commonly vary with time as a application changes phase and makes better or worse use of its resources.
+%\fix{non-determinism}
+%
+%\fix{Input Variability}
+
+
+\subsubsection*{Data Collection and Creation Time}
+There are several possible ways to collect the response time data for applications. A user-level runtime scheduler that schedules work internal to the application may be a good source of data or the operating system could measure progress using performance counters.  In our implementation applications report their own measured values: however, this solution was chosen simply as a way to test the validity of the concept.  In a production operating system, it may not be the best approach because it requires trusting applications not to lie about their performance.  In a datacenter environment this may be less of a concern. 
+
+There are also many different possible times response time functions could be created.  RTFs could be created in advance and distributed with the application. In the case of app stores this approach could make lot of sense since most app stores only cater to a limited number of platforms. Data could also be crowd sourced and the RTFs built in the cloud, which has the advantage making it easy to collect a diverse set of training points.  However, all of these approaches are missing personalization.  As a result we have chosen to implement two solutions that collect data directly from the users machine.  The first approach is to collect all of the training points all the application install time and build the model then.  The more advanced approached collects data continuously as the application runs and adds that data to the model training set and rebuilds the model.  Although ultimately a hybrid approach may be the most effective: applications can begin with a provided generic model, and the system can improve the model over time. Section~\ref{model_creation} describes our model creation process in detail.
+
+\subsection*{Penalty Functions}
+
+Penalty functions are generically defined as members of a family of such functions
+so that user preferences for an application $p$ can implemented by assigning values to a few well-understood parameters.
+
+In traditional systems, responsiveness has been described by a single value (usually called a \emph{priority}) associated with a thread of computation and adjusted within the operating system by a variety of ad-hoc mechanisms.  However for many interactive real-time applications, performance is measured as sufficient if the deadline is met and insufficient otherwise. Priority approaches have no mechanism to understand deadlines or the resources required to meet a deadline.   
+
+We designed \pacora's penalty functions to represent deadlines and relative importance of making the deadline.  These values are represented by two parameters a deadline $d$ and a slope $s$.  Equation~\ref{pen_eq} shows penalty functions used in \pacora.
+
+A response-time constrained application has a marked change in slope, namely from 0 to $s$, at the point $\tau= d$. In the most extreme case $s = \infty$ (implying infinite penalty for the system as a whole when $\tau > d$).  For applications without response time constraints one can set $d = 0$. This defines linear behavior with $s$ as the rate of penalty increase with response time.
+
+To guarantee it is convex and non-decreasing, $s$ must be non-negative.
+The response time $\tau$  is of course non-negative, and it may be sensible (if not strictly necessary) to convene that $d$ is also.
+
+The gradient of application penalty with respect to its resource allocations is necessary in controlling the optimization algorithm.
+By the chain rule, $\partial\pi/\partial a_r = \partial\pi/\partial\tau\cdot\partial\tau/\partial a_r$.
+The first term is well-defined but discontinuous at $\tau = d$ with
+$\partial\pi/\partial\tau = \mbox{ if } (\tau - d) \leq 0 \mbox{ then } 0 \mbox{ else } s$.
+
+In a client operating system, the instantaneous management of penalty function modifications should be highly automated by the system to avoid unduly burdening the user. Most easily parameters could be set similarly to how priorities are set in some systems today. Applications are grouped into \emph{interaction classes} based on application type and the interaction class defines the deadline and slope.  In our implementation we set the parameters manually. However, future work is to experiment with alternative methods for \emph{learning} the deadline and slope.
+ 
+As a application grows or diminishes in importance, its penalty function can be modified accordingly.  Penalty function adjustment is most likely to occur in transitions between operating scenarios.  For example, when unplugging a device all the of the background activities could have their slopes significantly reduced to save battery life.
 
 \subsection*{Power and Battery Energy}
+In order to control power and energy of the system, we use an artificial application named Application 0 which receives all resources not allocated to other applications. Application 0's response time function is similar to the other applications' response time functions.  The function inputs are resource allocations just as with the other applications.  However, the function output is system power rather than response time.   To create the RTF, system power can be measured directly from on-chip energy counters in systems that they are available or from a power meter.  These models can be built in advance, durning a training phase or online while the system runs, just as with the application RTFs.  Alternatively, the model could be part of the operating system platform-specific information. 
 
-It is useful to designate a ``process'' to receive allocations of all resources
-that are not used elsewhere and are therefore to be powered off if possible.
-In \pacora, process 0 plays this role.
-The ``response time'' for process 0, $\tau_0$,
-is artificially defined to be the total system power consumption.
-This response function is affine and monotone nonincreasing in its arguments $a_{0,r}$.
+Although system power may not be entirely convex in reality, approximating it to be convex is reasonable because the convex model still captures the general behavior that leaving a resource idle should save some or no power.  As a result, Application 0 still fills its purpose of preventing applications using additional resources that have low performance/power ratios.  
 
-The penalty function $\pi_0$ can now be used to keep total system power below the parameter $d_0$
-to the extent the penalties of other processes cannot overcome its penalty slope $s_0$.
-Both $s_0$ and $d_0$ can be adjusted to reflect the current battery charge in mobile devices.
-As the battery depletes, $\pi_0$ can be used to force other processes to slow or cease execution.
-In any event, the slope $s_0$ establishes a system tradeoff between power and performance that
-will determine which processor cores are used for each process and which cores are left idle.
-
-This introduction of \emph{slack} resource allocations into Process 0 turns the resource bounds into equalities:
-\begin{displaymath}
-\sum_{p\epsilon P} a_{p,r} - A_r = 0, r = 1,\dots n.
-\end{displaymath}
-
-\fix{add details on creation}
+The penalty function can be adjusted to represent how important saving power and energy is in the current operating scenario.  For example, if a mobile device is plugged in to a charger than perhaps the penalty slope should be set very low.  However if the device is unplugged the penalty function could be changed to have a deadline and then an steep slope which represents creating a power cap for the system.  In this way the deadline and slope could be set to help control the minimum number of hours the battery will last.
 

@@ -1,5 +1,4 @@
 \section{\pacora Architecture}
-\fix{add pacora system figure - math}
 
 %II.	System Architecture
 %		i.	Application Specific
@@ -21,56 +20,74 @@
 
 %\pacora, which stands for Performance-Aware Convex Optimization for Resource Allocation, is a framework designed to determine the proper amount of each resource type to assign to each application.  For our purposes an application is the entity to which the operating system allocates resources: it can viewed as a complete application (\emph{e.g.,} a video player) or a component of an application (\emph{e.g.,} a music synthesizer) or a process (\emph{e.g.,} indexing).  
 
-\pacora is a framework designed to determine the proper amount of each resource type to assign to each application.  For our purposes an application is the entity to which the system allocates resources: it can viewed as a complete application (\emph{e.g.,} a video player) or a component of an application (\emph{e.g.,} a music synthesizer) or a process (\emph{e.g.,} indexing) for operating systems, jobs for warehouse-scale computing, and distributed applications in distributed embedded systems. 
+\pacora is a framework designed to determine the proper amount of each resource type (e.g., nodes, processor cores, cache slices, memory pages, various kinds of bandwidth) to assign to each application.  For example, consider a scenario of a video conference, where each participant requires a separate,
+performance guaranteed video stream. New participants may join the conference and others leave,
+increasing or decreasing the number of streams running at any given time.
+Simultaneously, participants may be collaborating through browsers, watching
+shared video clips and web searching, while running compute-intensive
+background tasks such as updates, virus scans, or file indexing. Although it may be relatively straightforward to provide QoS guarantees for applications such as video streams, the real challenge is to do so without using static resource reservations that compromise system utilization.  The purpose of \pacora is to dynamically assign resources to applications to guarantee QoS without overprovisioning and adapt these allocations as the applications in the system change.
 
-\pacora is designed to work in systems with hierarchical scheduling.  In a client system, this design just looks like classic two-level scheduling.  \pacora makes allocation decisions about resources (\emph{e.g.,} cores and memory pages), and micro-management of the resources within an application is left to user-level runtimes such as User Mode Scheduling in Windows\cite{um_sched} or Lithe\cite{lithe} and memory managers.  In a cloud environment, \pacora allocates resources (\emph{e.g.,} nodes and storage) to jobs, and scheduling is left to other entities such as the MapReduce framework\cite{mapreduce} or the operating system on the node.  Separating resource allocation from scheduling enables the use of application-specific scheduling policies, which have the potential to easier to design and more efficient than a general-purpose scheduler that has to work for everything.   This approach leaves the system to focus on the problem of \emph{how many} of each resource type of assign to each application. 
+For our purposes an application is the entity to which the system allocates resources: it can viewed as a complete application (\emph{e.g.,} a video player), a component of an application (\emph{e.g.,} a music synthesizer) or a process (\emph{e.g.,} indexing) for operating systems, jobs for warehouse-scale computing, and distributed applications in distributed embedded systems. 
 
-\fix{add video scenario here?}
+\pacora is designed to work in systems with hierarchical scheduling.  In a client system, this design just looks like classic two-level scheduling.  \pacora makes allocation decisions about resources (\emph{e.g.,} cores and memory pages), and micro-management of the resources within an application is left to user-level runtimes such as User Mode Scheduling in Windows\cite{um_sched} or Lithe\cite{lithe} and memory managers.  In a cloud environment, \pacora allocates resources (\emph{e.g.,} nodes and storage) to jobs, and scheduling is left to other entities such as the MapReduce framework\cite{mapreduce} or the operating system on the node.  Separating resource allocation from scheduling enables the use of application-specific scheduling policies, which have the potential to be easier to design and more efficient than a general-purpose scheduler that has to work for everything.   This approach leaves the system to focus on the problem of \emph{how many} of each resource type to assign to each application. 
 
-In our client system, resources are anything that the system can provide QoS on in hardware or software: specifically we use cpus, network bandwidth, cache ways, and memory pages in our system.  However, other resources could easily be added as well assuming they have QoS enforcement mechanisms.  The other scenarios would have resources that perform similar functions (compute, network, capacity), but at a different scale. For warehouse-scale computing resources are more likely to be different types of nodes, network bandwidth, and storage, and distributed embedded systems would include compute devices, link bandwidth, and memory.  \fix{add something about complete resource set} 
-\fix{end to end qos}
-
- 
-\pacora takes a different approach to resource allocation than traditional systems: measurement, application-specific, resources matter, optimization 
-
-
-\pacora formulates resource allocation as an optimization problem built from two types of application-specific functions: a Response Time Function and a Penalty function. The Response Time Function represents the measured performance of the application on different resources.  The Penalty Function represents the user-level goals for the application (i.e., the deadline and how important it is to make that deadline). The following sections describe each of the functions and the optimization construction.
+\pacora takes a different approach to resource allocation than traditional systems relying heavily on application-specific functions built through measurement and convex optimization. \pacora formulates resource allocation as an optimization problem built from two types of application-specific functions: a Response Time Function and a Penalty function. The Response Time Function represents the measured performance of the application on different resources.  The Penalty Function represents the user-level goals for the application (i.e., the deadline and how important it is to make that deadline). The following sections describe each of the functions and the optimization construction.
 
 \subsection*{Response Time Functions}
 
-Response Time Functions are built from data on 
-
- the \emph{response time},
-    is an appropriate measure of the performance of the process.
-    For example,the response time of a process might be one of these:
-    \begin{itemize}[noitemsep]
+Response Time Functions (RTF) represent the expected \emph{response time} of an application as a function of the resources allocated to the application. The response time is an application-specific measure of the performance of the application.
+    For example, the response time of an application might be:
+    \begin{itemize}\itemsep0pt \parskip0pt \parsep5pt
     \item The time from a mouse click to its result;
+    \item The time to produce a frame;
     \item The time from a service request to its response;
     \item The time from job launch to job completion;
     \item The time to execute a specified amount of work.
     \end{itemize}
+    
+The RTFs are built to be a convex function.  All applications have a function of the same form but the application-specific weights are set using the performance history of the application.  RTFs are designed to capture information such as how well an application scales with a particular resource. As a result, RTFs naturally support heterogeneity.  Each CPU or GPU type is simply viewed as a different resource type by the system, and thus the RTFs will represent how effectively an application uses a particular type of core. Figure~\ref{sample_rtf} shows two example RTFs we have created from applications we studied.
 
-The response time of a process is a function of the allocated resources and is predicted from its history of resource usage.
+\begin{figure}[hb]
+\includegraphics*[width=1.0\columnwidth]{sample_rtf.pdf}
+\caption{\label{sample_rtf} Response Time Functions for a breadth-first search and a stencil algorithm with 2 response dimensions: cores and cache slices.}
+\end{figure}
 
-The assumptions underlying strategies of this sort no longer hold, especially for emerging client systems.  The value of application responsiveness is highly nonlinear for an increasing variety of applications like streaming media or gaming;    
+Equation~\ref{rtf_eq} below shows the form of the RTF we use in \pacora. 
+
+\begin{equation}\label{rtf_eq}
+\tau(w,a) = \tau_0 + \sum_{i\epsilon n,j\epsilon n}{\frac{w_{i,j}}{\sqrt{a_i * a_j}}} 
+\end{equation}
+
+Here $\tau$ represents the response time, $i$ and $j$ represent resource types, $n$ represents the total number of resource types, $a_{i}$ and $a_{j}$ represent the allocation of resources types $i$ and $j$, and $w_{i,j}$ represents the application-specific weight for the term representing resource $i*$ resource $j$.  The dimensionality of the function increases linearly with the number of resource types. The RTFs will be described further in Section~\ref{app_func}.
 
 \subsection*{Penalty Functions}
 
+\begin{figure}[hb]
+\parbox{1.6in}{
+\includegraphics*{Penalty1.eps}
+\caption{\label{f:pen1}A penalty function with a response time constraint.}
+}
+\hspace{\fill}
+\parbox{1.6in}{
+\includegraphics*{Penalty2.eps}
+\caption{\label{f:pen2}A penalty function with no response time constraint.}
+}
+\end{figure}
 
-The penalty of a process is a function rather than a single value
-    and the argument of each penalty function
-    
-    
-In tradition systems, responsiveness has been described by a single value (usually called a \emph{priority}) associated with a thread of computation and adjusted within the operating system by a variety of ad-hoc mechanisms.   Priority approaches have no mechanism to understand deadlines or the resources required to meet a deadline and as such must run the highest priority applications as fast as possible on all the resources requested. 
+Penalty functions are designed to represent the user-level goals of the application. They are similar to the concept of priorities; however, penalty functions are a function rather than a single value and explicitly represent deadlines.  Knowing the deadlines enables the system to make optimizations that are difficult in current systems such as running just fast enough to make the deadline. Like priorities, the penalty functions are set by the system in order to represent the relative importance of applications.
 
-for these real-time applications, performance is measured as sufficient if the deadline is met and insufficient otherwise.
-    
-    
-\subsection*{Idle Process}    
+The penalty of the application is a function of the response time of the application.  \pacora's penalty functions are non-decreasing piecewise linear functions of the form
+
+\begin{equation}\label{pen_eq}
+\pi(\tau) = \max(0, s(\tau - d))
+\end{equation}
+
+where $d$ represents the deadline of the application and $s$ (slope) defines the rate the penalty increases as response time increases. For applications without response time constraints the deadline is set to $0$. Two representative graphs of this type appear in Figures~\ref{f:pen1} and~\ref{f:pen2}. Penalty Functions will be described further in Section~\ref{app_func}.
 
 \subsection*{Resource Allocation As Optimization}
-\pacora formulates resource allocation as an optimization problem 
+\pacora formulates resource allocation as an optimization problem designed to minimize the total penalty of the system. This is analogous to minimizing user dissatisfaction with the user experience due to missed deadlines in a client system and minimizing the contract penalties paid for violated service-level agreements in a cloud system. 
 
+The optimization selects the allocations for all resources and resource types at once.  This approach enables the system to make tradeoffs between resource types.  For example, the system could choose to allocate more memory bandwidth in lieu of on-chip cache.  It would difficult to provide predictable response times for applications considering the allocation of only one resource type at a time.
 
 A succinct mathematical characterization of this resource allocation scheme is the following:
 \begin{eqnarray*}
@@ -78,20 +95,20 @@ A succinct mathematical characterization of this resource allocation scheme is t
 & \makebox[1in][r]{Subject to} & \sum_{p\epsilon P} a_{p,r} \leq A_r, r = 1,\ldots n        \\
 & \makebox[1in][r]{and}        & a_{p,r} \geq 0
 \end{eqnarray*}
-Here $\pi_p$ is the penalty function for process $p$,
+Here $\pi_p$ is the penalty function for application $p$,
 $\tau_p$ is its response time function,
-$a_{p,r}$ is the allocation of resource $r$ to process $p$,
-and $A_r$ is the total amount of resource $r$ available.
-
+$a_{p,r}$ is the allocation of resource $r$ to application $p$,
+and $A_r$ is the total amount of resource $r$ available.  Optimization details are described in Section~\ref{dyn_opt}.
 
 \subsection*{Convex Optimization}
-If the penalty functions, response time functions, and resource constraints were arbitrarily,
+
+If the penalty functions, response time functions, and resource constraints were arbitrary,
 little could be done to optimize the total penalty beyond searching at random for the best allocation.
-However, if resource management can be framed as a \emph{convex optimization problem}\cite{BoVa},
-two benefits will accrue: an optimal solution will exist without multiple local extrema and
+However, by framing our resource allocation problem as a \emph{convex optimization problem}\cite{BoVa},
+two benefits accrue: an optimal solution will exist without multiple local extrema and
 fast, incremental solutions will become feasible.
 
-A constrained optimization problem will be convex if both the objective function to be minimized
+A constrained optimization problem is convex if both the objective function to be minimized
 and the constraint functions that define its feasible solutions are convex functions.
 A function $f$ is convex if its domain is a convex set and
 $F(\theta x + (1-\theta)y) \leq \theta F(x) + (1-\theta)F(y)$
@@ -101,28 +118,42 @@ $\theta x + (1-\theta)y$
 is also in the set for all $\theta$ between 0 and 1.
 If $F$ is differentiable, it is convex if its domain is an open convex set and
 $F(y) \geq F(x) + \nabla F^T(y-x)$ where $\nabla F$ is the gradient of $F$.
-Put another way, $F$ is convex if its first-order Taylor approximations
-are always global underestimates of its true value.
+%Put another way, $F$ is convex if its first-order Taylor approximations
+%are always global underestimates of its true value.
 
-A convex optimization problem is one that can be expressed in this form:
+Therefore, a problem will be a convex optimization problem if it can be expressed in the form:
 \begin{eqnarray*}
 & \makebox[1in][r]{Minimize}   & f_0(x_1,\ldots x_m)                              \\
 & \makebox[1in][r]{Subject to} & f_i(x_1,\ldots f_m) \leq 0, i = 1,\ldots k        \\
 & \makebox[1in][r]{where}      & \forall i \quad f_i:\Re^m \rightarrow \Re \mbox{ is convex.}
 \end{eqnarray*}
-A few more facts about convex functions will be useful in what follows.
-First, a \emph{concave} function is one whose negative is convex.
-Maximization of a concave function is equivalent to minimization of its convex negative.
-An affine function, one whose graph is a straight line in two dimensions or a hyperplane in n dimensions,
-is both convex and concave.  A non-negative weighted sum or point-wise maximum (minimum) of convex (concave) functions is convex (concave), as is either kind of function composed with an affine function.  The composition of a convex non-decreasing (concave non-increasing) scalar function with a convex function remains convex (concave).
 
-As a consequence, the resource management problem posed above can be transformed into a convex optimization problem in the $m = |P|\cdot n$ variables $a_{p,r}$ as long as the penalty functions $\pi_p$ are convex non-decreasing and the response time functions $\tau_p$ are convex.
-Note that the resource constraints are all affine and can be rewritten as
+
+As a consequence, \pacora's resource allocation problem can be transformed into a convex optimization problem in the $m = |P|\cdot n$ variables $a_{p,r}$ as long as the penalty functions $\pi_p$ are convex non-decreasing and the response time functions $\tau_p$ are convex.  We designed our functions to meet these constraints and proofs of their convexity can be found in Appendix~\ref{convex}. Note that the resource constraints are all affine and can be rewritten as
 $\sum_{p\epsilon P} a_{p,r} - A_r \leq 0$ and $-a_{p,r} \leq 0$.
+
+\pacora's convex formulation allows the time to solve the optimization to scale linearly with the number of resource types and the number of applications.   For client operating systems with around 100 application running and 10 resource dimensions the total variables in the system to be solved is 1000 --a very small problem which can be solved in microseconds on current systems.   Cloud systems could possibly have more applications running; however, the problem size scales linearly and the benefits gained could be significantly greater given the scale of the system.
+
+\subsection*{Power and Energy}    
+
+In \pacora, we create an artificial application to represent the interests of system power and energy.  Application 0 is designated the idle application and receives allocations of all resources
+that are left idle, \emph{i.e.,} not allocated to other applications.   The idle resources can be powered off or put to sleep if possible to save power.
+
+The ``response time'' for application 0, $\tau_0$, is artificially defined to be the total system power consumption. 
+%This response function is affine and monotone nonincreasing in its arguments $a_{0,r}$.
+The penalty function $\pi_0$ establishes a system tradeoff between power and performance that
+will determine which resources are allocated to applications to improve performance and which are left idle.
+The penalty function $\pi_0$ can be used to keep total system power below the parameter $d_0$
+to the extent the penalties of other applications cannot overcome its penalty slope $s_0$. Both $s_0$ and $d_0$ can be adjusted to reflect the current battery charge in mobile devices. For example as the battery depletes, $s_0$ could be increased to force other applications to slow or cease execution.
+
+Additionally Application 0 functions as \emph{slack} variables in our optimization problem turning the resource bounds into equalities:
+\begin{equation}
+\sum_{p\epsilon P} a_{p,r} - A_r = 0, r = 1,\dots n.
+\end{equation}
 
 \subsection*{Resources}
 
-\fix{time scaling, heterogeneity}
+In our client system, resources are anything that the system can provide QoS on in hardware or software: specifically we use cpus, network bandwidth, cache ways, and memory pages in our system.  However, other resources could easily be added as well assuming they have QoS enforcement mechanisms.  The other scenarios would have resources that perform similar functions (compute, network, capacity), but at a different scale. For warehouse-scale computing resources are more likely to be different types of nodes, network bandwidth, and storage, and distributed embedded systems would include compute devices, link bandwidth, and memory. 
 
 %Partitionable resources include CPU cores, pages in memory, and
 %guaranteed fractional services from other cells (\eg a throughput
