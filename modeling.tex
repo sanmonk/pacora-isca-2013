@@ -2,7 +2,10 @@
 
 \subsection*{Response Time Modeling}
 
-For the moment, assume the model norm $p = 1$ and suppose several response time measurements have already been made using a variety of resource allocations to begin optimizing the application response time.  After enough measurements, discovery of the model parameters $w$ that define the function $\tau$ can be based on a solution to the over-determined linear system
+To create RTF models either at install time or online we use a least squares approach described a below.  For the install time approach we use a genetic algorithm, Audze-Eglasis Design of Experiments\cite{bates-aes03}, to select the resource vectors to use for training data.  The data for all those vectors is collected and fed into the least squares algorithm.  In the online approach the data comes from the application's response time history.
+
+\subsubsection*{Model Creation using Least Squares}
+After sufficient measurements, discovery of the model parameters $w$ that define the function $\tau$ can be based on a solution to the over-determined linear system
 $t=Dw$
 where $t$ is a column vector of actual response times measured for the process
 and $D$ is a matrix whose ith row $D_{i,*}$ contains the reciprocals of the amplified bandwidth allocations
@@ -24,18 +27,18 @@ The elements of the resulting vector $Q^Tt$ that correspond to zero rows in $R$ 
 Since $Rw$ exactly equals the upper part of $Q^Tt$, the upper part of $Q^T\varepsilon$ is zero. The residual error for the $t_i$
 can be found by premultiplying $Q^T\varepsilon$ by $Q$.
 
-Suppose a different model norm $p$ is desired.  If $p = 2$, we might first square each measurement in $t$
+This formulation assumes a model norm $p = 1$. If a different model norm $p$ is desired, such as $p = 2$, we could first square each measurement in $t$
 and each reciprocal bandwidth term in $D$ and then follow the foregoing procedure.
 The elements of the result $w$ will be squares as well, and the 2-norm of the difference in the squared quantities will be minimized.  This is not the same as minimizing the 4-norm; what is being minimized is $1/2\|\mbox{diag}(Dww^TD^T - tt^T)\|^2_2$.
 
-\fix{point selection, genetic algorithm}
-
 \subsection*{On-line Response Time Modeling}
-\subsubsection*{Incremental Least Squares}
 
 As resource allocation continues, more measurements will become available to augment $t$ and $D$.
 Moreover, older data may become a poor representation of the current behavior of the process if its characteristics have changed,
-presumably as reflected in $Q^T\varepsilon$.
+presumably as reflected in $Q^T\varepsilon$.  \pacora adopts the incremental least squares described below to replace old data and efficiently update RTFs. 
+
+\subsubsection*{Incremental Least Squares}
+
 What is needed is a factorization $\tilde{Q}\tilde{R}$ of a new matrix $\tilde{D}$
 derived from $D$ by dropping a row, perhaps from the bottom,
 and adding a row, perhaps at the top.
