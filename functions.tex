@@ -49,7 +49,7 @@ it is a simple matter to compute the gradient of $\tau$ once the model is define
 
 Forcing our response time functions to be convex assumes that the actual response time are reasonably convex; We find is a plausible requirement as applications almost completely follow the proverbial ``Law of Diminishing Returns'' for resource allocations.   
 
-However, there are examples of response time versus resource behavior that violate convexity.   For example, we have particularly seen non-monotonic performance behavior in applications when dealing with hyperthreads or memory pages.  For two of our applications 5 hyperthreads resulted in significantly worse performance than 4 or 6 hyperthreads.  When studying some other applications applications we found that particular numbers of memory pages,\emph{i.e.,} 2K, resulted in much better performance than the adjacent page allocations.  One possible solution to solve this problem is keep track of points with significant error in the models and adjust resource allocations slightly to avoid these points.
+However, there are examples of response time versus resource behavior that violate convexity.   For example, we have particularly seen non-monotonic performance behavior in applications when dealing with hyperthreads or memory pages.  For two of our applications 5 hyperthreads resulted in significantly worse performance than 4 or 6 hyperthreads.  When studying some other applications applications we found that particular numbers of memory pages, \emph{i.e.,} 2K, resulted in much better performance than the adjacent page allocations.  One possible solution to solve this problem is keep track of points with significant error in the models and adjust resource allocations slightly to avoid these points.
 
 Another such example sometimes occurs in memory allocation, where ``plateaus'' can sometimes be seen as in Figure~\ref{f:plat}. Such plateaus are typically caused by algorithm adaptations within the process to accommodate variable resource availability.  The response time is really the \emph{minimum} of several convex functions depending on allocation and the point-wise minimum that the process implements fails to preserve convexity.  The effect of the plateaus will be a non-convex penalty as shown in Figure~\ref{f:plateffect} and multiple extrema in the optimization problem will be a likely result. There are several ways to avoid this problem.  One is based on the observation that such response time functions will at least be \emph{quasiconvex}.  Another idea is to use additional constraints to explore convex sub-domains of $\tau$.  
 
@@ -74,33 +74,26 @@ There are also many different possible times response time functions could be cr
 
 \subsection*{Penalty Functions}
 
-\fix{Purpose}
-Penalty functions  are generically defined as members of a family of such functions
-so that user preferences for a process $p$ (elided in the discussion below)
-can be implemented by assigning values to a few well-understood parameters.
-\fix{Model Choice}
-In traditional systems, responsiveness has been described by a single value (usually called a \emph{priority}) associated with a thread of computation and adjusted within the operating system by a variety of ad-hoc mechanisms.   Priority approaches have no mechanism to understand deadlines or the resources required to meet a deadline and as such must run the highest priority applications as fast as possible on all the resources requested. 
+Penalty functions are generically defined as members of a family of such functions
+so that user preferences for an application $p$ can implemented by assigning values to a few well-understood parameters.
 
-for these real-time applications, performance is measured as sufficient if the deadline is met and insufficient otherwise.
+In traditional systems, responsiveness has been described by a single value (usually called a \emph{priority}) associated with a thread of computation and adjusted within the operating system by a variety of ad-hoc mechanisms.  However for many interactive real-time applications, performance is measured as sufficient if the deadline is met and insufficient otherwise. Priority approaches have no mechanism to understand deadlines or the resources required to meet a deadline.   
+
+We designed \pacora's penalty functions to represent deadlines and relative importance of making the deadline.  These values are represented by two parameters a deadline $d$ and a slope $s$.  Equation~\ref{pen_eq} shows penalty functions used in \pacora.
+
+A response-time constrained application has a marked change in slope, namely from 0 to $s$, at the point $\tau= d$. In the most extreme case $s = \infty$ (implying infinite penalty for the system as a whole when $\tau > d$).  For processes without response time constraints one can set $d = 0$. This defines linear behavior with $s$ as the rate of penalty increase with response time.
 
 To guarantee it is convex and non-decreasing, $s$ must be non-negative.
-The response time $\tau$  is of course non-negative,
-and it may be sensible (if not strictly necessary) to convene that $d$ is also.
-A response time constrained process has a marked change in slope, namely from 0 to $s$, at the point $\tau= d$.
-In the most extreme case $s = \infty$ (implying infinite penalty for the system as a whole when $\tau > d$).  ``Softer'' requirements will doubtless be the rule.
-For processes without response time constraints one can set $d = 0$.
-This defines linear behavior with $s$ as the rate of penalty increase with response time.
+The response time $\tau$  is of course non-negative, and it may be sensible (if not strictly necessary) to convene that $d$ is also.
 
-The gradient of process penalty with respect to its resource allocations is useful in controlling the optimization algorithm.
+The gradient of process penalty with respect to its resource allocations is necessary in controlling the optimization algorithm.
 By the chain rule, $\partial\pi/\partial a_r = \partial\pi/\partial\tau\cdot\partial\tau/\partial a_r$.
 The first term is well-defined but discontinuous at $\tau = d$ with
 $\partial\pi/\partial\tau = \mbox{ if } (\tau - d) \leq 0 \mbox{ then } 0 \mbox{ else } s$.
-The problem of estimating the partial derivatives $\partial\tau/\partial a_r$ is dealt with below.
-\fix{How to Set}
-In a client operating system, the instantaneous management of penalty function modifications
-should be highly automated by the system to avoid unduly burdening the user.
-\fix{dynamic adjustments}
-As a process grows or diminishes in importance, its penalty function can be modified accordingly.
+
+In a client operating system, the instantaneous management of penalty function modifications should be highly automated by the system to avoid unduly burdening the user. Most easily parameters could be set similarly to how priorities are set in some systems today. Applications are grouped into \emph{interaction classes} based on application type and the interaction class defines the deadline and slope.  In our implementation we set the parameters manually. However, future work is to experiment with alternative methods for \emph{learning} the deadline and slope.
+ 
+As a process grows or diminishes in importance, its penalty function can be modified accordingly.  Penalty function adjustment is most likely to occur in transitions between operating scenarios.  For example, when unplugging a device all the of the background activities could have their slopes significantly reduced to save battery life.
 
 \subsection*{Power and Battery Energy}
 In order to control power and energy of the system, we use an artificial application named Application 0 which receives all resources not allocated to other applications. Application 0's response time function is similar to the other applications' response time functions.  The function inputs are resource allocations just as with the other applications.  However, the function output is system power rather than response time.   To create the RTF, system power can be measured directly from on-chip energy counters in systems that they are available or from a power meter.  These models can be built in advance, durning a training phase or online while the system runs, just as with the application RTFs.  Alternatively, the model could be part of the operating system platform-specific information. 
