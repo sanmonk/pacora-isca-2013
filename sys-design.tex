@@ -132,7 +132,7 @@ Therefore, a problem will be a convex optimization problem if it can be expresse
 As a consequence, \pacora's resource allocation problem can be transformed into a convex optimization problem in the $m = |P|\cdot n$ variables $a_{p,r}$ as long as the penalty functions $\pi_p$ are convex non-decreasing and the response time functions $\tau_p$ are convex.  We designed our functions to meet these constraints and proofs of their convexity can be found in Appendix~\ref{convex}. Note that the resource constraints are all affine and can be rewritten as
 $\sum_{p\epsilon P} a_{p,r} - A_r \leq 0$ and $-a_{p,r} \leq 0$.
 
-\pacora's convex formulation allows the time to solve the optimization to scale linearly with the number of resource types and the number of applications.   For client operating systems with around 100 application running and 10 resource dimensions the total variables in the system to be solved is 1000 --a very small problem which can be solved in microseconds on current systems.   Cloud systems could possibly have more applications running; however, the problem size scales lineearly and the benefits gained could be significantly greater given the scale of the system.
+\pacora's convex formulation allows the time to solve the optimization to scale linearly with the number of resource types and the number of applications.   For client operating systems with around 100 application running and 10 resource dimensions the total variables in the system to be solved is 1000 --a very small problem which can be solved in microseconds on current systems.   Cloud systems could possibly have more applications running; however, the problem size scales linearly and the benefits gained could be significantly greater given the scale of the system.
 
 \subsection*{Power and Energy}    
 
@@ -147,9 +147,9 @@ The penalty function $\pi_0$ can be used to keep total system power below the pa
 to the extent the penalties of other applications cannot overcome its penalty slope $s_0$. Both $s_0$ and $d_0$ can be adjusted to reflect the current battery charge in mobile devices. For example as the battery depletes, $s_0$ could be increased to force other applications to slow or cease execution.
 
 Additionally Application 0 functions as \emph{slack} variables in our optimization problem turning the resource bounds into equalities:
-\begin{displaymath}
+\begin{equation}
 \sum_{p\epsilon P} a_{p,r} - A_r = 0, r = 1,\dots n.
-\end{displaymath}
+\end{equation}
 
 \subsection*{Resources}
 
