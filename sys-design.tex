@@ -27,9 +27,9 @@ Simultaneously, participants may be collaborating through browsers, watching
 shared video clips and web searching, while running compute-intensive
 background tasks such as updates, virus scans, or file indexing. Although it may be relatively straightforward to provide QoS guarantees for applications such as video streams, the real challenge is to do so without using static resource reservations that compromise system utilization.  The purpose of \pacora is to dynamically assign resources to applications to guarantee QoS without overprovisioning and adapt these allocations as the applications in the system change.
 
-For our purposes an application is the entity to which the system allocates resources: it can viewed as a complete application (\emph{e.g.,} a video player) or a component of an application (\emph{e.g.,} a music synthesizer) or a process (\emph{e.g.,} indexing) for operating systems, jobs for warehouse-scale computing, and distributed applications in distributed embedded systems. 
+For our purposes an application is the entity to which the system allocates resources: it can viewed as a complete application (\emph{e.g.,} a video player), a component of an application (\emph{e.g.,} a music synthesizer) or a process (\emph{e.g.,} indexing) for operating systems, jobs for warehouse-scale computing, and distributed applications in distributed embedded systems. 
 
-\pacora is designed to work in systems with hierarchical scheduling.  In a client system, this design just looks like classic two-level scheduling.  \pacora makes allocation decisions about resources (\emph{e.g.,} cores and memory pages), and micro-management of the resources within an application is left to user-level runtimes such as User Mode Scheduling in Windows\cite{um_sched} or Lithe\cite{lithe} and memory managers.  In a cloud environment, \pacora allocates resources (\emph{e.g.,} nodes and storage) to jobs, and scheduling is left to other entities such as the MapReduce framework\cite{mapreduce} or the operating system on the node.  Separating resource allocation from scheduling enables the use of application-specific scheduling policies, which have the potential to be easier to design and more efficient than a general-purpose scheduler that has to work for everything.   This approach leaves the system to focus on the problem of \emph{how many} of each resource type of assign to each application. 
+\pacora is designed to work in systems with hierarchical scheduling.  In a client system, this design just looks like classic two-level scheduling.  \pacora makes allocation decisions about resources (\emph{e.g.,} cores and memory pages), and micro-management of the resources within an application is left to user-level runtimes such as User Mode Scheduling in Windows\cite{um_sched} or Lithe\cite{lithe} and memory managers.  In a cloud environment, \pacora allocates resources (\emph{e.g.,} nodes and storage) to jobs, and scheduling is left to other entities such as the MapReduce framework\cite{mapreduce} or the operating system on the node.  Separating resource allocation from scheduling enables the use of application-specific scheduling policies, which have the potential to be easier to design and more efficient than a general-purpose scheduler that has to work for everything.   This approach leaves the system to focus on the problem of \emph{how many} of each resource type to assign to each application. 
 
 \pacora takes a different approach to resource allocation than traditional systems relying heavily on application-specific functions built through measurement and convex optimization. \pacora formulates resource allocation as an optimization problem built from two types of application-specific functions: a Response Time Function and a Penalty function. The Response Time Function represents the measured performance of the application on different resources.  The Penalty Function represents the user-level goals for the application (i.e., the deadline and how important it is to make that deadline). The following sections describe each of the functions and the optimization construction.
 
@@ -74,7 +74,7 @@ Here $\tau$ represents the response time, $i$ and $j$ represent resource types, 
 }
 \end{figure}
 
-Penalty functions are designed to represent the user-level goals of the application. They are similar to the concept of priorities; however, penalty functions are a function rather than a single value and explicitly represent deadlines.  Knowing the deadlines enables the system to make optimizations that are difficult in current systems such as running just fast enough to make the deadline. Like priorities, the penalty functions are set by the system in order to represent the relative important of applications.
+Penalty functions are designed to represent the user-level goals of the application. They are similar to the concept of priorities; however, penalty functions are a function rather than a single value and explicitly represent deadlines.  Knowing the deadlines enables the system to make optimizations that are difficult in current systems such as running just fast enough to make the deadline. Like priorities, the penalty functions are set by the system in order to represent the relative importance of applications.
 
 The penalty of the application is a function of the response time of the application.  \pacora's penalty functions are non-decreasing piecewise linear functions of the form
 
@@ -87,7 +87,7 @@ where $d$ represents the deadline of the application and $s$ (slope) defines the
 \subsection*{Resource Allocation As Optimization}
 \pacora formulates resource allocation as an optimization problem designed to minimize the total penalty of the system. This is analogous to minimizing user dissatisfaction with the user experience due to missed deadlines in a client system and minimizing the contract penalties paid for violated service-level agreements in a cloud system. 
 
-The optimization selects the allocations for all resources and resource types at once.  This approach enables the system make tradeoffs between resource types.  For example, the system could choose to allocate more memory bandwidth in lieu of on-chip cache.  It would difficult to provide predictable response times for applications considering the allocation of only one resource type at a time.
+The optimization selects the allocations for all resources and resource types at once.  This approach enables the system to make tradeoffs between resource types.  For example, the system could choose to allocate more memory bandwidth in lieu of on-chip cache.  It would difficult to provide predictable response times for applications considering the allocation of only one resource type at a time.
 
 A succinct mathematical characterization of this resource allocation scheme is the following:
 \begin{eqnarray*}
@@ -102,7 +102,7 @@ and $A_r$ is the total amount of resource $r$ available.  Optimization details a
 
 \subsection*{Convex Optimization}
 
-If the penalty functions, response time functions, and resource constraints were arbitrarily,
+If the penalty functions, response time functions, and resource constraints were arbitrary,
 little could be done to optimize the total penalty beyond searching at random for the best allocation.
 However, by framing our resource allocation problem as a \emph{convex optimization problem}\cite{BoVa},
 two benefits accrue: an optimal solution will exist without multiple local extrema and
