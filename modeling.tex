@@ -1,8 +1,6 @@
 \section{Response Time Model Creation}\label{model_creation}
 
-\subsection*{Response Time Modeling}
-
-To create RTF models either at install time or online we use a least squares approach described a below.  For the install time approach we use a genetic algorithm, Audze-Eglasis Design of Experiments\cite{bates-aes03}, to select the resource vectors to use for training data.  The data for all those vectors is collected and fed into the least squares algorithm.  In the online approach the data comes from the application's response time history.
+To create RTF models either at install time or online we use a least squares approach described below.  For the install time approach we use a genetic algorithm, Audze-Eglasis Design of Experiments\cite{bates-aes03}, to select the resource vectors to use for training data.  The data for all those vectors is collected and fed into the least squares algorithm.  In the online approach the data comes from the application's response time history.
 
 \subsubsection*{Model Creation using Least Squares}
 After sufficient measurements, discovery of the model parameters $w$ that define the function $\tau$ can be based on a solution to the over-determined linear system

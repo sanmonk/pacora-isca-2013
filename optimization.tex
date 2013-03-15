@@ -5,7 +5,7 @@
 %		i. boundary conditions clean up
 %	b.	Dealing with Fractional Results
 
-\pacora's penalty optimization algorithm dynamically decides resource allocations. The algorithm can be run periodically, when applications start or stop, when an application changes faces or when the system changes operating scenarios.  One of the advantages of convex optimization is that it enables fast, incremental solutions.  As a result the algorithm could terminal earlier to decrease overhead and still be moving towards an optimal solution as it runs.  However we found in our implementation that the algorithm was fast enough to run to completion every time. 
+\pacora's penalty optimization algorithm dynamically decides resource allocations. The algorithm can be run periodically, when applications start or stop, when an application changes faces or when the system changes operating scenarios.  One of the advantages of convex optimization is that it enables fast, incremental solutions.  As a result the algorithm could terminate earlier to decrease overhead and still be moving towards an optimal solution as it runs.  However we found in our implementation that the algorithm was fast enough to run to completion every time. 
 
 Convex optimization is simplest when it is unconstrained, and so we reformulated \pacora's construction to be unconstrained.
 Extending the response time model functions to all of $\Re^n$
@@ -30,7 +30,7 @@ This modification of the objective function transforms the resource allocation p
 to unconstrained convex optimization.  
 
 
-The penalty optimization algorithm used in \pacora is descent via backtracking line search along the negative gradient direction \cite{BoVa}.
+The penalty optimization algorithm used in \pacora is gradient descent via backtracking line search along the negative gradient direction \cite{BoVa}.
 This algorithm rejects and refines any step that yields insufficient relative improvement in the objective function,
 so infinite values from infeasible allocations will automatically be avoided by the search.
 The negative gradient $-\nabla\pi$ of the overall objective function $\pi$
@@ -43,7 +43,7 @@ must ignore components that lead in infeasible directions;
 these can be detected by noting whether for some $p$ and $r$, $a_{p,r} = 0$ with $(-\nabla\pi)_{p,r} > 0$.
 In such cases, the associated step component is set to zero.
 
-We added an additional optimization to move along boundaries more rapidly quickly in the scenario when completely allocated resource had a large gradient.  We scale all the resource allocations of that resource type down to fit into the resource constraint while leaving the resource allocations of over resources untouched.
+We added an additional optimization to move along boundaries more rapidly in the scenario when a completely allocated resource had a large gradient.  We scale all the allocations of that resource type down to satisfy resource constraint while leaving the allocations of other resources untouched.
 
 The rate of convergence of gradient descent depends on how well the sublevel sets of the objective function
 are conditioned (basically, how ``spherical'' they are).
