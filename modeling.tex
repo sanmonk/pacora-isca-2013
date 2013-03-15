@@ -7,7 +7,7 @@ To create RTF models either at install time or online we use a least squares app
 \subsubsection*{Model Creation using Least Squares}
 After sufficient measurements, discovery of the model parameters $w$ that define the function $\tau$ can be based on a solution to the over-determined linear system
 $t=Dw$
-where $t$ is a column vector of actual response times measured for the process
+where $t$ is a column vector of actual response times measured for the application
 and $D$ is a matrix whose ith row $D_{i,*}$ contains the reciprocals of the amplified bandwidth allocations
 that generated the corresponding response time measurement $t_i$.
 Estimating $w$ is relatively straightforward: a least-squares solution accomplished via
@@ -34,7 +34,7 @@ The elements of the result $w$ will be squares as well, and the 2-norm of the di
 \subsection*{On-line Response Time Modeling}
 
 As resource allocation continues, more measurements will become available to augment $t$ and $D$.
-Moreover, older data may become a poor representation of the current behavior of the process if its characteristics have changed,
+Moreover, older data may become a poor representation of the current behavior of the application if its characteristics have changed,
 presumably as reflected in $Q^T\varepsilon$.  \pacora adopts the incremental least squares described below to replace old data and efficiently update RTFs. 
 
 \subsubsection*{Incremental Least Squares}

@@ -38,15 +38,15 @@ He shows that
 
 For these expressions to make sense, the argument of $\alpha$ should be dimensionless and greater than 1.
 Ensuring this might be as simple as letting it be the number of memory resource quanta
-(\emph{e.g.} hundreds of memory pages) assigned to the process.
-If a process shows diminishing bandwidth amplification as its memory allocation increases, this can be accommodated:
+(\emph{e.g.} hundreds of memory pages) assigned to the application.
+If a application shows diminishing bandwidth amplification as its memory allocation increases, this can be accommodated:
 \begin{displaymath}
 \alpha(m) = \min(c_1\alpha_1(m),c_2\alpha_2(m)),\;c_1,c_2 \geq 0
 \end{displaymath}
 
 Each bandwidth amplification factor might be described by one of the functions above
 and included in the denominator of the appropriate component in the response time function model.
-For example, the storage response time component for the model of an out-of-core sort process might be
+For example, the storage response time component for the model of an out-of-core sort application might be
 the quantity of storage accesses divided by the product of the storage bandwidth allocation and $\log m$,
 the amplification function associated with sorting given a memory allocation of $m$.
 Amplification functions for each application might be learned from response time measurements
