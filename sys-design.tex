@@ -117,7 +117,7 @@ A set is convex if for any two points $x$ and $y$ in the set, the point
 $\theta x + (1-\theta)y$
 is also in the set for all $\theta$ between 0 and 1.
 If $F$ is differentiable, it is convex if its domain is an open convex set and
-$F(y) \geq F(x) + \nabla F^T(y-x)$ where $\nabla F$ is the gradient of $F$.
+$F(y) \geq F(x) + \nabla F^T\cdot(y-x)$ where $\nabla F$ is the gradient of $F$.
 %Put another way, $F$ is convex if its first-order Taylor approximations
 %are always global underestimates of its true value.
 
@@ -129,7 +129,7 @@ Therefore, a problem will be a convex optimization problem if it can be expresse
 \end{eqnarray*}
 
 
-As a consequence, \pacora's resource allocation problem can be transformed into a convex optimization problem in the $m = |P|\cdot n$ variables $a_{p,r}$ as long as the penalty functions $\pi_p$ are convex non-decreasing and the response time functions $\tau_p$ are convex.  We designed our functions to meet these constraints and proofs of their convexity can be found in Appendix~\ref{convex}. Note that the resource constraints are all affine and can be rewritten as
+As a consequence, \pacora's resource allocation problem can be transformed into a convex optimization problem in the $m = |P|\cdot n$ variables $a_{p,r}$ as long as the penalty functions $\pi_p$ are convex non-decreasing and the response time functions $\tau_p$ are convex.  We designed our functions to meet these constraints, and proofs of their convexity can be found in Appendix~\ref{convex}. Note that the resource constraints are all affine and can be rewritten as
 $\sum_{p\epsilon P} a_{p,r} - A_r \leq 0$ and $-a_{p,r} \leq 0$.
 
 \pacora's convex formulation allows the time to solve the optimization to scale linearly with the number of resource types and the number of applications.   For client operating systems with around 100 application running and 10 resource dimensions the total variables in the system to be solved is 1000 --a very small problem which can be solved in microseconds on current systems.   Cloud systems could possibly have more applications running; however, the problem size scales linearly and the benefits gained could be significantly greater given the scale of the system.

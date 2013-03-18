@@ -83,23 +83,10 @@ matches or exceeds the maximum possible rank of $R$.
 
 The active-set NNLS method is based on the idea that since the only constraints are variable positivity
 then for all components either the variable or its gradient will be zero at a solution point; see~\cite{BoVa}, page~142.
-The active set, denoted by \textbf{Z}, comprises the column subscripts $j$ for which the variable $w_j$ is zero and the gradient $v_j$ is positive.
-If a column $j$ not currently in \textbf{Z} happens to acquire a negative $w_j$ after a back-solve, $w_j$ is zeroed,
+The active set, denoted by \textbf{Z}, comprises the column subscripts $j$ for which the variable $w_j$ is zero and the gradient $v_j$ is positive. If a column $j$ not currently in \textbf{Z} happens to acquire a negative $w_j$ after a back-solve, $w_j$ is zeroed,
 $j$ is moved into \textbf{Z} and column $j$ is downdated in $R$, thereby making the gradient positive.
 Conversely, if a column already in \textbf{Z} happens to acquire a negative gradient $v_j$ it is removed from \textbf{Z} and updated in $R$,
 allowing it to further reduce the value of the objective function.
-
-The set \textbf{Z} and its complement \textbf{P} are implemented as an index $idx$
-containing a single permutation vector of the column subscripts comprising
-the sorted members of \textbf{P} followed by the sorted members of \textbf{Z},
-and an offset defining the beginning of \textbf{Z} in the vector.
-For example, if columns 1, 3, and 4 are in \textbf{Z} and columns 0, 2, and 5 are in \textbf{P}
-then the resulting vector is [0 2 5 1 3 4] and the offset is 3.
-Since the offset is just the size of the set \textbf{P} it is naturally called $p$.
-
-Columns are left in place in $R$. The columns of $R$ belonging to \textbf{P} are denoted by $R^p$ and those in \textbf{Z} by $R^z$.
-The updating or downdating of a column only involves modifying the index $idx$ to redefine \textbf{P} and \textbf{Z} and then
-applying Givens rotations to (all of) the rows of $R$ to restore $R^p$ to upper triangular form.
 
 After initial acquisition of data and $QR$ factorization, each step of \pacora's NNLS algorithm
 combines incremental row and column downdates and updates as follows:
@@ -131,6 +118,19 @@ v \GETS \textsc{Gradient}(R,Q^Tt,idx)                    \\
 \UNTIL done                                                   \\
 \RETURN{w,v}                                                  \\
 \end{pseudocode}
+
+The set \textbf{Z} and its complement \textbf{P} are implemented as an index $idx$
+containing a vector of the column subscripts comprising \textbf{P} in increasing order
+followed by the column subscripts of \textbf{Z} in increasing order;
+$idx$ also contains an offset defining the beginning of \textbf{Z} in the vector.
+For example, if columns 1, 3, and 4 are in \textbf{Z} and columns 0, 2, and 5 are in \textbf{P}
+then the resulting vector is [0 2 5 1 3 4] and the offset is 3.
+Since the offset is just the size of the set \textbf{P} it is naturally called $p$.
+
+Regaqrdless of status, columns are left in place in $R$
+The columns of $R$ belonging to \textbf{P} are denoted by $R^p$ and those in \textbf{Z} by $R^z$.
+The updating or downdating of a column only involves modifying the index $idx$ to redefine \textbf{P} and \textbf{Z} and then
+applying Givens rotations to the rows of $R$ to restore $R^p$ to upper triangular form.
 
 When a column indexed by $d$ in $R^p$ is downdated because $w_d < 0$, that column is moved from \textbf{P} to \textbf{Z} in $idx$.
 To restore $R^p$ to upper triangular form, Givens rotations are applied to $R$ at rows $R_{d,*}$ and $R_{k,*}$

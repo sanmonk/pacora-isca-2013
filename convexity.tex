@@ -1,23 +1,26 @@
 \section{Problem Convexity}\label{convex}
 
-\subsection*{Convex Functions}
-A few more facts about convex functions will be useful in what follows.
+\subsection*{Penalty Function Convexity}
+A few facts about convex functions will be useful in what follows.
 First, a \emph{concave} function is one whose negative is convex.
 Maximization of a concave function is equivalent to minimization of its convex negative.
 An affine function, one whose graph is a straight line in two dimensions or a hyperplane in n dimensions,
 is both convex and concave.  A non-negative weighted sum or point-wise maximum (minimum) of convex (concave) functions is convex (concave), as is either kind of function composed with an affine function.  The composition of a convex non-decreasing (concave non-increasing) scalar function with a convex function remains convex (concave).
 
-\subsection*{Response Time Model Convexity}
+Each penalty function $\pi$ is the pointwise maximum of two affine functions and is therefore convex.
+Moreover, since each penalty function is scalar and nondecreasing,
+its composition with a convex response time function will also be convex.
 
-We now show that the response time model including the various bandwidth amplification functions is convex
-in both the bandwidth and memory resources $b_r$ and $m_r$ given any of the possibilities listed above.
+\subsection*{Response Time Convexity}
+We now show that response time functions $\tau$ including the various bandwidth amplification functions are convex
+in both the bandwidth and memory resources $b_r$ and $m_r$ given any of the possibilities we have considered.
 Since norms preserve convexity, this reduces the question to proving each term in the norm is convex.
 Since all quantities are positive and both maximum and scaling by a positive constant preserve convexity,
 \begin{eqnarray*}
 \lefteqn{w/(b\cdot\min(c_1\alpha_1(m),c_2\alpha_2(m)))}   \\
 &=& \max(w/(b\cdot c_1\alpha_1(m)),w/(b\cdot c_2\alpha_2(m))).
 \end{eqnarray*}
-It only remains to show that $1/(b\cdot\alpha(m))$ is convex in $b$ and $m$.
+It therefore only remains to show that both $1/\sqrt{b\cdot m}$ and $1/(b\cdot\alpha(m))$ are convex in $b$ and $m$.
 
 A function is defined to be \emph{log-convex} if its logarithm is convex.
 A log-convex function is itself convex because exponentiation preserves convexity,
