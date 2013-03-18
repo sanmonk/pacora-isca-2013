@@ -18,7 +18,7 @@
 %		i.	When does it run?
 
 
-%\pacora, which stands for Performance-Aware Convex Optimization for Resource Allocation, is a framework designed to determine the proper amount of each resource type to assign to each application.  For our purposes an application is the entity to which the operating system allocates resources: it can viewed as a complete application (\emph{e.g.,} a video player) or a component of an application (\emph{e.g.,} a music synthesizer) or a process (\emph{e.g.,} indexing).  
+%\pacora, which stands for Performance-Aware Convex Optimization for Resource Allocation, is a framework designed to determine the proper amount of each resource type to assign to each application.  For our purposes an application is the entity to which the operating system allocates resources: it can viewed as a complete application (\emph{e.g.,} a video player) or a component of an application (\emph{e.g.,} a music synthesizer) or a process (\emph{e.g.,} indexing).
 
 \pacora is a framework designed to determine the proper amount of each resource type (e.g., nodes, processor cores, cache slices, memory pages, various kinds of bandwidth) to assign to each application.  For example, consider a scenario of a video conference, where each participant requires a separate,
 performance guaranteed video stream. New participants may join the conference and others leave,
@@ -27,9 +27,9 @@ Simultaneously, participants may be collaborating through browsers, watching
 shared video clips and web searching, while running compute-intensive
 background tasks such as updates, virus scans, or file indexing. Although it may be relatively straightforward to provide QoS guarantees for applications such as video streams, the real challenge is to do so without using static resource reservations that compromise system utilization.  The purpose of \pacora is to dynamically assign resources to applications to guarantee QoS without overprovisioning and adapt these allocations as the applications in the system change.
 
-For our purposes an application is the entity to which the system allocates resources: it can viewed as a complete application (\emph{e.g.,} a video player), a component of an application (\emph{e.g.,} a music synthesizer) or a process (\emph{e.g.,} indexing) for operating systems, jobs for warehouse-scale computing, and distributed applications in distributed embedded systems. 
+For our purposes an application is the entity to which the system allocates resources: it can viewed as a complete application (\emph{e.g.,} a video player), a component of an application (\emph{e.g.,} a music synthesizer) or a process (\emph{e.g.,} indexing) for operating systems, jobs for warehouse-scale computing, and distributed applications in distributed embedded systems.
 
-\pacora is designed to work in systems with hierarchical scheduling.  In a client system, this design just looks like classic two-level scheduling.  \pacora makes allocation decisions about resources (\emph{e.g.,} cores and memory pages), and micro-management of the resources within an application is left to user-level runtimes such as User Mode Scheduling in Windows\cite{um_sched} or Lithe\cite{lithe} and memory managers.  In a cloud environment, \pacora allocates resources (\emph{e.g.,} nodes and storage) to jobs, and scheduling is left to other entities such as the MapReduce framework\cite{mapreduce} or the operating system on the node.  Separating resource allocation from scheduling enables the use of application-specific scheduling policies, which have the potential to be easier to design and more efficient than a general-purpose scheduler that has to work for everything.   This approach leaves the system to focus on the problem of \emph{how many} of each resource type to assign to each application. 
+\pacora is designed to work in systems with hierarchical scheduling.  In a client system, this design just looks like classic two-level scheduling.  \pacora makes allocation decisions about resources (\emph{e.g.,} cores and memory pages), and micro-management of the resources within an application is left to user-level runtimes such as User Mode Scheduling in Windows\cite{um_sched} or Lithe\cite{lithe} and memory managers.  In a cloud environment, \pacora allocates resources (\emph{e.g.,} nodes and storage) to jobs, and scheduling is left to other entities such as the MapReduce framework\cite{mapreduce} or the operating system on the node.  Separating resource allocation from scheduling enables the use of application-specific scheduling policies, which have the potential to be easier to design and more efficient than a general-purpose scheduler that has to work for everything.   This approach leaves the system to focus on the problem of \emph{how many} of each resource type to assign to each application.
 
 \pacora takes a different approach to resource allocation than traditional systems relying heavily on application-specific functions built through measurement and convex optimization. \pacora formulates resource allocation as an optimization problem built from two types of application-specific functions: a Response Time Function and a Penalty function. The Response Time Function represents the measured performance of the application on different resources.  The Penalty Function represents the user-level goals for the application (i.e., the deadline and how important it is to make that deadline). The following sections describe each of the functions and the optimization construction.
 
@@ -44,18 +44,18 @@ Response Time Functions (RTF) represent the expected \emph{response time} of an 
     \item The time from job launch to job completion;
     \item The time to execute a specified amount of work.
     \end{itemize}
-    
+
 The RTFs are built to be a convex function.  All applications have a function of the same form but the application-specific weights are set using the performance history of the application.  RTFs are designed to capture information such as how well an application scales with a particular resource. As a result, RTFs naturally support heterogeneity.  Each CPU or GPU type is simply viewed as a different resource type by the system, and thus the RTFs will represent how effectively an application uses a particular type of core. Figure~\ref{sample_rtf} shows two example RTFs we have created from applications we studied.
 
 \begin{figure}[hb]
-\includegraphics*[width=1.0\columnwidth]{sample_rtf.pdf}
+\includegraphics*[bb=0 0 426 184,width=1.0\columnwidth]{sample_rtf.pdf}
 \caption{\label{sample_rtf} Response Time Functions for a breadth-first search and a stencil algorithm with 2 response dimensions: cores and cache slices.}
 \end{figure}
 
-Equation~\ref{rtf_eq} below shows the form of the RTF we use in \pacora. 
+Equation~\ref{rtf_eq} below shows the form of the RTF we use in \pacora.
 
 \begin{equation}\label{rtf_eq}
-\tau(w,a) = \tau_0 + \sum_{i\epsilon n,j\epsilon n}{\frac{w_{i,j}}{\sqrt{a_i * a_j}}} 
+\tau(w,a) = \tau_0 + \sum_{i\epsilon n,j\epsilon n}{\frac{w_{i,j}}{\sqrt{a_i * a_j}}}
 \end{equation}
 
 Here $\tau$ represents the response time, $i$ and $j$ represent resource types, $n$ represents the total number of resource types, $a_{i}$ and $a_{j}$ represent the allocation of resources types $i$ and $j$, and $w_{i,j}$ represents the application-specific weight for the term representing resource $i*$ resource $j$.  The dimensionality of the function increases linearly with the number of resource types. The RTFs will be described further in Section~\ref{app_func}.
@@ -85,7 +85,7 @@ The penalty of the application is a function of the response time of the applica
 where $d$ represents the deadline of the application and $s$ (slope) defines the rate the penalty increases as response time increases. For applications without response time constraints the deadline is set to $0$. Two representative graphs of this type appear in Figures~\ref{f:pen1} and~\ref{f:pen2}. Penalty Functions will be described further in Section~\ref{app_func}.
 
 \subsection*{Resource Allocation As Optimization}
-\pacora formulates resource allocation as an optimization problem designed to minimize the total penalty of the system. This is analogous to minimizing user dissatisfaction with the user experience due to missed deadlines in a client system and minimizing the contract penalties paid for violated service-level agreements in a cloud system. 
+\pacora formulates resource allocation as an optimization problem designed to minimize the total penalty of the system. This is analogous to minimizing user dissatisfaction with the user experience due to missed deadlines in a client system and minimizing the contract penalties paid for violated service-level agreements in a cloud system.
 
 The optimization selects the allocations for all resources and resource types at once.  This approach enables the system to make tradeoffs between resource types.  For example, the system could choose to allocate more memory bandwidth in lieu of on-chip cache.  It would difficult to provide predictable response times for applications considering the allocation of only one resource type at a time.
 
@@ -134,12 +134,12 @@ $\sum_{p\epsilon P} a_{p,r} - A_r \leq 0$ and $-a_{p,r} \leq 0$.
 
 \pacora's convex formulation allows the time to solve the optimization to scale linearly with the number of resource types and the number of applications.   For client operating systems with around 100 application running and 10 resource dimensions the total variables in the system to be solved is 1000 --a very small problem which can be solved in microseconds on current systems.   Cloud systems could possibly have more applications running; however, the problem size scales linearly and the benefits gained could be significantly greater given the scale of the system.
 
-\subsection*{Power and Energy}    
+\subsection*{Power and Energy}
 
 In \pacora, we create an artificial application to represent the interests of system power and energy.  Application 0 is designated the idle application and receives allocations of all resources
 that are left idle, \emph{i.e.,} not allocated to other applications.   The idle resources can be powered off or put to sleep if possible to save power.
 
-The ``response time'' for application 0, $\tau_0$, is artificially defined to be the total system power consumption. 
+The ``response time'' for application 0, $\tau_0$, is artificially defined to be the total system power consumption.
 %This response function is affine and monotone nonincreasing in its arguments $a_{0,r}$.
 The penalty function $\pi_0$ establishes a system tradeoff between power and performance that
 will determine which resources are allocated to applications to improve performance and which are left idle.
@@ -153,7 +153,7 @@ Additionally Application 0 functions as \emph{slack} variables in our optimizati
 
 \subsection*{Resources}
 
-In our client system, resources are anything that the system can provide QoS on in hardware or software: specifically we use cpus, network bandwidth, cache ways, and memory pages in our system.  However, other resources could easily be added as well assuming they have QoS enforcement mechanisms.  The other scenarios would have resources that perform similar functions (compute, network, capacity), but at a different scale. For warehouse-scale computing resources are more likely to be different types of nodes, network bandwidth, and storage, and distributed embedded systems would include compute devices, link bandwidth, and memory. 
+In our client system, resources are anything that the system can provide QoS on in hardware or software: specifically we use cpus, network bandwidth, cache ways, and memory pages in our system.  However, other resources could easily be added as well assuming they have QoS enforcement mechanisms.  The other scenarios would have resources that perform similar functions (compute, network, capacity), but at a different scale. For warehouse-scale computing resources are more likely to be different types of nodes, network bandwidth, and storage, and distributed embedded systems would include compute devices, link bandwidth, and memory.
 
 %Partitionable resources include CPU cores, pages in memory, and
 %guaranteed fractional services from other cells (\eg a throughput

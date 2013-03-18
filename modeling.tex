@@ -35,7 +35,7 @@ The elements of the result $w$ will be squares as well, and the 2-norm of the di
 
 As resource allocation continues, more measurements will become available to augment $t$ and $D$.
 Moreover, older data may become a poor representation of the current behavior of the application if its characteristics have changed,
-presumably as reflected in $Q^T\varepsilon$.  \pacora adopts the incremental least squares described below to replace old data and efficiently update RTFs. 
+presumably as reflected in $Q^T\varepsilon$.  \pacora adopts the incremental least squares described below to replace old data and efficiently update RTFs.
 
 \subsubsection*{Incremental Least Squares}
 
@@ -56,61 +56,7 @@ will be at least twice the number of columns $n$.
 Rows selected for downdating will always be in the lower $m - n$ rows of $R$,
 guaranteeing that the most recent $n$ updates are always part of the model.
 
-Downdating makes an instructive example. A row downdate operation applies
-a sequence of Givens rotations to the rows of $Q^T$.
-The rotations are calculated to set every $Q^T_{i,dd}$, $i \neq dd$ to zero.
-In the end only the diagonal element $Q^T_{dd,dd}$ of column $dd$ will be nonzero.
-Since $Q^T$ remains orthogonal, the non-diagonal elements of row $dd$ will also have been zeroed automatically
-and the diagonal element will have absolute value 1.
-These same rotations are concurrently applied to the elements of $Q^T t$ and to the rows of $R$ $(= Q^T D)$
-to reflect the effect that these transformations have on $Q^T$.
 
-It is crucial to select pairs of rows and an order of rotations that preserves the upper triangular structure of $R$
-while zeroing all but the diagonal entry of the chosen column $dd$ of $Q^T$.
-Since $dd$ is always below the diagonal of $R$ it initially will contain only zeros.
-It is therefore sufficient to rotate every non-$dd$ row with row $dd$, proceeding from bottom to top.
-The first $m - n - 1$ rotations will keep row $R_{dd,*}$ entirely zero,
-and the remaining $n$ rotations will introduce nonzeros in $R_{dd,*}$ from right to left.
-The effect on $R$ will be to replace zero elements by nonzero elements only within row $dd$.
-At this point, except for a possible difference in overall sign, $R_{dd,*} = D_{dd,*}$.
-
-Now the rows from 0 down through $dd$ of the modified matrices $Q^Tt$ and $R$ and both the rows and columns of the modified $Q^T$
-are circularly shifted by one position, moving row $dd$ to the top (and column $dd$ of $Q^T$ to the left edge).
-The following is the result:
-\begin{displaymath}
-\begin{array}{lll}
-    \left[\begin{array}{cc}
-      \pm1  &  0 \\
-      0     &  \tilde{Q}^T
-   \end{array}\right]
-   \left[\begin{array}{c}
-      t_{dd} \\
-      \tilde{t}
-   \end{array}\right]
-   &=&
-   \left[\begin{array}{c}
-      \pm D_{dd,*} \\
-      \tilde{R}
-   \end{array}\right] w
-   \\
-   \\
-   &-&
-   \left[\begin{array}{cc}
-      \pm1  &  0 \\
-      0     &  \tilde{Q}^T
-   \end{array}\right]
-   \left[\begin{array}{c}
-      \varepsilon_{dd} \\
-      \tilde{\varepsilon}
-   \end{array}\right]
-\end{array}
-\end{displaymath}
-The top row has thus been decoupled from the rest of the factorization and may either be deleted or updated with new data.
-
-The update process more or less reverses these steps, adding a new top row to $R$ and $t$ and a row and column to $Q^T$.
-Then $R$ is made upper triangular once more by a sequence of Givens rotations that zero its sub-diagonal elements
-(formerly the diagonal elements of $\tilde{R}$) one at a time.
-These rotations are applied not just to $R$ but also to $Q^Tt$ and of course to $Q^T$ itself.
 
 \subsubsection*{Non-Negativity}
 
@@ -130,82 +76,8 @@ roughly in the spirit of Algorithm~3 in~\cite{LuDu}.
 However, \pacora's algorithm cannot ignore downdated columns of $R$
 because subsequent \emph{row} updates and downdates must have due effect
 on these columns to allow their later reintroduction via column updates when necessary.
-
-The active-set NNLS method is based on the idea that since the only constraints are variable positivity
-then for all components either the variable or its gradient will be zero at a solution point; see~\cite{BoVa}, page~142.
-The active set, denoted by \textbf{Z}, comprises the column subscripts $j$ for which the variable $w_j$ is zero and the gradient $v_j$ is positive.
-If a column $j$ not currently in \textbf{Z} happens to acquire a negative $w_j$ after a back-solve, $w_j$ is zeroed,
-$j$ is moved into \textbf{Z} and column $j$ is downdated in $R$, thereby making the gradient positive.
-Conversely, if a column already in \textbf{Z} happens to acquire a negative gradient $v_j$ it is removed from \textbf{Z} and updated in $R$,
-allowing it to further reduce the value of the objective function.
-
-The set \textbf{Z} and its complement \textbf{P} are implemented as an index $idx$
-containing a single permutation vector of the column subscripts comprising
-the sorted members of \textbf{P} followed by the sorted members of \textbf{Z},
-and an offset defining the beginning of \textbf{Z} in the vector.
-For example, if columns 1, 3, and 4 are in \textbf{Z} and columns 0, 2, and 5 are in \textbf{P}
-then the resulting vector is [0 2 5 1 3 4] and the offset is 3.
-Since the offset is just the size of the set \textbf{P} it is naturally called $p$.
-
-Columns are left in place in $R$. The columns of $R$ belonging to \textbf{P} are denoted by $R^p$ and those in \textbf{Z} by $R^z$.
-The updating or downdating of a column only involves modifying the index $idx$ to redefine \textbf{P} and \textbf{Z} and then
-applying Givens rotations to (all of) the rows of $R$ to restore $R^p$ to upper triangular form.
-
-After initial acquisition of data and $QR$ factorization, each step of \pacora's NNLS algorithm
-combines incremental row and column downdates and updates as follows:
-
-\begin{pseudocode}{IncrementalNNLS}{t_0,d_0}
-\LOCAL{R,Q^T,Q^Tt,w,v,idx,d,u,done}                              \\
-R,Q^T,Q^Tt \GETS \textsc{DndtRow}(R,Q^T,Q^Tt,idx)           \\
-R,Q^T,Q^Tt \GETS \textsc{UpdtRow}(t_0,d_0,R,Q^T,Q^Tt,idx)     \\
-w \GETS \textsc{BackSolve}(R,Q^Tt,idx)                          \\
-v \GETS \textsc{Gradient}(R,Q^Tt,idx)                    \\
-\REPEAT
-  done \GETS \TRUE                                              \\
-  d \GETS \arg\min(w)                                          \\
-  \IF w_d < 0 \THEN                                            \\
-  \BEGIN
-    done \GETS \FALSE                                         \\
-    R,Q^T,Q^Tt,idx \GETS \textsc{DndtCol}(R,Q^T,Q^Tt,idx,d)   \\
-    w \GETS \textsc{BackSolve}(R,Q^Tt,idx)                    \\
-    v \GETS \textsc{Gradient}(R,Q^Tt,idx)              \\
-  \END                                                        \\
-  u \GETS \arg\min(v)                                         \\
-  \IF v_u < 0 \THEN                                           \\
-  \BEGIN
-    done \GETS \FALSE                                         \\
-    R,Q^T,Q^Tt,idx \GETS \textsc{UpdtCol}(R,Q^T,Q^Tt,idx,u)     \\
-    w \GETS \textsc{BackSolve}(R,Q^Tt,idx)                    \\
-    v \GETS \textsc{Gradient}(R,Q^Tt,idx)              \\
-  \END                                                        \\
-\UNTIL done                                                   \\
-\RETURN{w,v}                                                  \\
-\end{pseudocode}
-
-When a column indexed by $d$ in $R^p$ is downdated because $w_d < 0$, that column is moved from \textbf{P} to \textbf{Z} in $idx$.
-To restore $R^p$ to upper triangular form, Givens rotations are applied to $R$ at rows $R_{d,*}$ and $R_{k,*}$
-where $d < k < p$. The row subscripts $k$ are used in decreasing order from $p-1$ down to $d+1$,
-and each rotation zeros the subdiagonal element in $R^p$ of the column indexed by $k$.
-As usual, these rotations are also applied to $Q^T$ and $Q^Tt$.
-The result in $R^z$ is a ``spike'' of nonzeros in the column that was moved;
-it can eventually extend to the bottom of $R$ as \emph{row} updates occur.
-
-Column movements from \textbf{Z} to \textbf{P} are based on the gradient $v$ of the objective function, namely
-\begin{eqnarray*}
-v &=& 1/2\nabla\|Dw - t\|^2_2 \\
-  &=& D^T(Dw - t)             \\
-  &=& R^TQ^T(QRw - t)         \\
-  &=& R^T(Rw - Q^Tt)          \\
-  &=& R^T(-Q^T\varepsilon).
-\end{eqnarray*}
-If for some column in \textbf{Z} the inner product of the corresponding spiked row in $R^T$ and $-Q^T\varepsilon$ is negative,
-the column subscript must be moved to \textsc{P}.
-Updating $R^p$ reverses the downdating steps by zeroing the spike via a sequence of Givens rotations on $R$
-between adjacent pairs of rows, starting at the bottom and ending at $m,m+1$ where $m$ is the position of the new column in $idx$.
-These rotations conveniently extend the columns to the right of $m$ in $R^p$ by one,
-thus restoring $R^p$ to upper triangular form. Once again, the rotations are also applied to $Q^T$ and $Q^Tt$.
-
-A new gradient computation and new back-solve for $w$ are clearly necessary after either downdates or updates to columns of $R$.
+/pacora solves this problem by leaving the downdated columns in place,
+skipping over them in maintaining and using the QR factorization. 
 
 \subsubsection*{Model Rank Preservation}
 
@@ -219,26 +91,7 @@ choices made in the downdate-update algorithm.
 In particular, deciding whether to downdate the bottom row of $R$ or some ``younger'' row
 will depend on whether the result would become rank-deficient.
 This approach decouples allocation optimization from performance model maintenance
-and places responsibility upon the latter to always keep enough history to determine a $w$.
-
-Deciding in advance whether downdating a row of $R$ will reduce its rank
-is equivalent to predicting whether one of the Givens rotations, when applied to $R$,
-will zero or nearly zero a diagonal entry of $R$.
-This is particularly easy to discover because $dd$, the row to be downdated, is initially all zeros in $R$,
-\emph{i.e.} in the lower part of the matrix.
-In this situation a diagonal entry of $R$, $R_{i,i}$ say, will be compromised if and only if the
-cosine of the Givens rotation that involves rows $dd$ and $i$ is nearly zero.
-The result will be an interchange of the zero in $R_{dd,i}$ with the nonzero diagonal element $R_{i,i}$.
-$R_{dd,i}$ is zero before the rotation because
-$R$ was originally upper triangular and prior rotations only involved row subscripts greater than $i$.
-
-\pacora keeps track of the sequence of values in $Q^T_{dd,dd}$ without actually changing $Q^T$
-so that if the downdate at location $dd$ is eventually aborted there is nothing to undo.
-It is also possible to remember the sines and cosines of the sequence of rotations
-so they don't have to be recomputed if success ensues.
-A rank-preserving row to downdate will always be available as long as $R$ is sufficiently ``tall''.
-Having at least twice as many rows as columns is enough since the number of available rows to downdate
-matches or exceeds the maximum possible rank of $R$.
+and places responsibility upon the latter to always keep enough history to determine a model.
 
 \subsubsection*{Outliers and Phase Changes}
 
@@ -251,7 +104,7 @@ with a judicious balance between age and anomaly.
 
 The downdating algorithm accomplishes this by weighting the errors in $\varepsilon = Q(Q^Tt - Rw)$
 between the predicted response times $\tau$ and the measured ones $t$ by a factor
-that increases exponentially with the age $g(i)$ of the \em{i\/}th error $\varepsilon_i$.
+that increases exponentially with the age $g(i)$ of the error $\varepsilon_i$.
 Age can be modeled coarsely by the number of time quanta of some size since the measurement;
 \pacora simply lets $g(i) = i$.
 The weighting factor for the $i$th row is then $\eta^{g(i)}$ where $\eta$ is a constant somewhat greater than 1.
