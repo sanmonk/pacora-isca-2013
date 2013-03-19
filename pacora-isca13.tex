@@ -25,15 +25,14 @@
 
 \newcommand{\todo}[1]{\noindent\textcolor{red}{[\underline{TODO}: #1]}}
 
-
-% TODO: Use PACORA for the final version. SOSP uses double-blind review. 
+% TODO: Use PACORA for the final version. SOSP uses double-blind review.
 %\newcommand{\tess}{Tessellation\xspace}
-\newcommand{\pacora}{PACORA\xspace}
-
+%\newcommand{\pacora}{PACORA\xspace}
+\newcommand{\pacora}{ORADIA\xspace}
 
 \begin{document}
 
-\title{\pacora: Optimizing Resource Allocations for Dynamic Interactive Workloads}
+\title{\pacora: Optimizing Resource Allocations for Dynamic Interactive Applications}
 \author{Authors Redacted}
 \date{}
 \maketitle
@@ -43,10 +42,10 @@
 \input{abstract}
 \input{intro}
 \input{sys-design}
+\input{eval}
+\input{optimization}
 \input{functions}
 \input{modeling}
-\input{optimization}
-\input{eval}
 \input{discussion}
 \input{related-work}
 \input{conclusion}
@@ -56,8 +55,10 @@
 \bibliography{references}
 
 \appendix
-\input{convexity}
 \input{model_choice}
+\input{convexity}
+\input{update_downdate_algorithms}
+
 
 \end{document}
 
