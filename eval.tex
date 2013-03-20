@@ -31,24 +31,19 @@
 %			2.	Basically just to show the system works
 
 
-%Useful citations
-%\cite{tess09}, \cite{SPEC2006}, \cite{parsec}, \cite{dacapo}, \cite{lithe}, \cite{matlab}, \cite{cvx}, \cite{pulse}, \cite{bates-aes03}
-%PULSE (Preemptive User-Level SchEduling)
-%Lithe (LIquid THrEads)
-
-We use two different implementations of the \pacora framework for evaluation. Our initial offline framework collects data online using an x86 processor running Linux.  That data is then used to build models and make and evaluation resource allocation decisions offline.  Our offline framework was used to experiment with the accuracy of different types of models and test the quality of the resource allocation decisions.  Our online framework is implemented in a research operating system, \tess, and is used to test our implementations of the algorithms, measure the overhead and reaction times, and illustrate \pacora's ability to work in a real system.  In this section, we describe each of the implementations and associated experiments in more detail.
+We use two different implementations of the \pacora framework for evaluation. Our offline framework collects data online using an x86 processor running Linux.  That data is then used to build models and make and evaluation resource allocation decisions offline.  Our offline framework was used to experiment with the accuracy of different types of models and test the quality of the resource allocation decisions.  Our online framework is implemented in a research operating system, \tess, and is used to test our implementations of the algorithms, measure the overhead and reaction times, and illustrate \pacora's ability to work in a real system.  In this section, we describe each of the implementations and associated experiments in more detail.
 
 
-\subsection*{Linux Analysis}
+\subsection*{Offline Analysis using Linux}
+Our offline framework was designed to test the effectiveness of \pacora's model-based convex optimization for allocating resources.  Data is collected online by running application benchmarks on a recent x86 processor running Linux-2.6.36.  The measured data is processed using Python and then fed to MATLAB~\cite{matlab} to build the RTFs.  MATLAB uses the RTFs to make resource allocation decisions.  We compare performance of the chosen resource allocations with the actual measured performance of all possible resource allocations to test quality of the resource allocation decisions. We use CVX~\cite{cvx} in MATLAB to perform the convex optimization for building RTFs and making resource allocation decisions.  
 
+%By using this method, we are able to run complete, full-sized applications for realistic time scales on current hardware with a standard operating system and accurately measure performance and energy.
 
 \subsubsection*{Platform}
 
-We use a prototype version of Intel's Sandy Bridge x86 processor that is similar to the
+To collect data, we use a prototype version of Intel's Sandy Bridge x86 processor that is similar to the
 commercially available client chip, but with additional hardware
-support for way-based LLC partitioning. By using a real hardware prototype, we are able to run complete, full-sized
-applications for realistic time scales on a standard operating system and accurately measure performance and energy.
-
+support for way-based LLC partitioning. 
 The Sandy Bridge client chip has 4 quad-issue out-of-order
 superscalar cores, each of which supports 2 hyperthreads using
 simultaneous multithreading~\cite{IntelRefManual:2011}.  Each core has
@@ -57,8 +52,8 @@ private \wunits{32}{KB} instruction and data caches, as well as a
 set-associative \wunits{6}{MB} inclusive L3 cache, shared among all
 cores using a ring-based interconnect.  All three cache levels are
 write-back.   The cache partitioning mechanism is way-based and works by modifying the
-cache-replacement algorithm.  Each core can be assigned a subset of
-the 12 ways in the LLC.  
+cache-replacement algorithm.  To allocate cache ways, we assign a subset of
+the 12 ways to a set of hyperthreads, thereby allowing only those hyperthreads to replace data in those ways. 
 
 %Way allocations can be completely private,
 %completely shared, or overlapping.  Although all cores can hit on data stored in
@@ -68,7 +63,7 @@ the 12 ways in the LLC.
 We use a customized BIOS that enables the cache partitioning
 mechanism, and run unmodified Linux-2.6.36 for all of our experiments.
 To allocate cores, we use the Linux {\tt taskset} command to pin applications to
-sets of hyperthreads.
+sets of hyperthreads.  For our experiments we consider each hyperthread to be an independent core. To minimize the interference between hyperthreads, we first assign both hyperthreads available in one core before moving on to the next core. For example, allocations with four cores correspond to running on both hyperthreads of two cores. 
 
 \subsubsection*{Performance and Energy Measurement}
 
@@ -95,10 +90,9 @@ at a $1/2^{16}$ second granularity.
 
 \subsubsection*{Description of Workloads}
 
-We build our workload using a wide range of codes from three different
+Our workload contains a wide range of applications from three different
 popular benchmark suites: SPEC CPU 2006~\cite{SPEC2006},
-DaCapo~\cite{dacapo}, and PARSEC~\cite{parsec}.
-We include some additional applications to broaden the
+DaCapo~\cite{dacapo}, and PARSEC~\cite{parsec}. We selected this set of applications to represent a wide variety of possible resource behaviors in order to properly stress \pacora's RTFs. We include some additional applications to broaden the
 scope of the study, and some microbenchmarks to exercise certain
 system features.
 
@@ -107,17 +101,16 @@ CPU-intensive, single-threaded benchmark suite, designed to stress a
 system's processor, memory subsystem and compiler.  Using the
 similarity analysis performed by Phansalkar et
 al.~\cite{Phansalkar:ISCA2007}, we subset the suite, selecting 4
-integer benchmarks (astar, libquantum, mcf, omnetpp) and 4
+integer benchmarks ({\tt astar}, {\tt libquantum}, {\tt mcf}, {\tt omnetpp}) and 4
 floating-point benchmarks (cactusADM, calculix, lbm, povray).  Based
 on the characterization study by Jaleel~\cite{Jaleel:TR2007}, we also
-pick 4 extra floating-point benchmarks that stress the LLC: GemsFDTD,
-leslie3d, soplex and sphinx3.  When multiple input sets and sizes are
+pick 4 extra floating-point benchmarks that stress the LLC: {\tt GemsFDTD},
+{\tt leslie3d}, {\tt soplex} and {\tt sphinx3}.  When multiple input sets and sizes are
 available, we pick the single \textit{ref} input indicated by
 Phansalkar et al.~\cite{Phansalkar:ISCA2007}. 
 
 We include the \textbf{DaCapo} Java benchmark suite as a
-representative of a managed-language workloads.
-We use the latest 2009 release, which consists of a set of open-source, real-world
+representative of a managed-language workloads. We use the latest 2009 release, which consists of a set of open-source, real-world
 applications with non-trivial memory loads, and includes both client and
 server-side applications.
 
@@ -127,11 +120,10 @@ programs use various parallelization approaches, including data- and
 task-parallelization. We use native input sets and the {\tt pthreads} version for all benchmarks, with the exception of
 \texttt{freqmine}, which is only available in OpenMP. 
 
-
 We add four \textbf{additional parallel applications} to help ensure
 we cover the space of interest: {\tt Browser\_animation} is a
 multithreaded kernel representing a browser layout animation; {\tt
-  G500\_csr} code is a new hybrid breadth-first search algorithm for the Graph500 contest; {\tt Paradecoder} is a parallel
+  G500\_csr} code is a breadth-first search algorithm; {\tt Paradecoder} is a parallel
 speech-recognition application that takes audio waveforms of human
 speech and infers the most likely word sequence intended by the
 speaker; {\tt Stencilprobe} simulates heat transfer in a fluid
@@ -144,30 +136,28 @@ that continuously brings data from memory without caching it, while
 {\tt ccbench} explores arrays of different sizes to determine the
 structure of the cache hierarchy.
 
+Using a performance characterization of the applications, we select a subset of the benchmarks that are representative of different possible responses to resource allocations in order to reduce our study to a feasible size.  Similar to \cite{Phansalkar:ISCA2007}, we use machine learning to select representative benchmarks.  We use a
+hierarchical clustering algorithm~\cite{Phansalkar:ISCA2007} provided by the Python library \texttt{scipy-cluster} with the \textit{single-linkage} method.  The feature vector contains parameters to represent core scaling, cache scaling, prefetcher sensitivity and bandwidth sensitivity.  The clustering algorithm uses Euclidean distance between vectors to determine clusters.  
 
-\subsubsection*{Methodology}
-Using the characterization of the applications, we select a subset of the benchmarks that are representative of different possible responses to resource allocations in order to reduce our study to a feasible size.
-% (computational requirement grows quadratically with the number of benchmarks).  
+The clustering results in 6 clusters representing the following (applications at the cluster center are listed in parenthesis): 
+ \begin{itemize}\itemsep0pt \parskip0pt \parsep5pt
+\item no scalability, high cache utility, ({\tt 429.mcf})
+\item no scalability, low cache utility, ({\tt 459.gems\-FDTD})
+\item high scalability, low cache utility, ({\tt ferret})
+\item limited scalability, high cache utility, ({\tt fop})
+\item limited scalability, low cache utility, ({\tt dedup})
+\item limited scalability, low bandwidth sensitivity, ({\tt batik})
+\end{itemize}
 
-Following in the footsteps of \cite{Phansalkar:ISCA2007}, we use
-machine learning to select representative benchmarks.  We use a
-hierarchical clustering algorithm~\cite{Phansalkar:ISCA2007}
-provided by the Python library \texttt{scipy-cluster} with the
-\textit{single-linkage} method. 
+%First, we create a feature vector for each application using the values in the previous subsection:
+%1) execution time as we increase the number of threads; 2) execution time as we increase the LLC size; 3) prefetcher sensitivity; and 4) bandwidth sensitivity. All metrics are normalized to the interval $[0,1]$. In total we use vectors with 19 features ($7+10+1+1$).
 
-First, we create a feature vector for each application using the values in the previous subsection:
-1) execution time as we increase the number of threads; 2) execution time as we increase the LLC size; 3) prefetcher sensitivity; and 4) bandwidth sensitivity. All metrics are normalized to the interval $[0,1]$. In total we use vectors with 19 features ($7+10+1+1$).
+%The clustering algorithm finds the smallest Euclidean distance of a pair of feature vectors and forms a cluster containing that pair. It continues selecting the next smallest distance between a pair and forms another cluster. Linkage criteria can be used to adjust cluster formation. The single-linkage we selected uses the minimum distance between a pair of objects in different clusters to determine the distance between them. 
 
-The clustering algorithm finds the smallest Euclidean distance of a pair of feature vectors and forms a cluster containing that pair. It continues selecting the next smallest distance between a pair and forms another cluster. Linkage criteria can be used to adjust cluster formation. The single-linkage we selected uses the minimum distance between a pair of objects in different clusters to determine the distance between them. 
+\subsubsection*{RTF Experiments}
+\cite{bates-aes03}
 
-When adding new threads, we first assign both
-hyperthreads available in one core before moving on to the next
-core. For example, allocations with four threads correspond to
-running on both hyperthreads of two cores. 
-
-\subsubsection{RTF Results}
-
-\subsubsection{Resource Allocation Decision Results}
+\subsubsection*{Resource Allocation Experiments}
 
 
 
@@ -200,23 +190,23 @@ running on both hyperthreads of two cores.
 
 
 
-\subsection{Manycore OS Implementation}
+\subsection*{Manycore OS Implementation}
+%\cite{tess09}
+\cite{lithe}, 
+PULSE (Preemptive User-Level SchEduling)
+Lithe (LIquid THrEads)
 
-\subsubsection{Platform}
-
-
-\subsubsection{Performance and Energy Measurement}
-
-
-\subsubsection{Description of Workloads}
+\subsubsection*{Platform}
 
 
-\subsubsection{Methodology}
+\subsubsection*{Performance and Energy Measurement}
 
 
-\subsubsection{RTF Results}
+\subsubsection*{Description of Workloads}
 
-\subsubsection{Resource Allocation Decision Results}
+\subsubsection*{RTF Experiments}
+
+\subsubsection*{Resource Allocation Experiments}
 
 
 

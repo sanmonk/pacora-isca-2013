@@ -88,6 +88,10 @@ S.~Cho and L.~Jin, ``Managing distributed, shared l2 caches through os-level
   page allocation,'' in \emph{Proc. MICRO 39}.\hskip 1em plus 0.5em minus
   0.4em\relax Washington, DC, USA: IEEE Computer Society, 2006, pp. 455--468.
 
+\bibitem{cvx}
+I.~CVX~Research, ``{CVX}: Matlab software for disciplined convex programming,
+  version 2.0 beta,'' \url{http://cvxr.com/cvx}, Sep. 2012.
+
 \bibitem{mapreduce}
 \BIBentryALTinterwordspacing
 J.~Dean and S.~Ghemawat, ``Mapreduce: simplified data processing on large
@@ -233,6 +237,9 @@ J.~W. Lee, M.~C. Ng, and K.~Asanovic, ``Globally-synchronized frames for
 Y.~Luo and R.~Duraiswami, ``Efficient parallel nonnegative least squares on
   multicore architectures,'' \emph{SIAM Journal on Scientific Computing},
   vol.~33, no.~5, pp. 2848--2863, 2011.
+
+\bibitem{matlab}
+Mathworks, ``Matlab 2009b,'' http://www.mathworks.com/, 2009.
 
 \bibitem{1399973}
 J.~Merino \emph{et~al.}, ``Sp-nuca: a cost effective dynamic non-uniform cache
