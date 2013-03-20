@@ -30,12 +30,12 @@
 %			1.	Show throughput and missed deadlines for all the possible mixes
 %			2.	Basically just to show the system works
 
-In this section, we show the high-level results on how well \pacora performs resource allocation to illustrate the viability of \pacora before diving into all the system details in the following sections. 
+In this section, we show the high-level results on how well \pacora performs resource allocation to illustrate the viability of \pacora before diving into all the system details in the following sections.   Evaluations of the performance of individual components of \pacora is included with the detailed technical descriptions of the components. 
 
-We use two different implementations of the \pacora framework for evaluation. Our static framework collects data online using an x86 processor running Linux.  That data is then used to build models and make and evaluate static resource allocation decisions.  Our static framework was used to experiment with the accuracy of different types of models and test the quality of the resource allocation decisions.  Our dynamic framework is implemented in a research operating system, \tess, and is used to test our implementations of the algorithms, measure the overhead and reaction times, and illustrate \pacora's ability to work in a real system.  I
+We use two different implementations of the \pacora framework for evaluation. Our static framework collects data online using an x86 processor running Linux.  That data is then used to build models and make and evaluate static resource allocation decisions.  Our static framework was used to experiment with the accuracy of different types of models and test the quality of the resource allocation decisions.  Our dynamic framework is implemented in a research operating system, \tess, and is used to test our implementations of the algorithms, measure the overhead and reaction times, and illustrate \pacora's ability to work in a real system.
 
 \subsection*{Static Resource Allocation Framework}
-Our static framework was designed to test the effectiveness of \pacora's model-based convex optimization for allocating resources.  Data is collected online by running application benchmarks on a recent x86 processor running Linux-2.6.36.  The measured data is processed using Python and then fed to MATLAB~\cite{matlab} to build the RTFs.  MATLAB uses the RTFs to make resource allocation decisions.  We compare performance of the chosen resource allocations with the actual measured performance of all possible resource allocations to test quality of the resource allocation decisions. We use CVX~\cite{cvx} in MATLAB to perform the convex optimization for building RTFs and making resource allocation decisions.  We used this approach because it enabled us to test with many applications, 44 in total, and many resource allocations rapidly. 
+Our static framework was designed to test the effectiveness of \pacora's model-based convex optimization for allocating resources.  Data is collected online by running application benchmarks on a recent x86 processor running Linux-2.6.36.  The measured data is processed using Python and then fed to MATLAB~\cite{matlab} to build the RTFs.  MATLAB uses the RTFs to make resource allocation decisions.  We compare performance of the chosen resource allocations with the actual measured performance of all possible resource allocations to test quality of the resource allocation decisions. We use CVX~\cite{cvx} in MATLAB to perform the convex optimization for building RTFs and making resource allocation decisions.  We used this approach because it enabled us to test many applications, 44 in total, and many resource allocations rapidly. 
 
 \subsubsection*{Platform}
 
@@ -88,7 +88,7 @@ at a $1/2^{16}$ second granularity.
 
 \subsubsection*{Description of Workloads}
 
-Our workload contains a wide range of applications from three different
+Our workload contains a range of applications from three different
 popular benchmark suites: SPEC CPU 2006~\cite{SPEC2006},
 DaCapo~\cite{dacapo}, and PARSEC~\cite{parsec}. We selected this set of applications to represent a wide variety of possible resource behaviors in order to properly stress \pacora's RTFs. We include some additional applications to broaden the
 scope of the study, and some microbenchmarks to exercise certain
@@ -227,16 +227,6 @@ Network Bandwidth Ballon Application
 \end{figure*}
 
 Figure~\ref{video_experiment} shows the resource allocations for our video conference scenario.
-
-
-\fix{Data: resource allocation through time as applications start and stop}
-
-
-\fix{Data: Move to Dynamic Optimization, runtime of online resource allocation}
-\subsubsection*{RTF Experiments}
-\fix{Move to online modeling section}
-\fix{Data: runtime of online model building}
-\fix{Data: show model building adapting to phases}
 
 
 
