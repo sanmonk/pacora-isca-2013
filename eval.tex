@@ -155,38 +155,37 @@ The clustering results in 6 clusters representing the following (applications at
 %The clustering algorithm finds the smallest Euclidean distance of a pair of feature vectors and forms a cluster containing that pair. It continues selecting the next smallest distance between a pair and forms another cluster. Linkage criteria can be used to adjust cluster formation. The single-linkage we selected uses the minimum distance between a pair of objects in different clusters to determine the distance between them. 
 
 \subsubsection*{RTF Experiments}
-\cite{bates-aes03}
+\begin{figure*}[!t]
+	\begin{center}	
+%		\includegraphics[width=\textwidth]{model_accuracy.pdf}\label{model_accuracy}
+		\caption{L1 norm of relative error from RTF predicted response time compared to actual measured response time.  Data represents the average error from 3 trials.}
+		\label{model_accuracy}
+	\end{center}
+\end{figure*}
+To test the effectiveness of our RTFs in capturing real application behavior, we measured each of our 56 total benchmarks running alone on the machine for all possible resource allocations of cache and cores.  Cores can be allocated from 1-8 and cache from 1-12 resulting in 96 possible allocations for each application.   We use a genetic algorithm design of experiments~\cite{bates-aes03} to select 10 and 20 of the collected allocations to build the RTFs.  We also experimented with building RTFs with more data points but found that they provided little improvement over 20.  We then use the model to predict the performance of every resource allocation and compare it with the actual measured performance of that resource allocation.  We ran 3 complete trials and took the average error of the 3 trials. 
+
+Figure~\ref{model_accuracy} shows the L1 norm of relative error of the predicted response times. \fix{explain results, whats up with tradebeans, how do we know these are any good}.
 
 \subsubsection*{Resource Allocation Experiments}
+Figure~\ref{cluster_decision_quality} shows how \pacora's decisions compared with the optimal allocation, the Linux scheduler, and equally dividing the machine for each pair of the cluster representative applications. Figure~\ref{parsec_decision_quality} shows the same but using all pairs of PARSEC applications. 
 
+\begin{figure*}[!t]
+	\begin{center}	
+%		\includegraphics[width=.45\textwidth]{cluster_decision_points.pdf}
+%		\includegraphics[width=.45\textwidth]{parsec_decision_points.pdf}
+		\caption{Resource allocation decisions for each pair of the cluster representative applications compared with the optimal allocation, the Linux scheduler, and equally dividing the machine.}
+		\label{cluster_decision_quality}
+	\end{center}
+\end{figure*}
 
-
-%\begin{figure*}[!t]
-%	\begin{center}	
-%%		\includegraphics[width=\textwidth]{model_accuracy.pdf}
-%		\caption{L1 Norm of Relative Error of Response-Time model predicted runtime vs. actual runtime.  Data is from 3 complete trials.}
-%		\label{fig:model_accuracy}
-%	\end{center}
-%\end{figure*}
-%\begin{figure*}[!t]
-%	\begin{center}	
-%%		\includegraphics[width=.45\textwidth]{cluster_decision_accuracy.pdf}
-%%		\includegraphics[width=.45\textwidth]{parsec_decision_accuracy.pdf}
-%		\caption{}
-%		\label{fig:model_accuracy}
-%	\end{center}
-%\end{figure*}
-%
-%
-%\subsubsection{Resource Allocation Decisions}
-%\begin{figure*}[!t]
-%	\begin{center}	
-%%		\includegraphics[width=.45\textwidth]{cluster_decision_points.pdf}
-%%		\includegraphics[width=.45\textwidth]{parsec_decision_points.pdf}
-%		\caption{}
-%		\label{fig:model_accuracy}
-%	\end{center}
-%\end{figure*}
+\begin{figure*}[!t]
+	\begin{center}	
+%		\includegraphics[width=.45\textwidth]{cluster_decision_points.pdf}
+%		\includegraphics[width=.45\textwidth]{parsec_decision_points.pdf}
+		\caption{Resource allocation decisions for each pair of PARSEC applications compared with the optimal allocation, the Linux scheduler, and equally dividing the machine.}
+		\label{parsec_decision_quality}
+	\end{center}
+\end{figure*}
 
 
 
