@@ -31,89 +31,78 @@
 %			2.	Basically just to show the system works
 
 
-\cite{tess09}
-\cite{SPEC2006}
-\cite{parsec}
-\cite{dacapo}
-\cite{lithe}
-\cite{matlab}
-\cite{cvx}
-%\cite{pulse}
-\cite{bates-aes03}
+%Useful citations
+%\cite{tess09}, \cite{SPEC2006}, \cite{parsec}, \cite{dacapo}, \cite{lithe}, \cite{matlab}, \cite{cvx}, \cite{pulse}, \cite{bates-aes03}
+%PULSE (Preemptive User-Level SchEduling)
+%Lithe (LIquid THrEads)
 
-PULSE (Preemptive User-Level SchEduling)
-Lithe (LIquid THrEads)
+We use two different implementations of the \pacora framework for evaluation. Our initial offline framework collects data online using an x86 processor running Linux.  That data is then used to build models and make and evaluation resource allocation decisions offline.  Our offline framework was used to experiment with the accuracy of different types of models and test the quality of the resource allocation decisions.  Our online framework is implemented in a research operating system, \tess, and is used to test our implementations of the algorithms, measure the overhead and reaction times, and illustrate \pacora's ability to work in a real system.  In this section, we describe each of the implementations and associated experiments in more detail.
 
-\subsection{Experimental Methodology}
-\label{sec:Platform}
 
-To evaluate \pacora, we use two different implementations of the framework on the same hardware platform.  Our offline framework was used to experiment with the accuracy of different types of models and test 
+\subsection*{Linux Analysis}
 
-\fix{2 implementations}
 
-\subsubsection{Experimental Platform}
+\subsubsection*{Platform}
 
-We use a prototype version of Intel's Sandy Bridge x86
-processor to collect results on resource allocation and application
-co-scheduling.  By using a real hardware prototype, we are able to run
-full applications for realistic time scales and workload sizes, while running a standard operating system.  The processor is similar
-to the commercially available client chip, but with additional
-hardware to support way-based cache partitioning in the LLC.
+We use a prototype version of Intel's Sandy Bridge x86 processor that is similar to the
+commercially available client chip, but with additional hardware
+support for way-based LLC partitioning. By using a real hardware prototype, we are able to run complete, full-sized
+applications for realistic time scales on a standard operating system and accurately measure performance and energy.
 
-The Sandy Bridge client chip has four quad-issue out-of-order
-superscalar cores, each of which supports two hyperthreads using
+The Sandy Bridge client chip has 4 quad-issue out-of-order
+superscalar cores, each of which supports 2 hyperthreads using
 simultaneous multithreading~\cite{IntelRefManual:2011}.  Each core has
 private \wunits{32}{KB} instruction and data caches, as well as a
 \wunits{256}{KB} private non-inclusive L2 cache.  The LLC is a 12-way
 set-associative \wunits{6}{MB} inclusive L3 cache, shared among all
 cores using a ring-based interconnect.  All three cache levels are
-write-back.  Larger server versions of the same processor family have
-up to \wunits{15}{MB} of LLC capacity.
-
-The cache partitioning mechanism is way-based and modifies the
+write-back.   The cache partitioning mechanism is way-based and works by modifying the
 cache-replacement algorithm.  Each core can be assigned a subset of
-the 12 ways in the LLC.  Although all cores can hit on data stored in
-any way, a core can only replace data stored in one of its assigned
-ways.  Allocation of ways among cores can be completely private,
-completely shared, or overlapping.  Data is not flushed when the way
-allocation changes; newly fetched data will just be written into one
-of the assigned ways according to the updated allocation
-configuration.
+the 12 ways in the LLC.  
+
+%Way allocations can be completely private,
+%completely shared, or overlapping.  Although all cores can hit on data stored in
+%any way, a core can only replace data in its assigned
+%ways.   Data is not flushed when the way allocation changes. 
 
 We use a customized BIOS that enables the cache partitioning
-mechanism,
+mechanism, and run unmodified Linux-2.6.36 for all of our experiments.
+To allocate cores, we use the Linux {\tt taskset} command to pin applications to
+sets of hyperthreads.
 
-To measure on-chip energy, we use the energy counters available on
-Sandy Bridge to collect the energy used by the entire socket and also
-the total combined energy of cores, their private caches, and the
-LLC. The counters measure power
-at a $1/2^{16}$ second granularity.
-
-\subsection{Linux Analysis}
-
-and run unmodified Linux-2.6.36 for all of our experiments.
-We use the Linux {\tt taskset} command to pin each application to
-subsets of the available HyperThreads.
+\subsubsection*{Performance and Energy Measurement}
 
 To measure application performance, we use the \texttt{libpfm}
 library~\cite{Eranian:OLS06,Perfmon2}, built on top of the
 \texttt{perf\_events} infrastructure introduced in Linux 2.6.31, to
-access various performance-monitoring counters available on the
-machine~\cite{Intel:Manual2012}.
+access available performance counters~\cite{Intel:Manual2012}.
 
-We access these counters using the Running Average Power Limit
-(RAPL) interfaces~\cite{Intel:Manual2012}.
+To measure on-chip energy, we use the energy counters available on
+Sandy Bridge to measure the consumption of  the entire socket and also
+the total combined energy of cores, their private caches, and the
+LLC. We access these counters using the Running Average Power Limit
+(RAPL) interfaces~\cite{Intel:Manual2012}.  The counters measure power
+at a $1/2^{16}$ second granularity.
 
-\subsubsection{Description of Workloads}
+%In addition, we use a FitPC external multimeter to measure at the wall socket the power
+%consumed by the entire system, at a
+%\wunits{1}{second} granularity.  
+%We correlate the wall power data with the data collected from the hardware energy counters
+%using time stamps.  We observed less than one second of delay in these
+%measurements consistently across all experiments.  Together, these
+%mechanisms allow us to collect accurate energy readings over the
+%entire course of an application's execution.
 
-We built our workload using a wide range of codes from three different
+\subsubsection*{Description of Workloads}
+
+We build our workload using a wide range of codes from three different
 popular benchmark suites: SPEC CPU 2006~\cite{SPEC2006},
-DaCapo~\cite{Blackburn:OOSPLA2006}, and PARSEC~\cite{Bienia:PdD2011}.
-We included some additional application benchmarks to broaden the
-scope of the study, and some microbenchmarks that exercise certain
-features of the system.
+DaCapo~\cite{dacapo}, and PARSEC~\cite{parsec}.
+We include some additional applications to broaden the
+scope of the study, and some microbenchmarks to exercise certain
+system features.
 
-The \textbf{SPEC CPU 2006} benchmark suite~\cite{SPEC2006} is a
+The \textbf{SPEC CPU2006} benchmark suite~\cite{SPEC2006} is a
 CPU-intensive, single-threaded benchmark suite, designed to stress a
 system's processor, memory subsystem and compiler.  Using the
 similarity analysis performed by Phansalkar et
@@ -124,43 +113,62 @@ on the characterization study by Jaleel~\cite{Jaleel:TR2007}, we also
 pick 4 extra floating-point benchmarks that stress the LLC: GemsFDTD,
 leslie3d, soplex and sphinx3.  When multiple input sets and sizes are
 available, we pick the single \textit{ref} input indicated by
-Phansalkar et al.~\cite{Phansalkar:ISCA2007}. SPEC is the only
-benchmark suite used in many previous characterizations of LLC
-partitioning \cite{Suh:HPCA02,Qureshi:MICRO06,Guo:MICRO07}.
+Phansalkar et al.~\cite{Phansalkar:ISCA2007}. 
 
-The \textbf{DaCapo} benchmark suite is intended as a tool for Java
-benchmarking, consisting of a set of open-source, real-world
-applications with non-trivial memory loads, including both client and
-server-side applications. We used the latest 2009 release. The managed
-nature of the DaCapo runtime environment has been shown to make a
-significant difference in some scheduling studies \cite{Esmaeilzadeh:CACM2012}, and is
-also representative of the increasing relevance of such runtimes.
+We include the \textbf{DaCapo} Java benchmark suite as a
+representative of a managed-language workloads.
+We use the latest 2009 release, which consists of a set of open-source, real-world
+applications with non-trivial memory loads, and includes both client and
+server-side applications.
 
 The \textbf{PARSEC} benchmark suite is intended to be representative
-of parallel real-world applications~\cite{Bienia:PdD2011}. PARSEC
+of parallel real-world applications~\cite{parsec}. PARSEC
 programs use various parallelization approaches, including data- and
-task-parallelization. We use the version of the benchmarks
-parallelized with the {\tt pthreads} library, with the exception of
-\texttt{freqmine}, which is only available in OpenMP. We used the full
-native input sets for all the experiments. Past characterizations of
-PARSEC have found it to be sensitive to available cache capacity
-\cite{Bienia:PdD2011}, but also resilient to performance degradation in the face of
-intra-application sharing of caches \cite{Zhang:PPoPP2010}.
+task-parallelization. We use native input sets and the {\tt pthreads} version for all benchmarks, with the exception of
+\texttt{freqmine}, which is only available in OpenMP. 
 
-We added four \textbf{additional parallel applications} to help ensure
-we covered the space of interest: {\em Browser\_animation} is a
-multithreaded kernel representing a browser layout animation; {\em
-  G500\_csr} code is a kernel performing breadth-first search of a
-large graph for the Graph500 contest, based on a new hybrid
-algorithm~\cite{Beamer:EECS-2011}; {\em Paradecoder} is a parallel
+
+We add four \textbf{additional parallel applications} to help ensure
+we cover the space of interest: {\tt Browser\_animation} is a
+multithreaded kernel representing a browser layout animation; {\tt
+  G500\_csr} code is a new hybrid breadth-first search algorithm for the Graph500 contest; {\tt Paradecoder} is a parallel
 speech-recognition application that takes audio waveforms of human
 speech and infers the most likely word sequence intended by the
-speaker; {\em Stencilprobe} simulates heat transfer through a fluid
+speaker; {\tt Stencilprobe} simulates heat transfer in a fluid
 using a parallel stencil kernel over a regular
 grid~\cite{Kamil:Stencilprobe}.
 
+We also add two \textbf{microbenchmarks} that stress the memory
+system: {\tt stream\_uncached} is a memory and on-chip bandwidth hog
+that continuously brings data from memory without caching it, while
+{\tt ccbench} explores arrays of different sizes to determine the
+structure of the cache hierarchy.
 
-\subsubsection{Response-Time Functions}
+
+\subsubsection*{Methodology}
+Using the characterization of the applications, we select a subset of the benchmarks that are representative of different possible responses to resource allocations in order to reduce our study to a feasible size.
+% (computational requirement grows quadratically with the number of benchmarks).  
+
+Following in the footsteps of \cite{Phansalkar:ISCA2007}, we use
+machine learning to select representative benchmarks.  We use a
+hierarchical clustering algorithm~\cite{Phansalkar:ISCA2007}
+provided by the Python library \texttt{scipy-cluster} with the
+\textit{single-linkage} method. 
+
+First, we create a feature vector for each application using the values in the previous subsection:
+1) execution time as we increase the number of threads; 2) execution time as we increase the LLC size; 3) prefetcher sensitivity; and 4) bandwidth sensitivity. All metrics are normalized to the interval $[0,1]$. In total we use vectors with 19 features ($7+10+1+1$).
+
+The clustering algorithm finds the smallest Euclidean distance of a pair of feature vectors and forms a cluster containing that pair. It continues selecting the next smallest distance between a pair and forms another cluster. Linkage criteria can be used to adjust cluster formation. The single-linkage we selected uses the minimum distance between a pair of objects in different clusters to determine the distance between them. 
+
+When adding new threads, we first assign both
+hyperthreads available in one core before moving on to the next
+core. For example, allocations with four threads correspond to
+running on both hyperthreads of two cores. 
+
+\subsubsection{RTF Results}
+
+\subsubsection{Resource Allocation Decision Results}
+
 
 
 %\begin{figure*}[!t]
@@ -194,30 +202,28 @@ grid~\cite{Kamil:Stencilprobe}.
 
 \subsection{Manycore OS Implementation}
 
+\subsubsection{Platform}
+
+
+\subsubsection{Performance and Energy Measurement}
+
+
 \subsubsection{Description of Workloads}
 
 
-\subsubsection{Response-Time Functions}
-
-\subsubsection{Resource Allocation Decisions}
+\subsubsection{Methodology}
 
 
+\subsubsection{RTF Results}
 
-
-
+\subsubsection{Resource Allocation Decision Results}
 
 
 
 
 
 
-%In addition, we use a FitPC external multimeter to measure the power
-%consumed at the wall socket by the entire system, at a
-%\wunits{1}{second} granularity.
-%%Total system power is generally between \wunits{185}{W} and \wunits{240}{W}.
-%The system-level values
-%are correlated with data collected from the hardware energy counters
-%using time stamps.  We observed less than one second of delay in these
-%measurements consistently across all experiments.  Together, these
-%mechanisms allow us to collect accurate energy readings over the
-%entire course of an application's execution.
+
+
+
+

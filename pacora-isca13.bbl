@@ -88,10 +88,6 @@ S.~Cho and L.~Jin, ``Managing distributed, shared l2 caches through os-level
   page allocation,'' in \emph{Proc. MICRO 39}.\hskip 1em plus 0.5em minus
   0.4em\relax Washington, DC, USA: IEEE Computer Society, 2006, pp. 455--468.
 
-\bibitem{cvx}
-I.~CVX~Research, ``{CVX}: Matlab software for disciplined convex programming,
-  version 2.0 beta,'' \url{http://cvxr.com/cvx}, Sep. 2012.
-
 \bibitem{mapreduce}
 \BIBentryALTinterwordspacing
 J.~Dean and S.~Ghemawat, ``Mapreduce: simplified data processing on large
@@ -109,6 +105,10 @@ H.~Dybdahl and P.~Stenstrom, ``An adaptive shared/private nuca cache
   partitioning scheme for chip multiprocessors,'' in \emph{Proc. HPCA
   '07}.\hskip 1em plus 0.5em minus 0.4em\relax Washington, DC, USA: IEEE
   Computer Society, 2007, pp. 2--12.
+
+\bibitem{Eranian:OLS06}
+S.~Eranian, ``Perfmon2: a flexible performance monitoring interface for
+  linux,'' in \emph{Ottawa Linux Symposium}, 2006, p. 269–288.
 
 \bibitem{Jockey}
 \BIBentryALTinterwordspacing
@@ -170,6 +170,14 @@ J.~Huh \emph{et~al.}, ``A nuca substrate for flexible cmp cache sharing,'' in
   \emph{Proc. ICS '05}.\hskip 1em plus 0.5em minus 0.4em\relax New York, NY,
   USA: ACM, 2005, pp. 31--40.
 
+\bibitem{IntelRefManual:2011}
+{Intel Corp.}, ``Intel 64 and ia-32 architectures optimization reference
+  manual,'' June 2011.
+
+\bibitem{Intel:Manual2012}
+{Intel Corp.}, ``Intel 64 and ia-32 architectures software developer's
+  manual,'' March 2012.
+
 \bibitem{1006246}
 R.~Iyer, ``Cqos: a framework for enabling qos in shared caches of cmp
   platforms,'' in \emph{Proc. ICS '04}.\hskip 1em plus 0.5em minus 0.4em\relax
@@ -179,6 +187,15 @@ R.~Iyer, ``Cqos: a framework for enabling qos in shared caches of cmp
 R.~Iyer \emph{et~al.}, ``Qos policies and architecture for cache/memory in cmp
   platforms,'' in \emph{Proc. SIGMETRICS '07}.\hskip 1em plus 0.5em minus
   0.4em\relax New York, NY, USA: ACM, 2007, pp. 25--36.
+
+\bibitem{Jaleel:TR2007}
+A.~Jaleel, ``Memory characterization of workloads using instrumentation-driven
+  simulation -- a pin-based memory characterization of the spec cpu2000 and
+  spec cpu2006 benchmark suites,'' VSSAD, Intel Corporation, Tech. Rep., 2007.
+
+\bibitem{Kamil:Stencilprobe}
+S.~Kamil, ``Stencil probe,'' 2012,
+  \url{http://www.cs.berkeley.edu/~skamil/projects/stencilprobe/}.
 
 \bibitem{605420}
 C.~Kim, D.~Burger, and S.~W. Keckler, ``An adaptive, non-uniform cache
@@ -212,20 +229,10 @@ J.~W. Lee, M.~C. Ng, and K.~Asanovic, ``Globally-synchronized frames for
   '08}.\hskip 1em plus 0.5em minus 0.4em\relax Washington, DC, USA: IEEE
   Computer Society, 2008, pp. 89--100.
 
-\bibitem{tess09}
-\BIBentryALTinterwordspacing
-R.~Liu \emph{et~al.}, ``Tessellation: Space-time partitioning in a manycore
-  client os,'' in \emph{HotPar09}, Berkeley, CA, 03/2009 2009. Available:
-  \url{http://www.usenix.org/event/hotpar09/tech/}
-\BIBentrySTDinterwordspacing
-
 \bibitem{LuDu}
 Y.~Luo and R.~Duraiswami, ``Efficient parallel nonnegative least squares on
   multicore architectures,'' \emph{SIAM Journal on Scientific Computing},
   vol.~33, no.~5, pp. 2848--2863, 2011.
-
-\bibitem{matlab}
-Mathworks, ``Matlab 2009b,'' http://www.mathworks.com/, 2009.
 
 \bibitem{1399973}
 J.~Merino \emph{et~al.}, ``Sp-nuca: a cost effective dynamic non-uniform cache
@@ -261,6 +268,9 @@ H.~Pan, B.~Hindman, and K.~Asanovi{\'c}, ``Lithe: Enabling efficient
   composition of parallel libraries,'' in \emph{HotPar09}, Berkeley, CA,
   03/2009 2009. Available: \url{http://www.usenix.org/event/hotpar09/tech/}
 \BIBentrySTDinterwordspacing
+
+\bibitem{Perfmon2}
+``Perfmon2 webpage,'' perfmon2.sourceforge.net/.
 
 \bibitem{Phansalkar:ISCA2007}
 A.~Phansalkar, A.~Joshi, and L.~K. John, ``Analysis of redundancy and
