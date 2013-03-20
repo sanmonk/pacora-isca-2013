@@ -31,13 +31,11 @@
 %			2.	Basically just to show the system works
 
 
-We use two different implementations of the \pacora framework for evaluation. Our offline framework collects data online using an x86 processor running Linux.  That data is then used to build models and make and evaluation resource allocation decisions offline.  Our offline framework was used to experiment with the accuracy of different types of models and test the quality of the resource allocation decisions.  Our online framework is implemented in a research operating system, \tess, and is used to test our implementations of the algorithms, measure the overhead and reaction times, and illustrate \pacora's ability to work in a real system.  In this section, we describe each of the implementations and associated experiments in more detail.
+We use two different implementations of the \pacora framework for evaluation. Our static framework collects data online using an x86 processor running Linux.  That data is then used to build models and make and evaluate static resource allocation decisions.  Our static framework was used to experiment with the accuracy of different types of models and test the quality of the resource allocation decisions.  Our dynamic framework is implemented in a research operating system, \tess, and is used to test our implementations of the algorithms, measure the overhead and reaction times, and illustrate \pacora's ability to work in a real system.  In this section, we describe each of the implementations and associated experiments in more detail.
 
 
-\subsection*{Offline Analysis using Linux}
-Our offline framework was designed to test the effectiveness of \pacora's model-based convex optimization for allocating resources.  Data is collected online by running application benchmarks on a recent x86 processor running Linux-2.6.36.  The measured data is processed using Python and then fed to MATLAB~\cite{matlab} to build the RTFs.  MATLAB uses the RTFs to make resource allocation decisions.  We compare performance of the chosen resource allocations with the actual measured performance of all possible resource allocations to test quality of the resource allocation decisions. We use CVX~\cite{cvx} in MATLAB to perform the convex optimization for building RTFs and making resource allocation decisions.  
-
-%By using this method, we are able to run complete, full-sized applications for realistic time scales on current hardware with a standard operating system and accurately measure performance and energy.
+\subsection*{Static Resource Allocation Framework}
+Our static framework was designed to test the effectiveness of \pacora's model-based convex optimization for allocating resources.  Data is collected online by running application benchmarks on a recent x86 processor running Linux-2.6.36.  The measured data is processed using Python and then fed to MATLAB~\cite{matlab} to build the RTFs.  MATLAB uses the RTFs to make resource allocation decisions.  We compare performance of the chosen resource allocations with the actual measured performance of all possible resource allocations to test quality of the resource allocation decisions. We use CVX~\cite{cvx} in MATLAB to perform the convex optimization for building RTFs and making resource allocation decisions.  We used this approach because it enabled us to test with many applications, 44 in total, and many resource allocations rapidly. 
 
 \subsubsection*{Platform}
 
@@ -162,7 +160,7 @@ The clustering results in 6 clusters representing the following (applications at
 		\label{model_accuracy}
 	\end{center}
 \end{figure*}
-To test the effectiveness of our RTFs in capturing real application behavior, we measured each of our 56 total benchmarks running alone on the machine for all possible resource allocations of cache and cores.  Cores can be allocated from 1-8 and cache from 1-12 resulting in 96 possible allocations for each application.   We use a genetic algorithm design of experiments~\cite{bates-aes03} to select 10 and 20 of the collected allocations to build the RTFs.  We also experimented with building RTFs with more data points but found that they provided little improvement over 20.  We then use the model to predict the performance of every resource allocation and compare it with the actual measured performance of that resource allocation.  We ran 3 complete trials and took the average error of the 3 trials. 
+To test the effectiveness of our RTFs in capturing real application behavior, we measured each of our 44 total benchmarks running alone on the machine for all possible resource allocations of cache and cores.  Cores can be allocated from 1-8 and cache from 1-12 resulting in 96 possible allocations for each application.   We use a genetic algorithm design of experiments~\cite{bates-aes03} to select 10 and 20 of the collected allocations to build the RTFs.  We also experimented with building RTFs with more data points but found that they provided little improvement over 20.  We then use the model to predict the performance of every resource allocation and compare it with the actual measured performance of that resource allocation.  We ran 3 complete trials and took the average error of the 3 trials. 
 
 Figure~\ref{model_accuracy} shows the L1 norm of relative error of the predicted response times. \fix{explain results, whats up with tradebeans, how do we know these are any good}.
 
@@ -171,8 +169,7 @@ Figure~\ref{cluster_decision_quality} shows how \pacora's decisions compared wit
 
 \begin{figure*}[!t]
 	\begin{center}	
-%		\includegraphics[width=.45\textwidth]{cluster_decision_points.pdf}
-%		\includegraphics[width=.45\textwidth]{parsec_decision_points.pdf}
+%		\includegraphics[width=.45\textwidth]{decision_quality.pdf}
 		\caption{Resource allocation decisions for each pair of the cluster representative applications compared with the optimal allocation, the Linux scheduler, and equally dividing the machine.}
 		\label{cluster_decision_quality}
 	\end{center}
@@ -189,13 +186,19 @@ Figure~\ref{cluster_decision_quality} shows how \pacora's decisions compared wit
 
 
 
-\subsection*{Manycore OS Implementation}
-%\cite{tess09}
-\cite{lithe}, 
-PULSE (Preemptive User-Level SchEduling)
-Lithe (LIquid THrEads)
+\subsection*{Dynamic Resource Allocation in a Manycore OS}
+%\cite{tess09,tess_dac}
+In order to evaluate \pacora's effectiveness dynamically making decisions in real-time in a real operating system, we implemented in an in-house research operating system, \tess. We chose to implement in \tess over Linux for two reasons: 
+ \begin{itemize}\itemsep0pt \parskip0pt \parsep5pt
+\item \tess is designed around two-level scheduling meaning it more accurately reflects the system design \pacora assumes
+\item \tess implements additional resource partitioning and QoS mechanisms allowing \pacora to explore allocating more resource types 
+\end{itemize}
 
 \subsubsection*{Platform}
+Our dynamic experiments are all run on an Intel Nehalem-EP system with two 2.66-GHz Xeon X5550 quad-core processors and hyperthreading enable (\emph{i.e.,} 16 hardware threads).
+\tess allocates resources directly to applications and then applications employ a second-level scheduler to schedule threads onto the resources.  There are have two scheduling frameworks available in \tess, a cooperative framework called Lithe (LIquid THrEads)~\cite{lithe} and a preemptive one called PULSE (Preemptive User-Level SchEduling).  All of our experiments are run using 2 different schedulers in the PULSE framework; applications with responsiveness requirements use the EDF, earliest-deadline first, scheduler and throughput oriented applications use the GRR, global round-robin, scheduler.
+
+
 
 
 \subsubsection*{Performance and Energy Measurement}
