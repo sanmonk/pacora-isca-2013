@@ -25,11 +25,11 @@ performance guaranteed video stream. New participants may join the conference an
 increasing or decreasing the number of streams running at any given time.
 Simultaneously, participants may be collaborating through browsers, watching
 shared video clips and web searching, while running compute-intensive
-background tasks such as updates, virus scans, or file indexing. Although it may be relatively straightforward to provide QoS guarantees for applications such as video streams, the real challenge is to do so without using static resource reservations that compromise system utilization.  The purpose of \pacora is to dynamically assign resources to applications to guarantee QoS without overprovisioning and adapt these allocations as the applications in the system change.
+background tasks such as updates, virus scans, or file indexing. Although it may be relatively straightforward to provide responsiveness guarantees for applications such as video streams, the real challenge is to do so without using static resource reservations that compromise system utilization.  The purpose of \pacora is to dynamically assign resources to applications to guarantee responsiveness without over-provisioning and to adapt these allocations as the applications in the system change.
 
-For our purposes an application is the entity to which the system allocates resources: it can viewed as a complete application (\emph{e.g.,} a video player), a component of an application (\emph{e.g.,} a music synthesizer) or a process (\emph{e.g.,} indexing) for operating systems, jobs for warehouse-scale computing, and distributed applications in distributed embedded systems.
+For our purposes an application is an entity to which the system allocates resources: it can viewed as a complete application (\emph{e.g.,} a video player), a component of an application (\emph{e.g.,} a music synthesizer) or a process (\emph{e.g.,} indexing) for operating systems, jobs for warehouse-scale computing, and distributed applications in distributed embedded systems.
 
-\pacora is designed to work in systems with hierarchical scheduling.  In a client system, this design just looks like classic two-level scheduling.  \pacora makes allocation decisions about resources (\emph{e.g.,} cores and memory pages), and micro-management of the resources within an application is left to user-level runtimes such as User Mode Scheduling in Windows\cite{um_sched} or Lithe\cite{lithe} and memory managers.  In a cloud environment, \pacora allocates resources (\emph{e.g.,} nodes and storage) to jobs, and scheduling is left to other entities such as the MapReduce framework\cite{mapreduce} or the operating system on the node.  Separating resource allocation from scheduling enables the use of application-specific scheduling policies, which have the potential to be easier to design and more efficient than a general-purpose scheduler that has to work for everything.   This approach leaves the system to focus on the problem of \emph{how many} of each resource type to assign to each application.
+\pacora is designed to work in systems with hierarchical scheduling.  In a client system, this design just looks like classic two-level scheduling.  \pacora makes allocation decisions about resources (\emph{e.g.,} cores and memory pages), and micro-management of the resources within an application is left to user-level runtimes such as the Intel Threaded Building Blocks runtime\cite{CoMa08} or Lithe\cite{lithe} and to memory managers.  In a cloud environment, \pacora allocates resources (\emph{e.g.,} nodes and storage) to jobs, and scheduling is left to other entities such as the MapReduce framework\cite{mapreduce} or the operating system on the node.  Separating resource allocation from scheduling enables the use of application-specific scheduling policies, which have the potential to be easier to design and more efficient than a general-purpose scheduler that has to work for everything.   This approach leaves the system to focus on the problem of \emph{how many} of each resource type to assign to each application.
 
 \pacora takes a different approach to resource allocation than traditional systems relying heavily on application-specific functions built through measurement and convex optimization. \pacora formulates resource allocation as an optimization problem built from two types of application-specific functions: a Response Time Function and a Penalty function. The Response Time Function represents the measured performance of the application on different resources.  The Penalty Function represents the user-level goals for the application (i.e., the deadline and how important it is to make that deadline). The following sections describe each of the functions and the optimization construction.
 
@@ -61,6 +61,15 @@ Equation~\ref{rtf_eq} below shows the form of the RTF we use in \pacora.
 Here $\tau$ represents the response time, $i$ and $j$ represent resource types, $n$ represents the total number of resource types, $a_{i}$ and $a_{j}$ represent the allocation of resources types $i$ and $j$, and $w_{i,j}$ represents the application-specific weight for the term representing resource $i*$ resource $j$.  The dimensionality of the function increases linearly with the number of resource types. The RTFs will be described further in Section~\ref{app_func}.
 
 \subsection*{Penalty Functions}
+Penalty functions are designed to represent the user-level goals of the application. They are similar to priorities but are functions of the response time rather than a simple value so they can explicitly represent deadlines.  Knowing the deadlines lets the system make optimizations that are difficult in today's systems such as running just fast enough to make the deadline. Like priorities, the penalty functions are set by the system on behalf of the user.
+
+A \pacora penalty function $\pi$ is a non-decreasing piecewise linear function of the response time $\tau$ of the form
+
+\begin{equation}\label{pen_eq}
+\pi(\tau) = \max(0, s(\tau - d))
+\end{equation}
+
+where $d$ represents the deadline of the application and $s$ (slope) defines the rate the penalty increases as response time increases. For applications without response time constraints the deadline can be set to $0$. Two representative graphs of this type appear in Figures~\ref{f:pen1} and~\ref{f:pen2}. Penalty Functions will be described further in Section~\ref{app_func}.
 
 \begin{figure}[hb]
 \parbox{1.6in}{
@@ -73,16 +82,6 @@ Here $\tau$ represents the response time, $i$ and $j$ represent resource types, 
 \caption{\label{f:pen2}A penalty function with no response time constraint.}
 }
 \end{figure}
-
-Penalty functions are designed to represent the user-level goals of the application. They are similar to the concept of priorities; however, penalty functions are a function rather than a single value and explicitly represent deadlines.  Knowing the deadlines enables the system to make optimizations that are difficult in current systems such as running just fast enough to make the deadline. Like priorities, the penalty functions are set by the system in order to represent the relative importance of applications.
-
-The penalty of the application is a function of the response time of the application.  \pacora's penalty functions are non-decreasing piecewise linear functions of the form
-
-\begin{equation}\label{pen_eq}
-\pi(\tau) = \max(0, s(\tau - d))
-\end{equation}
-
-where $d$ represents the deadline of the application and $s$ (slope) defines the rate the penalty increases as response time increases. For applications without response time constraints the deadline is set to $0$. Two representative graphs of this type appear in Figures~\ref{f:pen1} and~\ref{f:pen2}. Penalty Functions will be described further in Section~\ref{app_func}.
 
 \subsection*{Resource Allocation As Optimization}
 \pacora formulates resource allocation as an optimization problem designed to minimize the total penalty of the system. This is analogous to minimizing user dissatisfaction with the user experience due to missed deadlines in a client system and minimizing the contract penalties paid for violated service-level agreements in a cloud system.
