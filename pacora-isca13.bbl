@@ -99,11 +99,6 @@ J.~Dean and S.~Ghemawat, ``Mapreduce: simplified data processing on large
   Available: \url{http://doi.acm.org/10.1145/1327452.1327492}
 \BIBentrySTDinterwordspacing
 
-\bibitem{dhodapkar-micro03}
-A.~S. Dhodapkar and J.~E. Smith, ``Comparing program phase detection
-  techniques,'' in \emph{Proc. MICRO 36}.\hskip 1em plus 0.5em minus
-  0.4em\relax Washington, DC, USA: IEEE Computer Society, 2003, p. 217.
-
 \bibitem{1318096}
 H.~Dybdahl and P.~Stenstrom, ``An adaptive shared/private nuca cache
   partitioning scheme for chip multiprocessors,'' in \emph{Proc. HPCA
@@ -294,10 +289,6 @@ M.~K. Qureshi and Y.~N. Patt, ``Utility-based cache partitioning: A
 R.~Rajkumar \emph{et~al.}, ``A resource allocation model for qos management,''
   in \emph{Proc. RTSS '97}.\hskip 1em plus 0.5em minus 0.4em\relax Washington,
   DC, USA: IEEE Computer Society, 1997, p. 298.
-
-\bibitem{sherwood-sigarch03}
-T.~Sherwood, S.~Sair, and B.~Calder, ``Phase tracking and prediction,''
-  \emph{SIGARCH Comput. Archit. News}, vol.~31, no.~2, pp. 336--349, 2003.
 
 \bibitem{Metronome}
 \BIBentryALTinterwordspacing
