@@ -183,12 +183,10 @@ Figure~\ref{model_accuracy} shows the L1 norm of relative error of the predicted
 	\end{center}
 \end{figure*}
 
-Using the RTFs functions built for our 
-
-Figure~\ref{cluster_decision_quality} shows how \pacora's decisions compared with the optimal allocation, the Linux scheduler, and equally dividing the machine for each pair of the cluster representative applications. Figure~\ref{parsec_decision_quality} shows the same but using all pairs of PARSEC applications. 
+Using the RTFs functions built for the applications, we have \pacora make static resource allocations for all possible pairs of the cluster representative applications.  We then run all possible resource allocations for each pair on our Sandy Bridge/Linux platform and collect the performance.  Using this data compare we compare the measured performance of \pacora's chosen allocation with the best performing, \emph{i.e.,} optimal, resource allocation.  We also compare the result to equally dividing the resources between the two applications and sharing all of the resources using the Linux scheduler.
 
 
-
+Figure~\ref{cluster_decision_quality} shows how \pacora's decisions compared with the optimal allocation, the Linux scheduler, and equally dividing the machine for each pair of the cluster representative applications.  We also perform the same experiment for all pairs of PARSEC applications since they scale the better than the other benchmark suites thus enabling more viable resource allocations.  Figure~\ref{parsec_decision_quality} shows the results.
 
 \subsection*{Dynamic Resource Allocation in a Manycore OS}
 %\cite{tess09,tess_dac}
