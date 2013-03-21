@@ -193,6 +193,7 @@ Figure~\ref{cluster_decision_quality} shows how \pacora's decisions compared wit
 In order to evaluate \pacora's effectiveness dynamically making decisions in real-time in a real operating system, we implemented in an in-house research operating system, \tess. We chose to implement in \tess over Linux for two reasons: 
  \begin{itemize}\itemsep0pt \parskip0pt \parsep5pt
 \item \tess is designed around two-level scheduling meaning it more accurately reflects the system design \pacora assumes
+\item \tess allows resource revocation, enabling \pacora to dynamically reallocate resources
 \item \tess implements additional resource partitioning and QoS mechanisms allowing \pacora to explore allocating more resource types 
 \end{itemize}
 
