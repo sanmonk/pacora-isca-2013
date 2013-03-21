@@ -58,6 +58,14 @@ guaranteeing that the most recent $n$ updates are always part of the model.
 
 \subsubsection*{Non-Negativity}
 
+\begin{figure*}[!t]
+	\begin{center}	
+%		\includegraphics[width=.45\textwidth]{cluster_decision_points.pdf}
+		\caption{Performance of \pacora's NNLS algorithm}
+		\label{model_build_perf}
+	\end{center}
+\end{figure*}
+
 To guarantee convexity of the response time model, the solution $w$ to $t \approx QRw$ must have no negative components.
 Intuitively, when a resource is associated with more than a single $w_j$
 or when the measured response time increases with allocation then negative $w_j$ may occur.
@@ -77,6 +85,8 @@ on these columns to allow their later reintroduction via column updates when nec
 /pacora solves this problem by leaving the downdated columns in place,
 skipping over them in maintaining and using the QR factorization. 
 
+Figure~\ref{model_build_perf} shows the performance of \pacora's NNLS algorithm.
+
 \subsubsection*{Model Rank Preservation}
 
 If care is not taken in the allocation process,
@@ -92,6 +102,14 @@ This approach decouples allocation optimization from performance model maintenan
 and places responsibility upon the latter to always keep enough history to determine a model.
 
 \subsubsection*{Outliers and Phase Changes}
+
+\begin{figure*}[!t]
+	\begin{center}	
+%		\includegraphics[width=.45\textwidth]{cluster_decision_points.pdf}
+		\caption{\pacora's online model creation algorithm adapting to a video application changing phases}
+		\label{phase_change}
+	\end{center}
+\end{figure*}
 
 Some response time measurements may be ``noisy'' or even erroneous.
 A weakness of least-squares modeling is the high importance it gives to outlying values.
@@ -110,6 +128,8 @@ The candidate row to downdate is the row with the largest weighted error, \emph{
 \begin{displaymath}
 dd = \arg\max_i |\varepsilon_i| \cdot \eta^{g(i)}
 \end{displaymath}
+
+Figure~\ref{phase_change} shows \pacora's model creation algorithm adapting to a video application changing chases.
 
 
 
