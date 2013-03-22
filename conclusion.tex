@@ -1,15 +1,8 @@
 \section{Conclusion}\label{conclusion}
 
-\pacora takes a different approach to resource allocation than traditional systems relying heavily on application-specific functions built through measurement and convex optimization. \pacora formulates resource allocation as an optimization problem 
-Discuss advantages of \pacora
-Possible advantages to discuss:
-\begin{itemize}
-\item Heterogeneity,
-\item Convex optimization is relatively inexpensive optimization problem with good techniques to solve,
-\item Penalty Function Slopes allow the system to express relative priorities of application.
-\item Priorities change as a function of performance (criticality),
-\item Penalty Function Intercept encapsulates QoS requirements (responsiveness),
-\item Additional process can be used to represent system energy,
-\item Works the growing diversity of modern hardware,
-\item doesn't require application developers to know about resources
-\end{itemize}
+\pacora takes a different approach to resource allocation than traditional systems relying heavily on application-specific functions built through measurement and convex optimization.  Using convex optimization enables \pacora perform real-time resource allocation inexpensively.  By building application-specific functions online and formulating resource allocation as an optimization problem, \pacora is able to performance multi-dimensional resource allocation on a general set of resources, thereby enabling \pacora to naturally handle heterogeneity and the growing diversity of modern hardware. This approach also protects application developers from needing to understand resources. \pacora explicitly includes responsiveness requirements and system power and energy in the optimization problem enabling the system make to trade-offs among application responsiveness, system performance, and energy efficiency.
+
+
+\fix{incorporate performance numbers}
+
+
