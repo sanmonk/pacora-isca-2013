@@ -18,9 +18,7 @@
 
 There are two main sources of challenges for \pacora's design: performance non-monotonicity and performance variability.  In the following section we describe possible techniques for coping with these challenges.  
 
-The main concern with performance non-monotoncity and variability is that they can possibly effect the accuracy of the response time functions.  However, an interesting result we have found while evaluating \pacora is that model accuracy has less impact on the quality of resource allocation decisions than anticipated.  When experimenting with possible models for the RTF functions we found that while some models were always a little too inaccurate and did degrade the performance of the resource allocation decisions, once a model crossed a certain threshold of accuracy then better models provided insignificant improvement in resource allocation decisions~\cite{pacora_tr}.
-
-Figure~\ref{accuracy_quality} shows the effect of model accuracy on the quality of the resource allocation decisions made.
+The main concern with performance non-monotonicity and variability is that they can possibly effect the accuracy of the response time functions.  However, an interesting result we have found while evaluating \pacora is that model accuracy has less impact on the quality of resource allocation decisions than anticipated.  When experimenting with possible models for the RTF functions, we found that while some models were always a little too inaccurate and did degrade the performance of the resource allocation decisions, once a model crossed a certain threshold of accuracy then better models provided insignificant improvement in resource allocation decisions~\cite{pacora_tr}. Figure~\ref{accuracy_quality} shows the effect of model accuracy on the quality of the resource allocation decisions made using RTF model in Equation~\ref{rtf_eq}.  Although there is a slight correlation between model accuracy and decision quality, many decisions with inaccurate models still result in near optimal allocations.
 \begin{figure}[!t]
 	\begin{center}	
 %		\includegraphics[width=0.9\textwidth]{cluster_decision_accuracy.pdf}
