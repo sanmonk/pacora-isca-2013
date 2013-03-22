@@ -155,7 +155,7 @@ The clustering results in 6 clusters representing the following (applications at
 \subsubsection*{RTF Experiments}
 \begin{figure*}[!t]
 	\begin{center}	
-%		\includegraphics[width=\textwidth]{model_accuracy.pdf}\label{model_accuracy}
+		\includegraphics[width=\textwidth]{model_accuracy.pdf}\label{model_accuracy}
 		\caption{L1 norm of relative error from RTF predicted response time compared to actual measured response time.  Data represents the average error from 3 trials.}
 		\label{model_accuracy}
 	\end{center}
@@ -166,22 +166,23 @@ Figure~\ref{model_accuracy} shows the L1 norm of relative error of the predicted
 % \fix{explain results, whats up with tradebeans, how do we know these are any good}.
 
 \subsubsection*{Resource Allocation Experiments}
-\begin{figure*}[!t]
+\begin{figure}[!t]
 	\begin{center}	
-%		\includegraphics[width=.45\textwidth]{decision_quality.pdf}
+		\includegraphics[width=0.9\columnwidth]{decision_quality.pdf}
 		\caption{Resource allocation decisions for each pair of the cluster representative applications compared with the optimal allocation, the Linux scheduler, and equally dividing the machine.}
 		\label{cluster_decision_quality}
 	\end{center}
-\end{figure*}
+\end{figure}
 
-\begin{figure*}[!t]
+\begin{figure}[!t]
 	\begin{center}	
+		\includegraphics[width=0.9\columnwidth]{decision_quality.pdf}
 %		\includegraphics[width=.45\textwidth]{cluster_decision_points.pdf}
 %		\includegraphics[width=.45\textwidth]{parsec_decision_points.pdf}
 		\caption{Resource allocation decisions for each pair of PARSEC applications compared with the optimal allocation, the Linux scheduler, and equally dividing the machine.}
 		\label{parsec_decision_quality}
 	\end{center}
-\end{figure*}
+\end{figure}
 
 Using the RTFs functions built for the applications, we have \pacora make static resource allocations for all possible pairs of the cluster representative applications.  We then run all possible resource allocations for each pair on our Sandy Bridge/Linux platform and collect the performance.  Using this data compare we compare the measured performance of \pacora's chosen allocation with the best performing, \emph{i.e.,} optimal, resource allocation.  We also compare the result to equally dividing the resources between the two applications and sharing all of the resources using the Linux scheduler.
 
