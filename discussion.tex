@@ -45,13 +45,12 @@ As described in Section~\ref{model_creation}, phases can be handled with online 
 Some applications may significantly change performance as a function of their inputs. In the case of our video application we ignored its input dependency without significant effect.  However for other applications the effect may be more pronounced.  One approach to handle may be to have multiple models for the application and based on the current input select one.  Another possible solution is to instead alter the RTFs to be stochastic models representing the response time of the application with a certain likelihood.  Stochastic models for \pacora are discussed in more detail in ~\cite{pacora_tr}.
 
 \subsubsection*{Resource Variability}
-In our study we experience resource variability both in the form of non-determistic resources such as the network connection in {\tt tradebeans} and shared resources such as memory bandwidth.
+In our study we experience resource variability both in the form of non-deterministic resources such as the network connection in {\tt tradebeans} and shared resources such as memory bandwidth. Stochastic models are most likely the right way to deal with non-deterministic resources and may be particularly necessary for representing hard drive-based storage in warehouse scale computing.
 
-We found
+Shared resources can also be handled with stochastic models.  However since the models can be built online while other applications are running, in many cases the interference from a loaded machine is already captured in the model.  In our static allocation evaluation, we built the models in isolation but found that \pacora was still able to make near optimal resource allocations on average for a loaded machine despite the shared resources.
 
 Obviously there may always be some shared resources; however, we have found a trend towards minimizing interference in emerging chip-designs as efficiency and predictability begin to trump utilization as primary concerns.
 
-Possible solutions include Heuristics + Feedback, Stochastic Models, Changing Models
 
 %other types of non-deterministic apps?
 
