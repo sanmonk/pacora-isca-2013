@@ -153,10 +153,6 @@ F.~Guo \emph{et~al.}, ``A framework for providing quality of service in chip
   multi-processors,'' in \emph{Proc. MICRO '07}.\hskip 1em plus 0.5em minus
   0.4em\relax Washington, DC, USA: IEEE Computer Society, 2007, pp. 343--355.
 
-\bibitem{975344}
-J.~L. Hellerstein \emph{et~al.}, \emph{Feedback Control of Computing
-  Systems}.\hskip 1em plus 0.5em minus 0.4em\relax John Wiley \& Sons, 2004.
-
 \bibitem{Hennessy2011}
 J.~L. Hennessy and D.~A. Patterson, \emph{Computer Architecture - A
   Quantitative Approach (5. ed.)}.\hskip 1em plus 0.5em minus 0.4em\relax
@@ -350,11 +346,6 @@ G.~Tesauro \emph{et~al.}, ``On the use of hybrid reinforcement learning for
 G.~Tesauro and J.~O. Kephart, ``Utility functions in autonomic systems,'' in
   \emph{Proc. ICAC '04}.\hskip 1em plus 0.5em minus 0.4em\relax Washington, DC,
   USA: IEEE Computer Society, 2004, pp. 70--77.
-
-\bibitem{wasserman-book}
-L.~Wasserman, \emph{All of Nonparametric Statistics (Springer Texts in
-  Statistics)}.\hskip 1em plus 0.5em minus 0.4em\relax Se- caucus, NJ, USA:
-  Springer-Verlag New York, Inc., 2006.
 
 \bibitem{Redline}
 \BIBentryALTinterwordspacing
