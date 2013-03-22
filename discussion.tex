@@ -16,11 +16,10 @@
 %				b.	Stochastic Models
 %				c.	Changing Models
 
-\subsection*{\pacora for Warehouse-Scale Computing}
-Discuss major differences, particularly storage
+There are two main sources of challenges for \pacora's design: performance non-monotonicity and performance variability.  In the following section we describe possible techniques for coping with these challenges.  
 
-\subsection*{Challenges}
-\subsubsection*{Outliers and Performance Non-Monotonicity}
+The main concern with performance non-monotoncity and variability is that they can possibly effect the accuracy of the response time functions.  However, an interesting result we have found while evaluating \pacora is that model accuracy has less impact on the quality of resource allocation decisions than anticipated.  When experimenting with possible models for the RTF functions we found that while some models were always a little too inaccurate and did degrade the performance of the resource allocation decisions, once a model crossed a certain threshold of accuracy then better models provided insignificant improvement in resource allocation decisions~\cite{pacora_tr}.
+
 Figure~\ref{accuracy_quality} shows the effect of model accuracy on the quality of the resource allocation decisions made.
 \begin{figure}[!t]
 	\begin{center}	
@@ -31,8 +30,11 @@ Figure~\ref{accuracy_quality} shows the effect of model accuracy on the quality 
 	\end{center}
 \end{figure}
 
+\subsection*{Outliers and Performance Non-Monotonicity}
+
+
 Discuss Heuristics + Feedback
-\subsubsection*{Variability}
+\subsection*{Variability}
 Discuss phases, input dependence, other variability (such as network connection), shared resources
 
 Possible solutions include Heuristics + Feedback, Stochastic Models, Changing Models
@@ -40,6 +42,8 @@ Possible solutions include Heuristics + Feedback, Stochastic Models, Changing Mo
 %Program phase detection has targeted hardware or software reconfiguration. The overview~\cite{dhodapkar-micro03} evaluates three measurement-based predictors, and while performance variation is not one of the three, the authors note that small performance variation is an indicator of correct phase identification.  A similar conclusion is reached in~\cite{sherwood-sigarch03}.
 
 % don't forget cpu frequency
+
+Obviously there may always be some shared resources; however, we have found a trend towards minimizing interference in emerging chip-designs as efficiency and predictability begin to trump utilization as primary concerns.
 
 
 

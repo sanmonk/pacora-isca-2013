@@ -25,6 +25,10 @@
 M.~Aiken \emph{et~al.}, ``Deconstructing process isolation,'' in \emph{Memory
   Systems Performance and Correctness}, 2006.
 
+\bibitem{pacora_tr}
+Anonymized, ``Oradia: Optimizing resource allocations for dynamic interactive
+  applications,'' Anonymized, Tech. Rep., 2013.
+
 \bibitem{iOsDev}
 {Apple Inc.}, ``{iOS App Programming Guide},''
   \url{http://developer.apple.com/library/ios/DOCUMENTATION/iPhone/Conceptual/iPhoneOSProgrammingGuide/iPhoneAppProgrammingGuide.pdf}.
