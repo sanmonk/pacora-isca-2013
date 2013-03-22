@@ -29,7 +29,9 @@ The main concern with performance non-monotonicity and variability is that they 
 \end{figure}
 
 \subsection*{Outliers and Performance Non-Monotonicity}
-Outliers and performance non-monotonicity can be handled with a combination of two techniques.  Outliers should be thrown out during the model creation phase as described in Section~\ref{model_creation} to prevent those points from distorting the accuracy of the other allocations.  In our study, we experienced outliers for a few applications with a particular number of hyperthreads and for many applications when given only one cache way.  The second part of the solution is keep track of these points with extreme error in the model and use heuristics to adjust the resource allocations to avoid such points.  We did not implement this second part in our current evaluation, but it is a subject of future study.
+Outliers and performance non-monotonicity can be handled with a combination of two techniques.  Outliers should be thrown out during the model creation phase as described in Section~\ref{model_creation} to prevent those points from distorting the accuracy of the other allocations.  In our study, we experienced outliers for a few applications with a particular number of hyperthreads and for many applications when given only one cache way.  The second part of the solution is keep track of these points with extreme error in the model and use heuristics to adjust the resource allocations to avoid such points.  We did not implement this second part in our current evaluation, but it is a subject of future study. 
+
+Additionally as responsiveness, predictability, and efficiency increase in importance for systems, we expect to see an increased number of chip-designs that seek to provide more performance monotonicity thereby diminishing the issue of outliers.
 
 \subsection*{Variability}
 
@@ -40,9 +42,14 @@ We observe three main sources of performance variability for applications: varia
 As described in Section~\ref{model_creation}, phases can be handled with online creation of the RTFs.  However, another option is build different models per phase and to detect phase changes and swap models.  We used this method for the video application in Figure~\ref{video_experiment_wp} and ~\ref{video_experiment_battery}.  This approach has the advantage that it can more rapidly adapt to phases; however it requires identifying phases and additional space to store the extra models. Phase detection is an active area of research, and \cite{dhodapkar-micro03} provide an overview of techniques.  Another approach is to build a model that represents the resource requirements of the most demanding phase.  The system can be designed make use of the idle resources when available or power management mechanisms can put them in low-power mode.
 
 \subsubsection*{Input Dependence}
-Input dependence and other 
+Some applications may significantly change performance as a function of their inputs. In the case of our video application we ignored its input dependency without significant effect.  However for other applications the effect may be more pronounced.  One approach to handle may be to have multiple models for the application and based on the current input select one.  Another possible solution is to instead alter the RTFs to be stochastic models representing the response time of the application with a certain likelihood.  Stochastic models for \pacora are discussed in more detail in ~\cite{pacora_tr}.
+
 \subsubsection*{Resource Variability}
-network connection, shared resources
+In our study we experience resource variability both in the form of non-determistic resources such as the network connection in {\tt tradebeans} and shared resources such as memory bandwidth.
+
+We found
+
+Obviously there may always be some shared resources; however, we have found a trend towards minimizing interference in emerging chip-designs as efficiency and predictability begin to trump utilization as primary concerns.
 
 Possible solutions include Heuristics + Feedback, Stochastic Models, Changing Models
 
@@ -52,7 +59,7 @@ Possible solutions include Heuristics + Feedback, Stochastic Models, Changing Mo
 
 % don't forget cpu frequency
 
-Obviously there may always be some shared resources; however, we have found a trend towards minimizing interference in emerging chip-designs as efficiency and predictability begin to trump utilization as primary concerns.
+
 
 
 
