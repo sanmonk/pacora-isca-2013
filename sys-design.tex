@@ -86,7 +86,7 @@ where $d$ represents the deadline of the application and $s$ (slope) defines the
 \subsection*{Resource Allocation As Optimization}
 \pacora formulates resource allocation as an optimization problem designed to minimize the total penalty of the system. This is analogous to minimizing user dissatisfaction with the user experience due to missed deadlines in a client system and minimizing the contract penalties paid for violated service-level agreements in a cloud system.
 
-The optimization selects the allocations for all resources and resource types at once.  This approach enables the system to make tradeoffs between resource types.  For example, the system could choose to allocate more memory bandwidth in lieu of on-chip cache.  It would difficult to provide predictable response times for applications considering the allocation of only one resource type at a time.
+The optimization selects the allocations for all resources and resource types at once.  This approach enables the system to make tradeoffs between resource types.  For example, the system could choose to allocate more memory bandwidth in lieu of on-chip cache or one large core instead of several small cores.  Given that all of the resources allocated to an application contribute to the response time, It would difficult to provide predictable response times for applications considering the allocation of only one resource type at a time.
 
 A succinct mathematical characterization of this resource allocation scheme is the following:
 \begin{eqnarray*}
@@ -97,7 +97,9 @@ A succinct mathematical characterization of this resource allocation scheme is t
 Here $\pi_p$ is the penalty function for application $p$,
 $\tau_p$ is its response time function,
 $a_{p,r}$ is the allocation of resource $r$ to application $p$,
-and $A_r$ is the total amount of resource $r$ available.  Optimization details are described in Section~\ref{dyn_opt}.
+and $A_r$ is the total amount of resource $r$ available.  Optimization details are described in Section~\ref{dyn_opt}.  
+
+\pacora also formulates creating RTFs as a convex optimization problem, which is explained in Section~\ref{model_creation}.
 
 \subsection*{Convex Optimization}
 
