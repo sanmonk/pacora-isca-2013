@@ -12,8 +12,8 @@ Extending the response time model functions to all of $\Re^n$
 moves the requirement that allocations must be positive into the objective function,
 and introducing Application 0 for slack resources turns the affine inequalities into equalities:
 \begin{eqnarray*}
-& \makebox[1in][r]{Minimize}   & \sum_{p\epsilon P} {\pi_p(\tau_p(a_{p,1}\ldots a_{p,n}))}  \\
-& \makebox[1in][r]{Subject to} & \sum_{p\epsilon P} a_{p,r} = A_r, r = 1,\ldots n           \\
+& \makebox[1in][r]{Minimize}   & \sum_{p\in P} {\pi_p(\tau_p(a_{p,1}\ldots a_{p,n}))}  \\
+& \makebox[1in][r]{Subject to} & \sum_{p\in P} a_{p,r} = A_r, r = 1,\ldots n           \\
 \end{eqnarray*}
 
 The only remaining constraints are those on the $a_{p,r}$.

@@ -106,7 +106,7 @@ from applications we studied.
 Equation~\ref{rtf_eq} below shows the form of the RTF we use in \pacora.
 
 \begin{equation}\label{rtf_eq}
-\tau(w,a) = \tau_0 + \sum_{i\epsilon n,j\epsilon n}{\frac{w_{i,j}}{\sqrt{a_i * a_j}}}
+\tau(w,a) = \tau_0 + \sum_{i\in n,j\in n}{\frac{w_{i,j}}{\sqrt{a_i * a_j}}}
 \end{equation}
 
 Here $\tau$ represents the response time, $i$ and $j$ represent resource types, $n$ represents the total number of resource types, $a_{i}$ and $a_{j}$ represent the allocation of resources types $i$ and $j$, and $w_{i,j}$ represents the application-specific weight for the term representing resource $i*$ resource $j$.  The dimensionality of the function increases linearly with the number of resource types. The RTFs will be described further in Section~\ref{app_func}.
@@ -141,8 +141,8 @@ The optimization selects the allocations for all resources and resource types at
 
 A succinct mathematical characterization of this resource allocation scheme is the following:
 \begin{eqnarray*}
-& \makebox[1in][r]{Minimize}   & \sum_{p\epsilon P} {\pi_p(\tau_p(a_{p,1}\ldots a_{p,n}))}  \\
-& \makebox[1in][r]{Subject to} & \sum_{p\epsilon P} a_{p,r} \leq A_r, r = 1,\ldots n        \\
+& \makebox[1in][r]{Minimize}   & \sum_{p\in P} {\pi_p(\tau_p(a_{p,1}\ldots a_{p,n}))}  \\
+& \makebox[1in][r]{Subject to} & \sum_{p\in P} a_{p,r} \leq A_r, r = 1,\ldots n        \\
 & \makebox[1in][r]{and}        & a_{p,r} \geq 0
 \end{eqnarray*}
 Here $\pi_p$ is the penalty function for application $p$,
@@ -162,14 +162,14 @@ fast, incremental solutions will become feasible.
 A constrained optimization problem is \emph{convex} if both the objective function to be minimized
 and the constraint functions that define its feasible solutions are convex functions.
 A function $f$ is convex if its domain is a convex set and
-$F(\theta x + (1-\theta)y) \leq \theta F(x) + (1-\theta)F(y)$
+$f(\theta x + (1-\theta)y) \leq \theta f(x) + (1-\theta)f(y)$
 for all $\theta$ between 0 and 1.
 A set is convex if for any two points $x$ and $y$ in the set, the point
 $\theta x + (1-\theta)y$
 is also in the set for all $\theta$ between 0 and 1.
-If $F$ is differentiable, it is convex if its domain is an open convex set and
-$F(y) \geq F(x) + \nabla F^T\cdot(y-x)$ where $\nabla F$ is the gradient of $F$.
-%Put another way, $F$ is convex if its first-order Taylor approximations
+If $f$ is differentiable, it is convex if its domain is an open convex set and
+$f(y) \geq f(x) + \nabla f^T\cdot(y-x)$ where $\nabla f$ is the gradient of $f$.
+%Put another way, $f$ is convex if its first-order Taylor approximations
 %are always global underestimates of its true value.
 
 Therefore, a problem will be a convex optimization problem if it can be expressed in the form:
@@ -181,7 +181,7 @@ Therefore, a problem will be a convex optimization problem if it can be expresse
 
 
 As a consequence, \pacora's resource allocation problem can be transformed into a convex optimization problem in the $m = |P|\cdot n$ variables $a_{p,r}$ as long as the penalty functions $\pi_p$ are convex non-decreasing and the response time functions $\tau_p$ are convex.  We designed our functions to meet these constraints, and proofs of their convexity can be found in Appendix~\ref{convex}. Note that the resource constraints are all affine and can be rewritten as
-$\sum_{p\epsilon P} a_{p,r} - A_r \leq 0$ and $-a_{p,r} \leq 0$.
+$\sum_{p\in P} a_{p,r} - A_r \leq 0$ and $-a_{p,r} \leq 0$.
 
 \pacora's convex formulation allows the time to solve the optimization to scale linearly with the number of resource types and the number of applications.   For client operating systems with around 100 application running and 10 resource dimensions, the total variables in the system to be solved is 1000---a very small problem which is solved in microseconds on current systems.  Cloud systems could possibly have more applications running; however, the problem size scales linearly and the benefits gained could be significantly greater given the scale of the system.
 
@@ -198,7 +198,7 @@ to the extent the penalties of other applications cannot overcome its penalty sl
 
 Additionally, application 0 functions as \emph{slack} variables in our optimization problem turning the resource bounds into equalities:
 \begin{equation}
-\sum_{p\epsilon P} a_{p,r} - A_r = 0, r = 1,\dots n.
+\sum_{p\in P} a_{p,r} - A_r = 0, r = 1,\dots n.
 \end{equation}
 
 \subsection*{Resources}
