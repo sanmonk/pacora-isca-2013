@@ -18,16 +18,16 @@
 %			1.	Tess
 
 We use two different implementations of the \pacora framework for evaluation. Our static framework, described in this Section, collects data online using an x86 processor running Linux and uses that data to build models and make static resource allocation decisions.  Our dynamic framework implemented in a research-prototype manycore operating system, \tess, is presented in Section~\ref{eval-dynamic}.
-  
+
 Our static framework was designed to test the effectiveness of \pacora's model-based convex optimization for allocating resources.  We used it to experiment with the accuracy of different types of models and test the quality of the resource allocation decisions.
 
-Data is collected online by running application benchmarks on a recent x86 processor running Linux-2.6.36.  The measured data is processed using Python and then fed to MATLAB~\cite{matlab} to build the RTFs.  MATLAB uses the RTFs to make resource allocation decisions.  We compare performance of the chosen resource allocations with the actual measured performance of all possible resource allocations to test quality of the resource allocation decisions. We use CVX~\cite{cvx} in MATLAB to perform the convex optimization for building RTFs and making resource allocation decisions.  We used this approach because it enabled us to test many applications, 44 in total, and many resource allocations rapidly. 
+Data is collected online by running application benchmarks on a recent x86 processor running Linux-2.6.36.  The measured data is processed using Python and then fed to MATLAB~\cite{matlab} to build the RTFs.  MATLAB uses the RTFs to make resource allocation decisions.  We compare performance of the chosen resource allocations with the actual measured performance of all possible resource allocations to test quality of the resource allocation decisions. We use CVX~\cite{cvx} in MATLAB to perform the convex optimization for building RTFs and making resource allocation decisions.  We used this approach because it enabled us to test many applications, 44 in total, and many resource allocations rapidly.
 
 \subsection*{Platform}
 
 To collect data, we use a prototype version of Intel's Sandy Bridge x86 processor that is similar to the
 commercially available client chip, but with additional hardware
-support for way-based LLC partitioning. 
+support for way-based LLC partitioning.
 The Sandy Bridge client chip has 4 quad-issue out-of-order
 superscalar cores, each of which supports 2 hyperthreads using
 simultaneous multithreading~\cite{IntelRefManual:2011}.  Each core has
@@ -37,17 +37,17 @@ set-associative \wunits{6}{MB} inclusive L3 cache, shared among all
 cores using a ring-based interconnect.  All three cache levels are
 write-back.   The cache partitioning mechanism is way-based and works by modifying the
 cache-replacement algorithm.  To allocate cache ways, we assign a subset of
-the 12 ways to a set of hyperthreads, thereby allowing only those hyperthreads to replace data in those ways. 
+the 12 ways to a set of hyperthreads, thereby allowing only those hyperthreads to replace data in those ways.
 
 %Way allocations can be completely private,
 %completely shared, or overlapping.  Although all cores can hit on data stored in
 %any way, a core can only replace data in its assigned
-%ways.   Data is not flushed when the way allocation changes. 
+%ways.   Data is not flushed when the way allocation changes.
 
 We use a customized BIOS that enables the cache partitioning
 mechanism, and run unmodified Linux-2.6.36 for all of our experiments.
 To allocate cores, we use the Linux {\tt taskset} command to pin applications to
-sets of hyperthreads.  For our experiments we consider each hyperthread to be an independent core. To minimize the interference between hyperthreads, we first assign both hyperthreads available in one core before moving on to the next core. For example, allocations with four cores correspond to running on both hyperthreads of two cores. 
+sets of hyperthreads.  For our experiments we consider each hyperthread to be an independent core. To minimize the interference between hyperthreads, we first assign both hyperthreads available in one core before moving on to the next core. For example, allocations with four cores correspond to running on both hyperthreads of two cores.
 
 \subsection*{Performance and Energy Measurement}
 
@@ -65,7 +65,7 @@ at a $1/2^{16}$ second granularity.
 
 %In addition, we use a FitPC external multimeter to measure at the wall socket the power
 %consumed by the entire system, at a
-%\wunits{1}{second} granularity.  
+%\wunits{1}{second} granularity.
 %We correlate the wall power data with the data collected from the hardware energy counters
 %using time stamps.  We observed less than one second of delay in these
 %measurements consistently across all experiments.  Together, these
@@ -91,7 +91,7 @@ on the characterization study by Jaleel~\cite{Jaleel:TR2007}, we also
 pick 4 extra floating-point benchmarks that stress the LLC: {\tt GemsFDTD},
 {\tt leslie3d}, {\tt soplex} and {\tt sphinx3}.  When multiple input sets and sizes are
 available, we pick the single \textit{ref} input indicated by
-Phansalkar et al.~\cite{Phansalkar:ISCA2007}. 
+Phansalkar et al.~\cite{Phansalkar:ISCA2007}.
 
 We include the \textbf{DaCapo} Java benchmark suite as a
 representative of a managed-language workloads. We use the latest 2009 release, which consists of a set of open-source, real-world
@@ -102,7 +102,7 @@ The \textbf{PARSEC} benchmark suite is intended to be representative
 of parallel real-world applications~\cite{parsec}. PARSEC
 programs use various parallelization approaches, including data- and
 task-parallelization. We use native input sets and the {\tt pthreads} version for all benchmarks, with the exception of
-\texttt{freqmine}, which is only available in OpenMP. 
+\texttt{freqmine}, which is only available in OpenMP.
 
 We add four \textbf{additional parallel applications} to help ensure
 we cover the space of interest: {\tt Browser\_animation} is a
@@ -121,9 +121,9 @@ that continuously brings data from memory without caching it, while
 structure of the cache hierarchy.
 
 Using a performance characterization of the applications, we select a subset of the benchmarks that are representative of different possible responses to resource allocations in order to reduce our study to a feasible size.  Similar to \cite{Phansalkar:ISCA2007}, we use machine learning to select representative benchmarks.  We use a
-hierarchical clustering algorithm~\cite{Phansalkar:ISCA2007} provided by the Python library \texttt{scipy-cluster} with the \textit{single-linkage} method.  The feature vector contains parameters to represent core scaling, cache scaling, prefetcher sensitivity and bandwidth sensitivity.  The clustering algorithm uses Euclidean distance between vectors to determine clusters.  
+hierarchical clustering algorithm~\cite{Phansalkar:ISCA2007} provided by the Python library \texttt{scipy-cluster} with the \textit{single-linkage} method.  The feature vector contains parameters to represent core scaling, cache scaling, prefetcher sensitivity and bandwidth sensitivity.  The clustering algorithm uses Euclidean distance between vectors to determine clusters.
 
-The clustering results in 6 clusters representing the following (applications at the cluster center are listed in parenthesis): 
+The clustering results in 6 clusters representing the following (applications at the cluster center are listed in parenthesis):
  \begin{itemize}\itemsep0pt \parskip0pt \parsep5pt
 \item no scalability, high cache utility, ({\tt 429.mcf})
 \item no scalability, low cache utility, ({\tt 459.gems\-FDTD})
@@ -136,17 +136,17 @@ The clustering results in 6 clusters representing the following (applications at
 %First, we create a feature vector for each application using the values in the previous subsection:
 %1) execution time as we increase the number of threads; 2) execution time as we increase the LLC size; 3) prefetcher sensitivity; and 4) bandwidth sensitivity. All metrics are normalized to the interval $[0,1]$. In total we use vectors with 19 features ($7+10+1+1$).
 
-%The clustering algorithm finds the smallest Euclidean distance of a pair of feature vectors and forms a cluster containing that pair. It continues selecting the next smallest distance between a pair and forms another cluster. Linkage criteria can be used to adjust cluster formation. The single-linkage we selected uses the minimum distance between a pair of objects in different clusters to determine the distance between them. 
+%The clustering algorithm finds the smallest Euclidean distance of a pair of feature vectors and forms a cluster containing that pair. It continues selecting the next smallest distance between a pair and forms another cluster. Linkage criteria can be used to adjust cluster formation. The single-linkage we selected uses the minimum distance between a pair of objects in different clusters to determine the distance between them.
 
 \subsection*{RTF Experiments}
 \begin{figure*}[!t]
 	\begin{center}	
-		\includegraphics[width=\textwidth]{model_accuracy.pdf}
+		\includegraphics[bb=0 0 971 266,width=\textwidth]{model_accuracy.pdf}
 		\caption{L1 norm of relative error from RTF predicted response time compared to actual measured response time.  Data represents the average error from 3 trials.}
 		\label{model_accuracy}
 	\end{center}
 \end{figure*}
-To test the effectiveness of our RTFs in capturing real application behavior, we measured each of our 44 total benchmarks running alone on the machine for all possible resource allocations of cache and cores.  Cores can be allocated from 1-8 and cache from 1-12 resulting in 96 possible allocations for each application.   We use a genetic algorithm design of experiments~\cite{bates-aes03} to select 10 and 20 of the collected allocations to build the RTFs.  We also experimented with building RTFs with more data points but found that they provided little improvement over 20.  We then use the model to predict the performance of every resource allocation and compare it with the actual measured performance of that resource allocation.  We ran 3 complete trials and took the average error of the 3 trials. 
+To test the effectiveness of our RTFs in capturing real application behavior, we measured each of our 44 total benchmarks running alone on the machine for all possible resource allocations of cache and cores.  Cores can be allocated from 1-8 and cache from 1-12 resulting in 96 possible allocations for each application.   We use a genetic algorithm design of experiments~\cite{bates-aes03} to select 10 and 20 of the collected allocations to build the RTFs.  We also experimented with building RTFs with more data points but found that they provided little improvement over 20.  We then use the model to predict the performance of every resource allocation and compare it with the actual measured performance of that resource allocation.  We ran 3 complete trials and took the average error of the 3 trials.
 
 Figure~\ref{model_accuracy} shows the L1 norm of relative error of the predicted response times.
 % \fix{explain results, whats up with tradebeans, how do we know these are any good}.
@@ -154,7 +154,7 @@ Figure~\ref{model_accuracy} shows the L1 norm of relative error of the predicted
 \subsection*{Resource Allocation Experiments}
 \begin{figure}[!t]
 	\begin{center}	
-		\includegraphics[width=0.9\columnwidth]{decision_quality.pdf}
+		\includegraphics[bb=0 0 656 313,width=0.9\columnwidth]{decision_quality.pdf}
 		\caption{Resource allocation decisions for each pair of the cluster representative applications compared with the optimal allocation, the Linux scheduler, and equally dividing the machine.}
 		\label{cluster_decision_quality}
 	\end{center}
@@ -162,7 +162,7 @@ Figure~\ref{model_accuracy} shows the L1 norm of relative error of the predicted
 
 \begin{figure}[!t]
 	\begin{center}	
-		\includegraphics[width=0.9\columnwidth]{decision_quality.pdf}
+		\includegraphics[bb=0 0 656 313,width=0.9\columnwidth]{decision_quality.pdf}
 %		\includegraphics[width=.45\textwidth]{cluster_decision_points.pdf}
 %		\includegraphics[width=.45\textwidth]{parsec_decision_points.pdf}
 		\caption{Resource allocation decisions for each pair of PARSEC applications compared with the optimal allocation, the Linux scheduler, and equally dividing the machine.}
