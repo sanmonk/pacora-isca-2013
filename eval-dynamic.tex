@@ -20,12 +20,13 @@ In order to evaluate \pacora's effectiveness dynamically making decisions in rea
 \item \tess allows resource revocation, enabling \pacora to dynamically reallocate resources
 \item \tess implements additional resource partitioning and QoS mechanisms allowing \pacora to explore allocating more resource types 
 \end{itemize}
+This dynamic framework is used to test our implementations of the algorithms, measure the overhead and reaction times, and illustrate \pacora's ability to work in a real system.
 
 \subsection*{Platform}
 Our dynamic experiments are all run on an Intel Nehalem-EP system with two 2.66-GHz Xeon X5550 quad-core processors and hyperthreading enable (\emph{i.e.,} 16 hardware threads). It also contains a 1-Gbps Intel Pro/1000 Ethernet network adapter.
 \tess allocates resources directly to applications and then applications employ a second-level scheduler to schedule threads onto the resources.  There are have two scheduling frameworks available in \tess, a cooperative framework called Lithe (LIquid THrEads)~\cite{lithe} and a preemptive one called PULSE (Preemptive User-Level SchEduling).  All of our experiments are run using 2 different schedulers in the PULSE framework; applications with responsiveness requirements use the EDF, earliest-deadline first, scheduler and throughput oriented applications use the GRR, global round-robin, scheduler.
 
-\tess in addition to allocating cores and cache ways as with our static framework, \tess can also allocate fractions of network bandwidth.  In our experiments, we show \pacora allocating cores and network bandwidth because the experimental platform, which has the advantage of more cores, does not have cache partitioning.  We have also experimented with additional resources such as memory pages and cpu utilization, but they are not shown in this paper. 
+In addition to allocating cores and cache ways as with our static framework, \tess can also allocate fractions of network bandwidth.  In our experiments, we show \pacora allocating cores and network bandwidth because the experimental platform, which has the advantage of more cores, does not have cache partitioning.  We have also experimented with additional resources such as memory pages and cpu utilization, but they are not shown in this paper. 
 
 \subsection*{Performance and Energy Measurement}
 Applications report their own measured response times to \pacora through a message-passing interface built into \tess.  \pacora uses this information to build models, and we also use this information to show if the application is making its deadlines for the experiments.
