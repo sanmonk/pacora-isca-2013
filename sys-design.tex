@@ -70,7 +70,7 @@ function represents the user-level goals for the application
 (\emph{i.e.} the deadline and how important it is to make that
 deadline). \pacora then uses convex optimization\cite{BoVa} to
 determine the ideal resource allocation.  The following sections
-describe each of the functions and the optimization construction.
+describe each of the functions and the optimization problem itself.
 
 \subsection*{Response-Time Functions}
 
@@ -87,7 +87,7 @@ of an application might be:
     \item The time to execute a specified amount of work.
     \end{itemize}
 
-The RTFs are built to be a convex function.  All applications have a
+The RTFs are built to be convex functions.  All applications have a
 function of the same form but the application-specific weights are set
 using the performance history of the application.  RTFs are designed
 to capture information such as how well an application scales with a
@@ -109,7 +109,7 @@ Equation~\ref{rtf_eq} below shows the form of the RTF we use in \pacora.
 \tau(w,a) = \tau_0 + \sum_{i\in n,j\in n}{\frac{w_{i,j}}{\sqrt{a_i * a_j}}}
 \end{equation}
 
-Here $\tau$ represents the response time, $i$ and $j$ represent resource types, $n$ represents the total number of resource types, $a_{i}$ and $a_{j}$ represent the allocation of resources types $i$ and $j$, and $w_{i,j}$ represents the application-specific weight for the term representing resource $i*$ resource $j$.  The dimensionality of the function increases linearly with the number of resource types. The RTFs will be described further in Section~\ref{app_func}.
+Here $\tau$ represents the response time, $i$ and $j$ represent resource types, $n$ represents the total number of resource types, $a_{i}$ and $a_{j}$ represent the allocation of resources types $i$ and $j$, and $w_{i,j}$ represents the application-specific weight for the term representing resources $i$ resource $j$.  The dimensionality of the function increases linearly with the number of resource types. The RTFs will be described further in Section~\ref{app_func}.
 
 \subsection*{Penalty Functions}
 Penalty functions are designed to represent the user-level goals of the application. They are similar to priorities but are functions of the response time rather than simply values so they can explicitly represent deadlines.  Knowing the deadlines lets the system make optimizations that are difficult in today's systems such as running just fast enough to make the deadline. Like priorities, the penalty functions are set by the system on behalf of the user.
@@ -150,8 +150,6 @@ $\tau_p$ is its response time function,
 $a_{p,r}$ is the allocation of resource $r$ to application $p$,
 and $A_r$ is the total amount of resource $r$ available.  Optimization details are described in Section~\ref{dyn_opt}.
 
-\pacora also formulates creating RTFs as a convex optimization problem, which is explained in Section~\ref{model_creation}.
-
 \subsection*{Convex Optimization}
 If the penalty functions, response time functions, and resource constraints were arbitrary,
 little could be done to optimize the total penalty beyond searching at random for the best allocation.
@@ -183,7 +181,10 @@ Therefore, a problem will be a convex optimization problem if it can be expresse
 As a consequence, \pacora's resource allocation problem can be transformed into a convex optimization problem in the $m = |P|\cdot n$ variables $a_{p,r}$ as long as the penalty functions $\pi_p$ are convex non-decreasing and the response time functions $\tau_p$ are convex.  We designed our functions to meet these constraints, and proofs of their convexity can be found in Appendix~\ref{convex}. Note that the resource constraints are all affine and can be rewritten as
 $\sum_{p\in P} a_{p,r} - A_r \leq 0$ and $-a_{p,r} \leq 0$.
 
-\pacora's convex formulation allows the time to solve the optimization to scale linearly with the number of resource types and the number of applications.   For client operating systems with around 100 application running and 10 resource dimensions, the total variables in the system to be solved is 1000---a very small problem which is solved in microseconds on current systems.  Cloud systems could possibly have more applications running; however, the problem size scales linearly and the benefits gained could be significantly greater given the scale of the system.
+The convex formulation makes the optimization scale linearly in the number of resource types and the number of applications.   For client operating systems with around 100 application running and 10 resource dimensions, the total number of variables in the optimization problem is 1000---a very small problem which is solved in microseconds on current systems.  Cloud systems could have many more applications running,
+than 100, but the problem size scales linearly and the benefits gained could be significantly greater given the scale of the system.
+
+\pacora also formulates RTF \emph{creation} as a convex optimization problem, as explained in Section~\ref{model_creation}.
 
 \subsection*{Power and Energy}
 In \pacora, we create an artificial application to represent the interests of system power and energy.  Application 0 is designated the idle application and receives allocations of all resources

@@ -25,13 +25,19 @@
 M.~Aiken \emph{et~al.}, ``Deconstructing process isolation,'' in \emph{Memory
   Systems Performance and Correctness}, 2006.
 
+\bibitem{AKKMS95}
+G.~Alverson \emph{et~al.}, ``Scheduling on the {T}era {M}{T}{A},'' in \emph{In
+  Job Scheduling Strategies for Parallel Processing}.\hskip 1em plus 0.5em
+  minus 0.4em\relax Springer-Verlag, 1995, p. pp.
+
 \bibitem{pacora_tr}
 Anonymized, ``Oradia: Optimizing resource allocations for dynamic interactive
   applications,'' Anonymized, Tech. Rep., 2013.
 
 \bibitem{iOsDev}
 {Apple Inc.}, ``{iOS App Programming Guide},''
-  \url{http://developer.apple.com/library/ios/DOCUMENTATION/iPhone/Conceptual/iPhoneOSProgrammingGuide/iPhoneAppProgrammingGuide.pdf}.
+  \url{http://developer.apple.com/library/ios/DOCUMENTATION/iPhone/
+  Conceptual/iPhoneOSProgrammingGuide/ iPhoneAppProgrammingGuide.pdf}.
 
 \bibitem{Barroso2009}
 L.~A. Barroso and U.~H{\"o}lzle, \emph{The Datacenter as a Computer: An
@@ -126,6 +132,13 @@ H.~Dybdahl and P.~Stenstrom, ``An adaptive shared/private nuca cache
 \bibitem{Eranian:OLS06}
 S.~Eranian, ``Perfmon2: a flexible performance monitoring interface for
   linux,'' in \emph{Ottawa Linux Symposium}, 2006, p. 269–288.
+
+\bibitem{Feit97}
+D.~G. Feitelson, ``Job scheduling in multiprogrammed parallel systems,'' 1997.
+
+\bibitem{FRS04}
+D.~G. Feitelson, L.~Rudolph, and U.~Schwiegelshohn, ``Parallel job scheduling -
+  a status report,'' in \emph{JSSPP}, 2004, pp. 1--16.
 
 \bibitem{Jockey}
 \BIBentryALTinterwordspacing
@@ -269,7 +282,7 @@ J.~Merino \emph{et~al.}, ``Sp-nuca: a cost effective dynamic non-uniform cache
 A.~Merkel and F.~Bellosa, ``Task activity vectors: a new metric for
   temperature-aware scheduling,'' in \emph{Proc. Eurosys '08}.\hskip 1em plus
   0.5em minus 0.4em\relax New York, NY, USA: ACM, 2008, pp. 1--12. Available:
-  \url{http://portal.acm.org/ft_gateway.cfm?id=1352594&type=pdf&coll=GUIDE&dl=GUIDE&CFID=35811817&CFTOKEN=17839388}
+  \url{http://portal.acm.org/ft_gateway.cfm?id=1352594}
 \BIBentrySTDinterwordspacing
 
 \bibitem{1078472}
