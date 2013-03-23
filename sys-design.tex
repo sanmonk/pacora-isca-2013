@@ -20,24 +20,65 @@
 
 %\pacora, which stands for Performance-Aware Convex Optimization for Resource Allocation, is a framework designed to determine the proper amount of each resource type to assign to each application.  For our purposes an application is the entity to which the operating system allocates resources: it can viewed as a complete application (\emph{e.g.,} a video player) or a component of an application (\emph{e.g.,} a music synthesizer) or a process (\emph{e.g.,} indexing).
 
-\pacora is a framework designed to determine the proper amount of each resource type to give each application.
-For example, consider a video conference scenario where each participant requires a separate,
-performance guaranteed video stream. New participants may join the conference and others may leave,
-increasing or decreasing the number of streams running at any given time.
-Simultaneously, participants may be collaborating through browsers and watching
-shared video clips and web searching while running compute-intensive
-background tasks such as updates, virus scans, or file indexing. Although it may be relatively straightforward to provide responsiveness guarantees for applications such as video streams, the real challenge is to do so without using static resource reservations that compromise system utilization or power consumption. The purpose of \pacora is to dynamically assign resources to applications to guarantee responsiveness without over-provisioning and to adapt these allocations as the applications in the system change.
+\pacora is a framework designed to determine the proper amount of each
+resource type to give each application.  For example, consider a video
+conference scenario where each participant requires a separate,
+performance-guaranteed video stream.  New participants may join the
+conference and others may leave, increasing or decreasing the number
+of streams running at any given time.  Simultaneously, participants
+may be collaborating through web browsers, or watching shared video
+clips and web searching, while their systems run compute-intensive
+background tasks such as updates, virus scans, or file indexing.
+Although it may be relatively straightforward to provide
+responsiveness guarantees for individual applications such as video
+streams, the real challenge is to do so without reserving excessive
+resources, which will compromise system utilization or power
+consumption. The purpose of \pacora is to dynamically assign resources
+across multiple applications to guarantee responsiveness without
+over-provisioning and to adapt allocations as the application mix
+changes.
 
-For our purposes an application is an entity to which the system allocates resources: it can viewed as a complete application (\emph{e.g.,} a video player), a component of an application (\emph{e.g.,} a music synthesizer) or a process (\emph{e.g.,} indexing) for operating systems, jobs for warehouse-scale computing, and distributed applications in distributed embedded systems.
+For our purposes an application is an entity to which the system
+allocates resources: these can be a complete application (\emph{e.g.,}
+a video player), a component of an application (\emph{e.g.,} a music
+synthesizer) a background OS process (\emph{e.g.,} indexing), a job in
+warehouse-scale computing, or a distributed application in distributed
+embedded systems.
 
-\pacora is designed to work in systems with hierarchical scheduling.  In a client system, this design just looks like classic two-level scheduling.  \pacora makes allocation decisions about resources (\emph{e.g.,} cores and memory pages), and micro-management of the resources within an application is left to user-level runtimes such as the Intel Threaded Building Blocks runtime\cite{CoMa08} or Lithe\cite{lithe} and to memory managers.  In a cloud environment, \pacora allocates resources (\emph{e.g.,} nodes and storage) to jobs, and scheduling is left to other entities such as the MapReduce framework\cite{mapreduce} or the operating system on the node.  Separating resource allocation from scheduling enables the use of application-specific scheduling policies, which have the potential to be easier to design and more efficient than a general-purpose scheduler that has to work for everything.   This approach leaves the system to focus on the problem of \emph{how many} of each resource type to assign to each application.
+\pacora is designed for systems where resource allocation is separated
+from scheduling.  This split enables the use of application-specific
+scheduling policies, which have the potential to be easier to design
+and more efficient than general-purpose schedulers that have to work
+for everything.  This approach leaves the system to focus on the
+problem of \emph{how many} of each resource type to assign to each
+application.  In client machines, \pacora is used to make coarse-grain
+resource-allocation decisions (\emph{e.g.,} cores and memory pages) at
+the OS level, while the micro-management of these resources to run
+application tasks is left to user-level runtimes such as the Intel
+Threaded Building Blocks runtime\cite{CoMa08} or Lithe\cite{lithe},
+and to user-level memory managers.  In a cloud environment, \pacora
+allocates resources (\emph{e.g.,} nodes and storage) to jobs, and
+scheduling is left to other entities such as the MapReduce
+framework\cite{mapreduce} or the node OS.
 
-\pacora takes a different approach to resource allocation than traditional systems relying heavily on application-specific functions built through measurement and convex optimization\cite{BoVa}. \pacora formulates resource allocation as an optimization problem built from two types of application-specific functions: a response time function and a penalty function. The response time function represents the performance of the application with different resources.  The penalty function represents the user-level goals for the application (\emph{i.e.} the deadline and how important it is to make that deadline). The following sections describe each of the functions and the optimization construction.
+\pacora formulates resource allocation as an optimization problem
+built from two types of application-specific functions: a
+response-time function and a penalty function. The response-time
+function represents the performance of the application with different
+resources, and is built with runtime measurements.  The penalty
+function represents the user-level goals for the application
+(\emph{i.e.} the deadline and how important it is to make that
+deadline). \pacora then uses convex optimization\cite{BoVa} to
+determine the ideal resource allocation.  The following sections
+describe each of the functions and the optimization construction.
 
-\subsection*{Response Time Functions}
+\subsection*{Response-Time Functions}
 
-Response time functions (RTF) represent the expected \emph{response time} of an application as a function of the resources allocated to the application. The response time is an application-specific measure of the performance of the application.
-    For example, the response time of an application might be:
+Response-time functions (RTF) represent the expected \emph{response
+  time} of an application as a function of the resources allocated to
+the application. The response time is an application-specific measure
+of the performance of the application.  For example, the response time
+of an application might be:
     \begin{itemize}\itemsep0pt \parskip0pt \parsep5pt
     \item The time from a mouse click to its result;
     \item The time to produce a frame;
@@ -46,7 +87,16 @@ Response time functions (RTF) represent the expected \emph{response time} of an 
     \item The time to execute a specified amount of work.
     \end{itemize}
 
-The RTFs are built to be a convex function.  All applications have a function of the same form but the application-specific weights are set using the performance history of the application.  RTFs are designed to capture information such as how well an application scales with a particular resource. As a result, RTFs naturally support heterogeneity.  Each CPU or GPU type is simply viewed as a different resource type by the system, and thus the RTFs will represent how effectively an application uses a particular type of core. Figure~\ref{sample_rtf} shows two example RTFs we have created from applications we studied.
+The RTFs are built to be a convex function.  All applications have a
+function of the same form but the application-specific weights are set
+using the performance history of the application.  RTFs are designed
+to capture information such as how well an application scales with a
+particular resource. As a result, RTFs naturally support
+heterogeneity.  Each CPU or GPU type is simply viewed as a different
+resource type by the system, and thus the RTFs will represent how
+effectively an application uses a particular type of
+core. Figure~\ref{sample_rtf} shows two example RTFs we have created
+from applications we studied.
 
 \begin{figure}[hb]
 \includegraphics*[bb=0 0 426 184,width=1.0\columnwidth]{sample_rtf.pdf}
