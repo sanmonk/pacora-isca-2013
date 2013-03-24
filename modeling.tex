@@ -1,5 +1,4 @@
 \section{Response Time Model Creation}\label{model_creation}
-
 To create RTF models either at install time or online we use a least squares approach described below.  For the install time approach we use a genetic algorithm, Audze-Eglasis Design of Experiments\cite{bates-aes03}, to select the resource vectors to use for training data.  The data for all those vectors is collected and fed into the least squares algorithm.  In the online approach the data comes from the application's response time history.
 
 \subsubsection*{Model Creation using Least Squares}
@@ -30,14 +29,11 @@ and each reciprocal bandwidth term in $D$ and then follow the foregoing procedur
 The elements of the result $w$ will be squares as well, and the 2-norm of the difference in the squared quantities will be minimized.  This is not the same as minimizing the 4-norm; what is being minimized is $1/2\|\mbox{diag}(Dww^TD^T - tt^T)\|^2_2$.
 
 \subsection*{On-line Response Time Modeling}
-
 As resource allocation continues, more measurements will become available to augment $t$ and $D$.
 Moreover, older data may become a poor representation of the current behavior of the application if its characteristics have changed,
 presumably as reflected in $Q^T\varepsilon$.  \pacora adopts the incremental least squares described below to replace old data and efficiently update RTFs.
 
-\subsubsection*{Incremental Least Squares}
-
-What is needed is a factorization $\tilde{Q}\tilde{R}$ of a new matrix $\tilde{D}$
+\subsubsection*{Incremental Least Squares} What is needed is a factorization $\tilde{Q}\tilde{R}$ of a new matrix $\tilde{D}$
 derived from $D$ by dropping a row, perhaps from the bottom,
 and adding a row, perhaps at the top.
 Corresponding elements of $t$ are dropped and added to form $\tilde{t}$.
@@ -54,10 +50,7 @@ will be at least twice the number of columns $n$.
 Rows selected for downdating will always be in the lower $m - n$ rows of $R$,
 guaranteeing that the most recent $n$ updates are always part of the model.
 
-
-
 \subsubsection*{Non-Negativity}
-
 \begin{figure*}[!t]
 	\begin{center}	
 %		\includegraphics[width=.45\textwidth]{cluster_decision_points.pdf}
@@ -66,7 +59,7 @@ guaranteeing that the most recent $n$ updates are always part of the model.
 	\end{center}
 \end{figure*}
 
-To guarantee convexity of the response time model, the solution $w$ to $t \approx QRw$ must have no negative components.
+To guarantee convexity of the RTF, the solution $w$ to $t \approx QRw$ must have no negative components.
 Intuitively, when a resource is associated with more than a single $w_j$
 or when the measured response time increases with allocation then negative $w_j$ may occur.
 
@@ -82,13 +75,12 @@ roughly in the spirit of Algorithm~3 in~\cite{LuDu}.
 However, \pacora's algorithm cannot ignore downdated columns of $R$
 because subsequent \emph{row} updates and downdates must have due effect
 on these columns to allow their later reintroduction via column updates when necessary.
-/pacora solves this problem by leaving the downdated columns in place,
+This problem is solved by leaving the downdated columns in place,
 skipping over them in maintaining and using the QR factorization. 
 
 Figure~\ref{model_build_perf} shows the performance of \pacora's NNLS algorithm.
 
 \subsubsection*{Model Rank Preservation}
-
 If care is not taken in the allocation process,
 the rows of $R$ may become linearly dependent
 to such an extent that its rank is insufficient to determine $w$.

@@ -24,15 +24,15 @@ In much of this research area\cite{1078472,1078493,1285843,1345325}
 the performance models are derived from off-line measurements and are either
 interpolations from tables or analytic functions based on queueing theory.
 The utility functions typically map the number of servers each execution environment receives
-to its performance relative to its requirements, which may be multiple.
+to its performance relative to its requirements, which may be several.
 A central arbiter maximizes total utility. The utility functions are not necessarily concave,
 so the arbiter must use reinforcement learning or combinatorial search to make allocations.
+Each application has a manager that schedules the resources given to it by the arbiter.
 %\cite{1078411}
 %utility functions
 %
 Walsh \emph{et al.}\cite{1078411} note the importance of basing utility functions
 on the metrics in which QoS is expressed rather than on the raw quantities of resources.
-Each application has a manager that schedules the resources given to it by a global arbiter.
 There are other philosophical similarities to \pacora,
 but since the objective functions are neither continuous nor convex their optimization is difficult.
 
@@ -45,7 +45,7 @@ but since the objective functions are neither continuous nor convex their optimi
 %Work related to AcOS, done by people from the Politecnico di Milano (Italy), MIT and Harvard.
 %Paper presented in DAC 2012.
 %
-The related systems AcOS\cite{AcOS} and Metronome\cite{Metronome} feature hardware-thread based maintenance of ``Heart Rate''
+The two related systems AcOS\cite{AcOS} and Metronome\cite{Metronome} feature hardware-thread based maintenance of ``Heart Rate''
 targets using adaptive reinforcement learning techniques.
 AcOS also senses thermal conditions and can exploit Dynamic Voltage and Frequency Scaling (DVFS).
 
