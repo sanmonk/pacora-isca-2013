@@ -155,22 +155,13 @@ Figure~\ref{model_accuracy} shows the 1-norm of the relative error of the predic
 \begin{figure}[!t]
 	\begin{center}	
 		\includegraphics[width=\columnwidth]{decision_quality.pdf}
-		\caption{Resource allocation decisions for each pair of the cluster representative applications compared with the optimal allocation, the Linux scheduler, and equally dividing the machine.}
+		\caption{Resource allocation decisions for each pair of the cluster representative applications and each pair of PARSEC applications compared with the optimal allocation, equally dividing the machine, and the Linux baseline.}
 		\label{decision_quality}
 	\end{center}
 \end{figure}
 
-%\begin{figure}[!t]
-%	\begin{center}	
-%		\includegraphics[bb=0 0 656 313,width=0.9\columnwidth]{decision_quality.pdf}
-%%		\includegraphics[width=.45\textwidth]{cluster_decision_points.pdf}
-%%		\includegraphics[width=.45\textwidth]{parsec_decision_points.pdf}
-%		\caption{Resource allocation decisions for each pair of PARSEC applications compared with the optimal allocation, the Linux scheduler, and equally dividing the machine.}
-%		\label{parsec_decision_quality}
-%	\end{center}
-%\end{figure}
 
 Using the RTFs built for the applications, we let \pacora make static resource allocations for all possible pairs of the cluster representative applications.  We then run all possible resource allocations for each pair on our Sandy Bridge/Linux platform, measure the performance, and compare it with the best performing, \emph{i.e.} optimal, resource allocation.  We also compare this result to equally dividing the resources between the two applications and to sharing all of the resources using the Linux scheduler.
 
 
-Figure~\ref{cluster_decision_quality} shows how \pacora's decisions compared with the optimal allocation, the Linux scheduler, and equally dividing the machine for each pair of the cluster representative applications.  We also perform the same experiment for all pairs of PARSEC applications since they scale better than the other benchmarks, thus enabling more interesting resource allocations.  Figure~\ref{parsec_decision_quality} shows the results.
+Figure~\ref{decision_quality} shows how \pacora's decisions compared with the optimal allocation, equally dividing the machine, and the Linux baseline for each pair of the cluster representative applications.  The Linux baseline represents running both applications without resource partitioning.  We also performed the same experiment for all pairs of PARSEC applications since they scale better than the other benchmarks, thus enabling more interesting resource allocations.  \pacora's resource allocations are 2\% from the optimal static allocation on average.  Linux performs similarly; however, dividing the machine in half is around 20\% slower than either \pacora or Linux.  These results indicate the \pacora is able to get a near optimal resource allocation and even with strict resource partitioning match the performance of the traditional Linux scheduler without partitioning.
