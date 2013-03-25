@@ -141,12 +141,12 @@ The clustering results in 6 clusters representing the following (applications at
 \subsection*{RTF Experiments}
 \begin{figure*}[!t]
 	\begin{center}	
-		\includegraphics[bb=0 0 971 266,width=\textwidth]{model_accuracy.pdf}
+		\includegraphics[width=\textwidth]{model_accuracy.pdf}
 		\caption{1-norm of relative error from RTF predicted response time compared to actual response time, averaged over 3 trials.}
 		\label{model_accuracy}
 	\end{center}
 \end{figure*}
-To test the effectiveness of our RTFs in capturing real application behavior, we measure each of our 44 benchmarks running alone on the machine for all possible resource allocations of cache ways and cores.  Cores can be allocated from 1--8 and cache ways from 1--12 resulting in 96 possible allocations for each application.   We use a genetic algorithm design of experiments~\cite{bates-aes03} to select 10 and 20 of the collected allocations to build the RTFs.  We also experimented with building RTFs with more data points but found that they provided little improvement over 20.  We then use the model to predict the performance of every resource allocation and compare it with the actual measured performance of that resource allocation.  We ran 3 complete trials and took the average error of the 3 trials.
+To test the effectiveness of our RTFs in capturingng real application behavior, we measure each of our 44 benchmarks running alone on the machine for all possible resource allocations of cache ways and cores.  Cores can be allocated from 1--8 and cache ways from 1--12 resulting in 96 possible allocations for each application.   We use a genetic algorithm design of experiments~\cite{bates-aes03} to select 10 and 20 of the collected allocations to build the RTFs.  We also experimented with building RTFs with more data points but found that they provided little improvement over 20.  We then use the model to predict the performance of every resource allocation and compare it with the actual measured performance of that resource allocation.  We ran 3 complete trials and took the average error of the 3 trials.
 
 Figure~\ref{model_accuracy} shows the 1-norm of the relative error of the predicted response times.
 % \fix{explain results, whats up with tradebeans, how do we know these are any good}.
