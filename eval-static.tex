@@ -146,29 +146,29 @@ The clustering results in 6 clusters representing the following (applications at
 		\label{model_accuracy}
 	\end{center}
 \end{figure*}
-To test the effectiveness of our RTFs in capturingng real application behavior, we measure each of our 44 benchmarks running alone on the machine for all possible resource allocations of cache ways and cores.  Cores can be allocated from 1--8 and cache ways from 1--12 resulting in 96 possible allocations for each application.   We use a genetic algorithm design of experiments~\cite{bates-aes03} to select 10 and 20 of the collected allocations to build the RTFs.  We also experimented with building RTFs with more data points but found that they provided little improvement over 20.  We then use the model to predict the performance of every resource allocation and compare it with the actual measured performance of that resource allocation.  We ran 3 complete trials and took the average error of the 3 trials.
+To test the effectiveness of our RTFs in capturingng real application behavior, we measure each of our 44 benchmarks running alone on the machine for all possible resource allocations of cache ways and cores.  Cores can be allocated from 1--8 and cache ways from 1--12 resulting in 96 possible allocations for each application.   We use a genetic algorithm design of experiments~\cite{bates-aes03} to select 10 and 20 of the collected allocations to build the RTFs.  We also experimented with building RTFs with more data points but found that they provided little improvement over 20.  We then use the model to predict the performance of every resource allocation and compare it with the actual measured performance (median value of 3 trials) of that resource allocation.  We built 3 different models from 3 trials and tested each of them against median measured value. 
 
-Figure~\ref{model_accuracy} shows the 1-norm of the relative error of the predicted response times.
-% \fix{explain results, whats up with tradebeans, how do we know these are any good}.
+Figure~\ref{model_accuracy} shows the 1-norm of the relative error of the predicted response times per resource allocation for an RTF built with 10 training points and one built with 20.  The average error per point is 0.16\% for an RTF built with 10 training points and 0.09\% for an RTF built with 20 training points.  We also calculated the percentage variability for each resource allocation in the application between the 3 trials (shown as ``App'' in Figure~\ref{model_accuracy}).  The variance is 0.6\%, so we can see that \pacora's RTFs are not much more inaccurate with the natural variation in response time in the application.  We can also see that applications with higher variance result in RTFs with a larger relative errors, \emph{e.g.,} {\tt stencilprobe}, {\tt tradebeans}.  Section~\ref{discuss} discusses application variability in more detail.
+
 
 \subsection*{Resource Allocation Experiments}
 \begin{figure}[!t]
 	\begin{center}	
-		\includegraphics[bb=0 0 656 313,width=0.9\columnwidth]{decision_quality.pdf}
+		\includegraphics[width=\columnwidth]{decision_quality.pdf}
 		\caption{Resource allocation decisions for each pair of the cluster representative applications compared with the optimal allocation, the Linux scheduler, and equally dividing the machine.}
-		\label{cluster_decision_quality}
+		\label{decision_quality}
 	\end{center}
 \end{figure}
 
-\begin{figure}[!t]
-	\begin{center}	
-		\includegraphics[bb=0 0 656 313,width=0.9\columnwidth]{decision_quality.pdf}
-%		\includegraphics[width=.45\textwidth]{cluster_decision_points.pdf}
-%		\includegraphics[width=.45\textwidth]{parsec_decision_points.pdf}
-		\caption{Resource allocation decisions for each pair of PARSEC applications compared with the optimal allocation, the Linux scheduler, and equally dividing the machine.}
-		\label{parsec_decision_quality}
-	\end{center}
-\end{figure}
+%\begin{figure}[!t]
+%	\begin{center}	
+%		\includegraphics[bb=0 0 656 313,width=0.9\columnwidth]{decision_quality.pdf}
+%%		\includegraphics[width=.45\textwidth]{cluster_decision_points.pdf}
+%%		\includegraphics[width=.45\textwidth]{parsec_decision_points.pdf}
+%		\caption{Resource allocation decisions for each pair of PARSEC applications compared with the optimal allocation, the Linux scheduler, and equally dividing the machine.}
+%		\label{parsec_decision_quality}
+%	\end{center}
+%\end{figure}
 
 Using the RTFs built for the applications, we let \pacora make static resource allocations for all possible pairs of the cluster representative applications.  We then run all possible resource allocations for each pair on our Sandy Bridge/Linux platform, measure the performance, and compare it with the best performing, \emph{i.e.} optimal, resource allocation.  We also compare this result to equally dividing the resources between the two applications and to sharing all of the resources using the Linux scheduler.
 
