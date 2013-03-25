@@ -115,7 +115,7 @@ Here $\tau$ represents the response time, $i$ and $j$ represent resource types, 
 \subsection*{Penalty Functions}
 Penalty functions are designed to represent the user-level goals of the application. They are similar to priorities but are functions of the response time rather than simply values so they can explicitly represent deadlines.  Knowing the deadlines lets the system make optimizations that are difficult in today's systems such as running just fast enough to make the deadline. Like priorities, the penalty functions are set by the system on behalf of the user.
 
-A \pacora penalty function $\pi$ is a non-decreasing piecewise linear function of the response time $\tau$ of the form
+\pacora's penalty function $\pi$ is a non-decreasing piecewise linear function of the response time $\tau$ of the form
 
 \begin{equation}\label{pen_eq}
 \pi(\tau) = \max(0, s(\tau - d))

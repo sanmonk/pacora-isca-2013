@@ -35,9 +35,9 @@ Applications report their own measured response times to \pacora through a messa
 
 \subsection*{Description of Workloads}
 Our workload is designed to represent the scenario of a video conference, where each participant requires a separate, performance guaranteed video stream.
-New participants may join the conference and others may leave, increasing or decreasing the number of streams running at any given time.  Additionally, the speaker's video is larger and has higher resolution than the other video streams, and as the speaker changes the requirements for the video streams change. While conferencing, compute-intensive tasks such as virus scans or file indexing could be executed in background.
+New participants may join the conference and others may leave, increasing or decreasing the number of streams running at any given time.  Additionally, the speaker's video is larger and has higher resolution than the other video streams, and as the speaker changes the requirements for the video streams change. While conferencing, compute-intensive tasks such as virus scans or file indexing could be executed in the background.
 
-Our streaming video application is a multi-threaded, cpu- and network-intensive workload intended to simulate video chat applications like Skype and Facetime.
+Our streaming video application is a multi-threaded, CPU- and network-intensive workload intended to simulate video chat applications like Skype and Facetime.
 Each video stream is encoded offline in the H.264 format using libx264, transported across the network through a TCP connection, and decoded and displayed by the \tess client. The client receives, decodes and displays each frame using libffmpeg and libx264. Each video stream has a corresponding EDF-scheduled thread with 33 ms deadlines using our second-level EDF scheduler.
 
 We use psearchy~\cite{psearchy}, a parallel text indexer, from MOSBENCH\cite{mosbench} as our file indexing application. We also use a network bandwidth hog application designed to contend with the video player for bandwidth by constantly sending UDP messages to the Linux box.
@@ -59,7 +59,7 @@ We use psearchy~\cite{psearchy}, a parallel text indexer, from MOSBENCH\cite{mos
 	\end{center}
 \end{figure*}
 
-Figure~\ref{video_experiment_wp} shows the resource allocations for our video conference scenario when the computer is using wall power. Figure~\ref{video_experiment_battery} shows same scenario except the computer is now using battery power and thus we have increased the importance of the wall.
+Figure~\ref{video_experiment_wp} shows the resource allocations for our video conference scenario when the computer is using wall power. Figure~\ref{video_experiment_battery} shows same scenario except the computer is now using battery power and thus we have increased the importance of application 0.
 
 
 
