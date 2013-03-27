@@ -73,10 +73,6 @@ P.~Bodik \emph{et~al.}, ``Automatic exploration of datacenter performance
 S.~Boyd and L.~Vandenberghe, \emph{Convex Optimization}.\hskip 1em plus 0.5em
   minus 0.4em\relax Cambridge, England: Cambridge University Press, 2004.
 
-\bibitem{mosbench}
-S.~Boyd-Wickizer \emph{et~al.}, ``Mosbench,'' 2012,
-  \url{http://pdos.csail.mit.edu/mosbench/}.
-
 \bibitem{unc}
 J.~M. Calandrino and J.~H. Anderson, ``On the design and implementation of a
   cache-aware multicore real-time scheduler,'' in \emph{ECRTS}, 2009, pp.
@@ -254,15 +250,6 @@ J.~W. Lee, M.~C. Ng, and K.~Asanovic, ``Globally-synchronized frames for
   guaranteed quality-of-service in on-chip networks,'' in \emph{Proc. ISCA
   '08}.\hskip 1em plus 0.5em minus 0.4em\relax Washington, DC, USA: IEEE
   Computer Society, 2008, pp. 89--100.
-
-\bibitem{psearchy}
-\BIBentryALTinterwordspacing
-J.~Li \emph{et~al.}, ``On the feasibility of peer-to-peer web indexing and
-  search,'' in \emph{Peer-to-Peer Systems II}, ser. Lecture Notes in Computer
-  Science, M.~Kaashoek and I.~Stoica, Eds.\hskip 1em plus 0.5em minus
-  0.4em\relax Springer Berlin Heidelberg, 2003, vol. 2735, pp. 207--215.
-  Available: \url{http://dx.doi.org/10.1007/978-3-540-45172-3_19}
-\BIBentrySTDinterwordspacing
 
 \bibitem{LuDu}
 Y.~Luo and R.~Duraiswami, ``Efficient parallel nonnegative least squares on

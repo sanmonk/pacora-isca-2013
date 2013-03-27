@@ -51,7 +51,7 @@ We also use a network bandwidth hog application designed represent an applicatio
 	\begin{center}	
 		\includegraphics[bb=0 0 576 432,width=.49\textwidth]{dyn-alloc-wp-ns.pdf}
 		\includegraphics[bb=0 0 576 432,width=.49\textwidth]{dyn-alloc-wp-core.pdf}
-		\caption{\fix{annotate when stuff happens} Resource Allocations of video conferencing through time as participants enter and leave and the video in focus changes with the computer operating in wall power mode}
+		\caption{Resource Allocations of video conferencing through time as the videos change resolution to adjust for who is speaking. Hog represents as background task uploading files. The computer operating is in ``wall power mode''.}
 		\label{video_experiment_wp}
 	\end{center}
 \end{figure*}
@@ -68,12 +68,25 @@ We also use a network bandwidth hog application designed represent an applicatio
 \begin{figure}[!t]
 	\begin{center}	
 		\includegraphics[width=\columnwidth]{dyn-alloc-battery-ns.pdf}
-		\caption{Resource Allocations of video conferencing through time as participants enter and leave and the video in focus changes with the computer operating in battery power mode}
+		\caption{Resource Allocations of video conferencing through time as the videos change resolution to adjust for who is speaking. Hog represents as background task uploading files. The computer operating is in ``battery power mode''.}
 		\label{video_experiment_battery}
 	\end{center}
 \end{figure}
 
-Figure~\ref{video_experiment_wp} shows the resource allocations for our video conference scenario when the computer is using wall power. Figure~\ref{video_experiment_battery} shows same scenario except the computer is now using battery power and thus we have increased the importance of application 0.
+
+In our experiment the video conference contains 6 incoming video streams.  A first no one is speaking and thus all the videos are small.  The person speaking progresses through videos 1-6 in order with the videos resizing around every 10 seconds.  We set the deadline to be 33 ms to represent a frame rate of 30 frames/sec. As this rate, small videos require 80 to 87 kbits/s depending on the particular frames. Large videos require 250 to 270 kbits/s.
+
+Figure~\ref{video_experiment_wp} shows the resource allocations for our video conference scenario when the computer is using ``wall power''.  We mean wall power to imply that saving power is less critical and thus we assign a low penalty slope to application 0.  \pacora gives 
+
+
+Figure~\ref{opt_time} 
+ 
+
+Core allocations
+
+
+
+Figure~\ref{video_experiment_battery} shows same scenario except the computer is now using ``battery power'' and thus we have increased the importance of application 0.  The video applications are still allocated the necessary amount of resources for each video size.  However, the allocation of the network hog is significantly reduced to less than 70 kbits/s, and the remaining resources are left idle. 
 
 
 
