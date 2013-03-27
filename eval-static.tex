@@ -164,7 +164,7 @@ Figure~\ref{model_accuracy} shows the 1-norm of the relative error of the predic
 
 
 Using the RTFs built for the applications, we let \pacora make static resource allocations for all possible pairs of the cluster representative applications.  We then run all possible resource allocations for each pair on our Sandy Bridge-Linux platform, measure the performance, and compare it with the best performing, \emph{i.e.} optimal, resource allocation.  We also compare this result to equally dividing the resources between the two applications and to sharing all of the resources using the standard Linux scheduler.  
-Figure~\ref{decision_quality} shows these results.
+Figure~\ref{decision_quality} shows these results for our 10 point RTFs.
 %how \pacora's decisions compared with the optimal allocation, equally dividing the machine, and the Linux baseline for each pair of the cluster representative applications.  
 
 The Linux baseline represents running both applications without resource partitioning. \pacora's resource allocations are 2\% from the optimal static allocation on average.  Linux performs similarly but with a higher standard deviation; however, dividing the machine in half is around 20\% slower than either \pacora or standard Linux.  These results indicate the \pacora is able to get a near optimal resource allocation and match the performance of the traditional Linux scheduler with more predictability.
