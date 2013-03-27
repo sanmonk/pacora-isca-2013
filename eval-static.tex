@@ -21,7 +21,7 @@ We use two different implementations of the \pacora framework for evaluation. Ou
 
 Our static framework was designed to test the effectiveness of \pacora's model-based convex optimization for allocating resources.  We used it to experiment with the accuracy of different types of models and test the quality of the resource allocation decisions.
 
-Data is collected online by running application benchmarks on a recent x86 processor running Linux-2.6.36.  The measured data is processed using Python and then fed to MATLAB~\cite{matlab} to build the RTFs.  MATLAB uses the RTFs to make resource allocation decisions.  We compare performance of the chosen resource allocations with the actual measured performance of all possible resource allocations to test quality of the resource allocation decisions. We use CVX~\cite{cvx} in MATLAB to perform the convex optimization for building RTFs and making resource allocation decisions.  We used this approach because it let us test many applications, 44 in total, and many resource allocations rapidly.
+Data is collected online by running application benchmarks on a recent x86 processor running Linux-2.6.36.  The measured data is processed using Python and then fed to MATLAB~\cite{matlab} to build the RTFs.  MATLAB uses the RTFs to make resource allocation decisions.  We compare performance of the chosen resource allocations with the actual measured performance of all possible resource allocations to test quality of the resource allocation decisions. We use CVX~\cite{cvx} in MATLAB to perform the convex optimization for building RTFs and making resource allocation decisions.  We chose this static approach because it let us test many applications, 44 in total, and many resource allocations rapidly.
 
 \subsection*{Platform}
 
@@ -30,12 +30,14 @@ commercially available client chip, but with additional hardware
 support for way-based LLC partitioning.
 The Sandy Bridge client chip has 4 quad-issue out-of-order
 superscalar cores, each of which supports 2 hyperthreads using
-simultaneous multithreading~\cite{IntelRefManual:2011}.  Each core has
-private \wunits{32}{KB} instruction and data caches, as well as a
-\wunits{256}{KB} private non-inclusive L2 cache.  The LLC is a 12-way
+simultaneous multithreading~\cite{IntelRefManual:2011}.  
+%Each core has private \wunits{32}{KB} instruction and data caches, as well as a
+%\wunits{256}{KB} private non-inclusive L2 cache.  
+The LLC is a 12-way
 set-associative \wunits{6}{MB} inclusive L3 cache, shared among all
-cores using a ring-based interconnect.  All three cache levels are
-write-back.   The cache partitioning mechanism is way-based and works by modifying the
+cores using a ring-based interconnect.  
+%All three cache levels are write-back.   
+The cache partitioning mechanism is way-based and works by modifying the
 cache-replacement algorithm.  To allocate cache ways, we assign a subset of
 the 12 ways to a set of hyperthreads, thereby allowing only those hyperthreads to replace data in those ways.
 
@@ -115,7 +117,7 @@ using a parallel stencil kernel over a regular
 grid~\cite{Kamil:Stencilprobe}.
 
 We also add two \textbf{microbenchmarks} that stress the memory
-system: {\tt stream\_uncached} is a memory and on-chip bandwidth hog
+system and cause increased interference between applications: {\tt stream\_uncached} is a memory and on-chip bandwidth hog
 that continuously brings data from memory without caching it, while
 {\tt ccbench} explores arrays of different sizes to determine the
 structure of the cache hierarchy.
@@ -142,13 +144,13 @@ The clustering results in 6 clusters representing the following (applications at
 \begin{figure*}[!t]
 	\begin{center}	
 		\includegraphics[bb=0 0 576 216,width=\textwidth]{model_accuracy.pdf}
-		\caption{1-norm of relative error from RTF predicted response time compared to actual response time.  The actual response time is averaged over 3 trials. 10 and 20 represent RTFs built with 10 and 20 training points respectively.  App represents the variation in performance of the application between the 3 trials.}
+		\caption{1-norm of relative error from RTF predicted response time compared to actual response time.  The actual response time is the median over 3 trials. 10 and 20 represent RTFs built with 10 and 20 training points respectively.  App represents the variability (average standard deviation) in performance of the application between the 3 trials.}
 		\label{model_accuracy}
 	\end{center}
 \end{figure*}
-To test the effectiveness of our RTFs in capturing real application behavior, we measure each of our 44 benchmarks running alone on the machine for all possible resource allocations of cache ways and cores.  Cores can be allocated from 1--8 and cache ways from 1--12 resulting in 96 possible allocations for each application.   We use a genetic algorithm design of experiments~\cite{bates-aes03} to select 10 and 20 of the collected allocations to build the RTFs.  We also experimented with building RTFs with more data points but found that they provided little improvement over 20.  We then use the model to predict the performance of every resource allocation and compare it with the actual measured performance (median value of 3 trials) of that resource allocation.  We built 3 different models from 3 trials and tested each of them against median measured value.
+To test the effectiveness of our RTFs in capturing real application behavior, we measure each of our 44 benchmarks running alone on the machine for all possible resource allocations of cache ways and cores.  Cores can be allocated from 1--8 and cache ways from 1--12 resulting in 96 possible allocations for each application.   We use a genetic algorithm design of experiments~\cite{bates-aes03} to select 10 and 20 of the collected allocations to build the RTFs.  We also experimented with building RTFs with more data points but found that they provided little improvement over 20~\cite{pacora_tr}.  We then use the model to predict the performance of every resource allocation and compare it with the actual measured performance (median value of 3 trials) of that resource allocation.  We built 3 different models from 3 trials and tested each of them against median measured value. 
 
-Figure~\ref{model_accuracy} shows the 1-norm of the relative error of the predicted response times per resource allocation for an RTF built with 10 training points and one built with 20.  The average error per point is 0.16\% for an RTF built with 10 training points and 0.09\% for an RTF built with 20 training points.  We also calculated the percentage variability for each resource allocation in the application between the 3 trials (shown as ``App'' in Figure~\ref{model_accuracy}).  The variance is 0.6\%, so we can see that \pacora's RTFs are not much more inaccurate than the natural variation in response time in the application.  We can also see that applications with higher variance result in RTFs with larger relative errors, \emph{e.g.,} {\tt stencilprobe}, {\tt tradebeans}.  Section~\ref{discuss} discusses application variability in more detail.
+Figure~\ref{model_accuracy} shows the 1-norm of the relative error of the predicted response times per resource allocation for an RTF built with 10 training points and one built with 20.  The average error per point is 16\% for an RTF built with 10 training points and 9\% for an RTF built with 20 training points.  We also calculated the percentage variability (average standard deviation) for each resource allocation in the application between the 3 trials (shown as ``App'' in Figure~\ref{model_accuracy}).  The average variability is 9\%, so we can see that \pacora's RTFs are not much more inaccurate than the natural variation in response time in the application.  It is not possible an RTF to be more accurate than the application variability, and we can also see that applications with higher variability result in RTFs with larger relative errors, \emph{e.g.,} {\tt stencilprobe}, {\tt tradebeans}.  Section~\ref{discuss} discusses application variability in more detail.
 
 
 \subsection*{Resource Allocation Experiments}
