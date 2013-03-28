@@ -5,9 +5,7 @@ Resource allocations are always the user's responsibility to specify and pay for
 Responsiveness can be improved by buying a higher priority.
 Few batch systems incorporate deadlines, but one such is \cite{AKKMS95}.
 
-\subsection{Application Performance Modeling}
 
-\fix{add information here}
 
 \subsection{Autonomic Systems}
 %Resource Allocation for Autonomic Data Centers using Analytic Performance Models
@@ -111,11 +109,9 @@ They break down the framework components into policies and mechanisms which may 
 
 The VPM approach and terminology mesh well with our study, which can be seen as a specific implementation of several key aspects of the type of framework they describe (i.e. VPM modeling and translation). Nesbit \emph{et al.} did not perform any evaluations of the modeling, translation, or scheduling processes suggested in their paper.
 
-The Singularity operating system\cite{aiken-mspc06} provides process isolation through software rather than hardware.  This isolation in accessibility is not the same as the performance isolation that is desirable for \pacora.
 
-Kumar \emph{et al.}\cite{1006707} demonstrate the performance advantages of heterogeneous cores for mixed workloads using heuristic allocation strategies in both space and time.
 
-Genbrugge and Eeckhout\cite{genbrugge-isca07} demonstrate the importance of adapting to changes in application characteristics, in this case instructions per cycle.
+
 
 Merkel and Bellosa\cite{merkel-eurosys08} propose \emph{Task Activity Vectors} that describe how much each application uses the various functional units; these vectors are used to balance usage across multiple cores and unbalance usage among hardware threads within each core.
 The intended effect is to distribute chip temperature more evenly, but the idea may be more broadly applicable, \emph{e.g.,} for heterogeneous systems.
@@ -138,18 +134,29 @@ The paper discusses the automation of task granularity selection to match cache 
 %
 \pacora relies on hardware partitioning mechanisms when available to enforce its resource allocation decisions.  However, the vast majority of hardware partitioning research, which has focused mainly on caches, provides mechanisms to partition research according to a policy designed into the hardware, not the flexible allocations \pacora requires.  Early work focused on providing adaptive, fair policies that ensure equal performance degradation \cite{605420,1086328} , not guaranteeing responsiveness.
 
-More recent proposals have incorporated more sophisticated policy management \cite{1241608,1331730,1152161,1254886}. In general, these papers focus on designing and proving the effectiveness of particular mechanisms for particular goals \cite{876484, 967444,1194855,1275005,1194858,1318096,1088154,1399973,1069998,1399982} without a concrete notion of a general framework in which a variety of application-specific QoS requirements can be communicated to an all-purpose resource allocator and scheduler.
-
+More recent proposals have incorporated more sophisticated policy management \cite{1241608,1331730,1152161,1254886}. In general, these papers focus on designing and proving the effectiveness of particular mechanisms for particular goals \cite{876484, 967444,1194855,1275005,1194858,1318096,1088154,1399973,1069998,1399982} without a concrete notion of a general-purpose resource allocation or scheduling framework. 
+%in which a variety of application-specific QoS requirements can be communicated to an all-purpose resource allocator and scheduler.
 Iyer\cite{1006246} suggests a priority-based cache QoS framework, CQoS, for shared cache way-partitioning. 
 %The priorities might be specified per core, per application, per memory type, or even per memory reference. 
 However, simultaneous achievement of performance targets as in \pacora is not addressed.
+
+%The Singularity operating system\cite{aiken-mspc06} provides process isolation through software rather than hardware.  This isolation in accessibility is not the same as the performance isolation that is desirable for \pacora.
 
 %Other partitioning work has focused on interconnect bandwidth QoS \cite{1382130} or partitioning cache capacity and bandwidth simultaneously \cite{1250671}.
 
 %CQoS: a framework for enabling QoS in shared caches of CMP platforms
 %\cite{1006246}
-%
 
-%
 %Suh \emph{et al.}\cite{876484, 967444} and Qureshi and Patt \cite{1194855} monitor individual applications' cache performance to decide partitioning in an attempt to reduce the total amount of cache misses and off-chip memory traffic. 
 %A wide variety of proposals exist for multicore last-level cache structures that partition the spatial resources between private and shared data, in an attempt to create a manageable trade-off between capacity for shared data and low latency for private data \cite{1275005,1194858,1318096,1088154,1399973,1069998,1399982}.
+
+\subsection{Application Performance Modeling}
+
+\fix{add information here}
+
+
+%Citations supporting PACORA's assumptions. 
+
+%Kumar \emph{et al.}\cite{1006707} demonstrate the performance advantages of heterogeneous cores for mixed workloads using heuristic allocation strategies in both space and time.
+%
+%Genbrugge and Eeckhout\cite{genbrugge-isca07} demonstrate the importance of adapting to changes in application characteristics, in this case instructions per cycle.
