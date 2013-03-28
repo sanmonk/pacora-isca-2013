@@ -1,25 +1,20 @@
 \section{Related Work}\label{related_work}
-\subsection{Traditional Batch Scheduling}
+\subsection{Batch Scheduling and Cluster Management}
 Batch scheduling systems\cite{Feit97,FRS04} tend to use queues and priorities to schedule jobs while trying to keep all resources busy.
 Resource allocations are always the user's responsibility to specify and pay for.
 Responsiveness can be improved by buying a higher priority.
 Few batch systems incorporate deadlines, but one such is \cite{AKKMS95}.
 
+\cite{FeRu92}
+\cite{mesos}
+Mesos introduces a distributed two-level scheduling mechanism called resource offers. Mesos decides how many resources to offer each framework, while frameworks decide which resources to accept and which computations to run on them. Our results show that Mesos can achieve near-optimal data locality when sharing the cluster among diverse frameworks, can scale to 50,000 (emulated) nodes, and is resilient to failures.
+\cite{mesos-DRF} Dominant Resource Fairness (DRF), a generalization of max-min fairness to multiple resource types.
 
+Fairness 
+Resource Requests:
+Condor, Resource Specification Language\cite{Condor}
+Amazon EC2~\cite{EC2} and Eucalyptus~\cite{eucalyptus}
 
-%\subsection{Autonomic Systems}
-%Resource Allocation for Autonomic Data Centers using Analytic Performance Models
-%	\cite{1078472}
-%	
-%Autonomic QoS-aware resource management in grid computing using online performance models
-%	\cite{1345325}
-%
-%On the use of hybrid reinforcement learning for autonomic resource allocation
-%\cite{1285843}
-%	
-%Utility-Function-Driven Resource Allocation in Autonomic Systems
-%\cite{1078493}
-%
 \subsection{Model-Based Scheduling and Allocation Frameworks for SLAs and Soft Real-Time Requirements}
 
 There is a growing amount of research in the cloud computing and realtime communities which uses application-specific performance ``models'' to try to schedule to meet deadlines or Service-Level Agreements (SLAs).
@@ -42,22 +37,12 @@ on the metrics in which QoS is expressed rather than on the raw quantities of re
 There are other philosophical similarities to \pacora,
 but since the objective functions are neither continuous nor convex their optimization is difficult.
 
-%AcOS: an Autonomic Management Layer Enhancing Commodity Operating Systems \cite{AcOS}
-%Work at the Politecnico di Milano, Italy.
-%Master Thesis
-%Paper and slides at the CHANGE 2012 Workshop (DAC)
-%
-%Metronome: OS Level Performance Management via Self Adaptive Computing \cite{Metronome}
-%Work related to AcOS, done by people from the Politecnico di Milano (Italy), MIT and Harvard.
-%Paper presented in DAC 2012.
+
 %
 The two related systems AcOS\cite{AcOS} and Metronome\cite{Metronome} feature hardware-thread based maintenance of ``Heart Rate''
 targets using adaptive reinforcement learning techniques.
 AcOS also senses thermal conditions and can exploit Dynamic Voltage and Frequency Scaling (DVFS).
 
-%A resource allocation model for QoS management
-%\cite{828990}
-%
 
 
 A survey of autonomic systems research appears in \cite{1380585}.
@@ -89,21 +74,7 @@ A fairly sophisticated control loop prevents oscillatory behavior.
 
 
 
-%Redline: First Class Support for Interactivity in Commodity OSs \cite{Redline}
-%Paper presented in OSDI'08.
-%
 
-%Jockey: Guaranteed Job Latency in Data Parallel Clusters \cite{Jockey}
-%Work from Microsoft about the system they built on top of their Cosomos cluster (Dryad???)
-
-%Discusses how they do the dynamic resource allocation for jobs running in a cluster
-%Paper from Eurosys 2012
-%
-
-
-%Automatic Exploration of Datacenter Performance Regimes
-%\cite{bodik-acdc09}
-%
 Bodik \emph{et al.}\cite{bodik-acdc09} is also like \pacora in that it builds on-line performance models.
 Initially, it uses an \emph{exploration policy} that avoids nearly all SLA violations while it builds the model;
 later, it shifts to a controller based on the model it has built.
@@ -177,3 +148,47 @@ However, simultaneous achievement of performance targets as in \pacora is not ad
 %
 %Chen \emph{et al.}\cite{1248396} propose parallel depth-first thread scheduling as an alternative to work-stealing for constructive cache sharing.
 %The paper discusses the automation of task granularity selection to match cache capacity. This kind of tuning is particularly appropriate for a user-level runtime system.
+
+
+%\subsection{Autonomic Systems}
+%Resource Allocation for Autonomic Data Centers using Analytic Performance Models
+%	\cite{1078472}
+%	
+%Autonomic QoS-aware resource management in grid computing using online performance models
+%	\cite{1345325}
+%
+%On the use of hybrid reinforcement learning for autonomic resource allocation
+%\cite{1285843}
+%	
+%Utility-Function-Driven Resource Allocation in Autonomic Systems
+%\cite{1078493}
+
+%Redline: First Class Support for Interactivity in Commodity OSs \cite{Redline}
+%Paper presented in OSDI'08.
+%
+
+%Jockey: Guaranteed Job Latency in Data Parallel Clusters \cite{Jockey}
+%Work from Microsoft about the system they built on top of their Cosomos cluster (Dryad???)
+
+%Discusses how they do the dynamic resource allocation for jobs running in a cluster
+%Paper from Eurosys 2012
+%
+
+
+%Automatic Exploration of Datacenter Performance Regimes
+%\cite{bodik-acdc09}
+%
+
+%AcOS: an Autonomic Management Layer Enhancing Commodity Operating Systems \cite{AcOS}
+%Work at the Politecnico di Milano, Italy.
+%Master Thesis
+%Paper and slides at the CHANGE 2012 Workshop (DAC)
+%
+%Metronome: OS Level Performance Management via Self Adaptive Computing \cite{Metronome}
+%Work related to AcOS, done by people from the Politecnico di Milano (Italy), MIT and Harvard.
+%Paper presented in DAC 2012.
+
+%A resource allocation model for QoS management
+%\cite{828990}
+%
+
