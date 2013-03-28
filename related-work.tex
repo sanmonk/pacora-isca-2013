@@ -1,25 +1,15 @@
 \section{Related Work}\label{related_work}
 \subsection{Batch Scheduling and Cluster Management}
-Batch scheduling systems\cite{Feit97,FRS04} tend to use queues and priorities to schedule jobs while trying to keep all resources busy.
-Resource allocations are always the user's responsibility to specify and pay for.
-Responsiveness can be improved by buying a higher priority.
-Few batch systems incorporate deadlines, but one such is \cite{AKKMS95}.
+Classic resource management systems were designed for batch scheduling~\cite{Feit97,FRS04}. Like \pacora, Batch scheduling systems can allocate multiple resource types and rely on a gang-scheduling model~\cite{FeRu92}.  However, they tend to use queues and priorities to schedule jobs while trying to keep all resources busy. Resource allocations are always the user's responsibility to specify and pay for. Responsiveness can be improved by buying a higher priority. Few batch systems incorporate deadlines, but one such is \cite{AKKMS95}.
 
-\cite{FeRu92}
-\cite{mesos}
-Mesos introduces a distributed two-level scheduling mechanism called resource offers. Mesos decides how many resources to offer each framework, while frameworks decide which resources to accept and which computations to run on them. Our results show that Mesos can achieve near-optimal data locality when sharing the cluster among diverse frameworks, can scale to 50,000 (emulated) nodes, and is resilient to failures.
-\cite{mesos-DRF} Dominant Resource Fairness (DRF), a generalization of max-min fairness to multiple resource types.
+Modern cluster resource management has a similar flavor.  In many systems, such as 
+Amazon EC2~\cite{EC2}, Eucalyptus~\cite{eucalyptus}, and Condor~\cite{Condor}, users must specify their resource requirements.  Other systems, such as Hadoop ~\cite{hadoop_fair, hadoop_cap, hadoop_matei} and Quincy~\cite{Quincy} use a fairness policy to assign resources.
 
-Fairness:
-Quincy and Hadoop:~\cite{Quincy}, ~\cite{hadoop_fair, hadoop_cap, hadoop_matei}
-Resource Requests:
-Condor, Resource Specification Language\cite{Condor}
-Amazon EC2~\cite{EC2} and Eucalyptus~\cite{eucalyptus}
+Mesos~\cite{mesos} uses two-level scheduling mechanism to manage resources in a cluster. Mesos decides of many resources to offer to frameworks, and the frameworks decide which resources to accept and how to schedule them. Mesos does not provide a particular resource allocation policy, but is a framework that can support multiple policies and thus is potentially compatible with \pacora. Dominant Resource Fairness~\cite{mesos-DRF}, a generalization of max-min fairness to multiple resource types, has been implemented in Mesos.
 
 \subsection{Model-Based Scheduling and Allocation Frameworks for SLAs and Soft Real-Time Requirements}
 
 There is a growing amount of research in the cloud computing and realtime communities which uses application-specific performance ``models'' to try to schedule to meet deadlines or Service-Level Agreements (SLAs).
-
 
 
 In much of this research area\cite{1078472,1078493,1285843,1345325}
