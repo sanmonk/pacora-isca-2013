@@ -1,3 +1,12 @@
+\begin{figure}[!t]
+	\begin{center}	
+%		\includegraphics[width=0.9\textwidth]{cluster_decision_accuracy.pdf}
+		\includegraphics[bb=0 0 576 432,width=\columnwidth]{accuracy_quality.pdf}
+		\caption{Effect of Model Accuracy on Decision Quality. The x axis represents the combined relative error of all RTFs used in the decision.}
+		\label{accuracy_quality}
+	\end{center}
+\end{figure}
+
 \section{Discussion}\label{discuss}
 %VI.	Discussion
 %	a.	\pacora in the Cloud
@@ -19,15 +28,6 @@
 There are two main sources of challenges for \pacora's design: performance non-convexity and performance variability.  In the following section we describe possible techniques for coping with these challenges.
 
 The main concern with performance non-convexity and variability is their effects on the accuracy of the response time functions.  However, an important result we have found while evaluating \pacora is that model accuracy has less impact on the quality of resource allocation decisions than we anticipated.  When experimenting with possible models for the RTFs, we found that while some models were always a little too inaccurate and did degrade the performance of the resource allocation decisions, once a model crossed a certain threshold of accuracy then better models provided insignificant improvement in resource allocation decisions~\cite{pacora_tr}. Figure~\ref{accuracy_quality} shows the effect of model accuracy on the quality of the resource allocation decisions made using the RTF model in Equation~\ref{rtf_eq}.  Although there is a slight correlation between model accuracy and decision quality, many decisions with inaccurate models still result in near optimal allocations.  This effect enables \pacora's model-based design to be feasible in a noisy system with real applications.
-
-\begin{figure}[!t]
-	\begin{center}	
-%		\includegraphics[width=0.9\textwidth]{cluster_decision_accuracy.pdf}
-		\includegraphics[bb=0 0 576 432,width=\columnwidth]{accuracy_quality.pdf}
-		\caption{Effect of Model Accuracy on Decision Quality. The x axis represents the combined relative error of all RTFs used in the decision.}
-		\label{accuracy_quality}
-	\end{center}
-\end{figure}
 
 \subsection{Outliers and Performance Non-Convexity}
 
