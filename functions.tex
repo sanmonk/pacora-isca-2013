@@ -41,7 +41,10 @@ Such models are automatically convex in the allocations because $1/a$ is convex 
 %it is a simple matter to compute the gradient of $\tau$ once the model is defined.
 
 \subsubsection*{Non-Convexity}
-Forcing RTFs to be convex assumes that the actual response times are close to convex. We find this to be a plausible requirement as applications almost completely follow the proverbial ``Law of Diminishing Returns'' for resource allocations.
+Forcing RTFs to be convex assumes that the actual response times are
+close to convex. We find this to be a plausible requirement as
+applications usually follow the ``Law of Diminishing Returns'' for
+resource allocations.
 
 However, there are examples of response time versus resource behavior that violate convexity.   For example, we have seen non-convex performance in applications when dealing with hyperthreads or memory pages.  For two of our applications, 5 hyperthreads resulted in significantly worse performance than either 4 or 6.  When studying some other applications, we found that particular numbers of memory pages, (\emph{e.g.,} 2K), resulted in much better performance than the adjacent page allocations.  Outliers and additional challenges to response time modeling are discussed in Section~\ref{discuss}.
 %Avoiding (or seeking out) these allocations would add significant cost to the optimization problem.
@@ -78,13 +81,26 @@ There are several ways to avoid this problem.  One is based on the observation t
 
 
 \subsubsection*{Data Collection and Model Creation Time}
-There are many ways to collect the response time data for applications. The user-level runtime scheduler is one possible source, or the operating system could measure progress using performance counters.  In our implementation, applications report their own measured values; however, this solution was chosen simply as a way to test the validity of the concept.  In a production operating system it may not be a good idea because applications could lie about their performance.  In a datacenter environment this might be less of a concern.
+There are many ways to collect the response time data for
+applications. The user-level runtime scheduler is one possible source,
+or the operating system could measure progress using performance
+counters.  In our implementation, applications report their own
+measured values; however, this solution was chosen simply as a way to
+test the validity of the concept.  In a production operating system it
+may not be a good idea because applications could lie about their
+performance.  In a single-operator datacenter environment this might be less of a concern.
 
 There are also many different possible moments to create response time functions.  RTFs could be created in advance and distributed with the application. This approach could make lots of sense for app stores since most of them cater to just a few platforms. RTFs could also be crowd-sourced and built in the cloud, which has the advantage making it easy to collect a diverse set of training points.  However, all of these approaches lack adaptability.  As a result, we have chosen to implement two solutions that collect data directly from the user's machine.  The first approach is to adapt to the system by collecting all of the training points at application install time and building the model then.  The most highly adaptive approach collects data continuously as the application runs, uses the data to modify the model training set, and rebuilds the model.  A hybrid approach may be the most effective: applications can begin with a generic model and improve it over time. The remainder of this Section describes our model creation process in detail.
 \subsection{Response Time Model Creation}
-To create RTF models either at install time or online we use a convex least squares approach described below.  For the install time approach we use a genetic algorithm, Audze-Eglasis Design of Experiments\cite{bates-aes03}, to select the resource vectors to use for training.  These vectors and their response times are fed into the convex least squares algorithm. In the online approach the data comes from the application's response time history.
+To create RTF models either at install time or online we use a convex
+least-squares approach described below.  At install time, we use a
+genetic algorithm, Audze-Eglasis Design of
+Experiments\cite{bates-aes03}, to select the resource vectors to use
+for training.  These vectors and their response times are fed into the
+convex least-squares algorithm. Online model building uses data
+from the application's response time history.
 
-\subsubsection*{Least Squares Minimization}
+\subsubsection*{Least-Squares Minimization}
 After enough measurements, discovery of the model parameters $w$ that define the function $\tau$
 can be based on a solution to the over-determined linear system $t=Dw$,
 where $t$ is a column vector of actual response times measured for the application
@@ -114,7 +130,7 @@ As resource allocation continues, more measurements will become available to aug
 Moreover, older data may poorly represent the current behavior of the application.
 \pacora uses an incremental approach described below to replace old data and efficiently update RTFs.
 
-\subsubsection*{Incremental Least Squares}
+\subsubsection*{Incremental Least-Squares}
 What is needed is a factorization $\tilde{Q}\tilde{R}$ of a new matrix $\tilde{D}$
 derived from $D$ by dropping a row, perhaps from the bottom,
 and adding a row, perhaps at the top.
@@ -143,7 +159,7 @@ guaranteeing that the most recent $n$ updates are always part of the model.
 
 To guarantee convexity of the RTF, the solution $w$ to $t \approx QRw$ must have no negative components.
 Intuitively, when a resource is associated with more than a single $w_j$
-or when the measured response time increases with allocation then negative $w_j$ may occur. \emph{Non-negative Least Squares} problems (NNLS) are common linear algebra, and there are several well-known techniques\cite{ChPl}.
+or when the measured response time increases with allocation then negative $w_j$ may occur. \emph{Non-negative Least-Squares} problems (NNLS) are common linear algebra, and there are several well-known techniques\cite{ChPl}.
 However since \pacora's online model maintenance calls for
 incremental downdates and updates to rows of $Q^T$, $Q^Tt$ and $R$,
 the NNLS problem is handled with a scheme
