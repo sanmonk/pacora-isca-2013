@@ -97,21 +97,7 @@ The models are statistical, and bootstrapping is used to estimate performance va
 Major changes in the application model are detected and cause model exploration to resume.
 The models are not convex or concave in general, and all SLAs must be met with high probability.
 
-\subsection{Partitioning Mechanisms}
-\label{sec:rel:pm}
 
-%Utility-Based Cache Partitioning: A Low-Overhead, High-Performance, Runtime Mechanism to Partition Shared Caches
-%\cite{1194855}
-%
-Most hardware partitioning mechanism work has looked at shared cache structures and provided mechanisms to partition them according to a varied set of goals.  Suh \emph{et al.}\cite{876484, 967444} and Qureshi and Patt \cite{1194855} monitor individual applications' cache performance and use this monitoring to inform their partitioning mechanism in an attempt to reduce the total amount of cache misses and off-chip memory traffic. A wide variety of proposals exist for multicore last-level cache structures that partition the spatial resources between private and shared data, in an attempt to create a manageable trade-off between capacity for shared data and low latency for private data \cite{1275005,1194858,1318096,1088154,1399973,1069998,1399982}.
-
-Further cache partitioning work has focused on providing QoS guarantees to applications. Early work focused on providing adaptive, fair policies that ensure equal performance degradation \cite{605420,1086328}, while more recent proposals have incorporated more sophisticated policy management \cite{1241608,1331730,1152161,1254886}. Other partitioning work has focused on interconnect bandwidth QoS \cite{1382130} or partitioning cache capacity and bandwidth simultaneously \cite{1250671}. In general, these papers focus on designing and proving the effectiveness of particular mechanisms for particular goals, without a concrete notion of a general framework in which a variety of application-specific QoS requirements can be communicated to an all-purpose resource allocator and scheduler.
-%CQoS: a framework for enabling QoS in shared caches of CMP platforms
-%\cite{1006246}
-%
-For example, Iyer\cite{1006246} suggests a priority-based cache QoS framework, CQoS, for shared cache way-partitioning.
-The priorities might be specified per core, per application, per memory type, or even per memory reference.
-Simultaneous achievement of performance targets is not addressed.
 
 \subsection{Resource Allocation Frameworks}
 
@@ -143,3 +129,27 @@ Ganapathi \emph{et al.} have had success using machine learning to model applica
 %
 Chen \emph{et al.}\cite{1248396} propose parallel depth-first thread scheduling as an alternative to work-stealing for constructive cache sharing.
 The paper discusses the automation of task granularity selection to match cache capacity. This kind of tuning is particularly appropriate for a user-level runtime system.
+
+\subsection{Partitioning Mechanisms}
+\label{sec:rel:pm}
+
+%Utility-Based Cache Partitioning: A Low-Overhead, High-Performance, Runtime Mechanism to Partition Shared Caches
+%\cite{1194855}
+%
+\pacora relies on hardware partitioning mechanisms when available to enforce its resource allocation decisions.  However, the vast majority of hardware partitioning research, which has focused mainly on caches, provides mechanisms to partition research according to a policy designed into the hardware, not the flexible allocations \pacora requires.  Early work focused on providing adaptive, fair policies that ensure equal performance degradation \cite{605420,1086328} , not guaranteeing responsiveness.
+
+More recent proposals have incorporated more sophisticated policy management \cite{1241608,1331730,1152161,1254886}. In general, these papers focus on designing and proving the effectiveness of particular mechanisms for particular goals \cite{876484, 967444,1194855,1275005,1194858,1318096,1088154,1399973,1069998,1399982} without a concrete notion of a general framework in which a variety of application-specific QoS requirements can be communicated to an all-purpose resource allocator and scheduler.
+
+Iyer\cite{1006246} suggests a priority-based cache QoS framework, CQoS, for shared cache way-partitioning. 
+%The priorities might be specified per core, per application, per memory type, or even per memory reference. 
+However, simultaneous achievement of performance targets as in \pacora is not addressed.
+
+%Other partitioning work has focused on interconnect bandwidth QoS \cite{1382130} or partitioning cache capacity and bandwidth simultaneously \cite{1250671}.
+
+%CQoS: a framework for enabling QoS in shared caches of CMP platforms
+%\cite{1006246}
+%
+
+%
+%Suh \emph{et al.}\cite{876484, 967444} and Qureshi and Patt \cite{1194855} monitor individual applications' cache performance to decide partitioning in an attempt to reduce the total amount of cache misses and off-chip memory traffic. 
+%A wide variety of proposals exist for multicore last-level cache structures that partition the spatial resources between private and shared data, in an attempt to create a manageable trade-off between capacity for shared data and low latency for private data \cite{1275005,1194858,1318096,1088154,1399973,1069998,1399982}.
