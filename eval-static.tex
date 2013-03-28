@@ -47,7 +47,7 @@ the 12 ways to a set of hyperthreads, thereby allowing only those hyperthreads t
 We use a customized BIOS that enables the cache partitioning
 mechanism, and run unmodified Linux-2.6.36 for all of our experiments.
 To allocate cores, we use the Linux {\tt taskset} command to pin applications to
-sets of hyperthreads. The standard Linux scheduler performs the scheduling for applications within these containers of hyperthreads. For our experiments we consider each hyperthread to be an independent core. To minimize inter-application interference, we first assign both hyperthreads available in one core before moving on to the next core. For example, a 4-core allocation represents both hyperthreads of 2 cores.
+sets of hyperthreads. The standard Linux scheduler performs the scheduling for applications within these containers of hyperthreads. For our experiments we consider each hyperthread to be an independent core. To minimize inter-application interference, we first assign both hyperthreads available in one core before moving on to the next core. For example, a 4-core allocation from \pacora represents 4 hyperthreads on 2 cores on the machine.
 
 \subsection{Performance and Energy Measurement}
 
