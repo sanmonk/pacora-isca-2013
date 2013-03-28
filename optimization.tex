@@ -5,12 +5,12 @@
 %		i. boundary conditions clean up
 %	b.	Dealing with Fractional Results
 
-\pacora's penalty optimization algorithm dynamically decides resource allocations. The algorithm can be run periodically, when applications start or stop, when an application changes phase or when the system changes operating scenarios.  One of the advantages of convex optimization is that it enables fast, incremental solutions.  As a result the algorithm could terminate earlier to decrease overhead and still be moving towards an optimal solution as it runs.  However we found in our implementation that the algorithm was fast enough to run to completion every time. 
+\pacora's penalty optimization algorithm dynamically decides resource allocations. The algorithm can be run periodically, when applications start or stop, when an application changes phase or when the system changes operating scenarios.  One of the advantages of convex optimization is that it enables fast, incremental solutions.  As shown in our experiments, the algorithm can terminate earlier to decrease overhead and still be moving towards an optimal solution as it runs.  %However we found in our implementation that the algorithm was fast enough to run to completion every time. 
 
 Convex optimization is simplest when it is unconstrained, so we reformulated \pacora's construction to be unconstrained.
 Extending the response time model functions to all of $\Re^n$
 moves the requirement that allocations must be positive into the objective function,
-and introducing Application 0 for slack resources turns the affine inequalities into equalities:
+and introducing application 0 for slack resources turns the affine inequalities into equalities:
 \begin{eqnarray*}
 & \makebox[1in][r]{Minimize}   & \sum_{p\in P} {\pi_p(\tau_p(a_{p,1}\ldots a_{p,n}))}  \\
 & \makebox[1in][r]{Subject to} & \sum_{p\in P} a_{p,r} = A_r, r = 1,\ldots n           \\
@@ -26,9 +26,8 @@ The definition of $\tau_0$ might take the form
 \end{eqnarray*}
 where $\Delta_r$ is the (constant) power dissipation of one unit of resource $r$.
 However, if any of the allocations $a_{0,r}$ turns out to be negative then $\tau_0$  should instead return the value $+\infty$.
-This modification of the objective function transforms the resource allocation problem
-to unconstrained convex optimization.  
-
+%This modification of the objective function transforms the resource allocation problem
+%to unconstrained convex optimization.  
 
 The penalty optimization algorithm used in \pacora is gradient descent via backtracking line search along the negative gradient direction \cite{BoVa}.
 This algorithm rejects and refines any step that yields insufficient relative improvement in the objective function,
@@ -47,10 +46,10 @@ We added an additional optimization to move along boundaries more rapidly in the
 
 The rate of convergence of gradient descent depends on how well the sub-level sets of the objective function
 are conditioned (basically, how ``spherical'' they are).
-Conditioning will improve if resource allocation units are scaled to make their relative effects on the step size, $t$, similar.
+Conditioning will improve if resource allocation units are scaled to make their relative effects on $t$ similar.
 For example, when compared with processor allocation units,
 memory allocation units of 4 MB are probably a better choice than 4 KB.
-In addition, penalty function slopes should not differ by more than perhaps two orders of magnitude. If these measures prove insufficient, stronger preconditioners can be used. In our implementation, we condition all resource allocations to be in the range of 0-50.
+In addition, penalty function slopes should not differ by more than perhaps two orders of magnitude. If these measures prove insufficient, stronger preconditioners can be used. In our implementation, we condition all resource allocations to be in the range of 0-100.
 
 %\begin{figure}[!t]
 %	\begin{center}	
@@ -62,6 +61,6 @@ In addition, penalty function slopes should not differ by more than perhaps two 
 %\end{figure}
 
 
-Figure~\ref{optimization_perf} shows performance of the penalty optimization algorithm implemented in \tess.  
+%Figure~\ref{optimization_perf} shows performance of the penalty optimization algorithm implemented in \tess.  
 
 %For our video conferencing scenario the average runtime is \fix{x} and then worst case runtime is \fix{y}.  \fix{explain where the variance comes from}
