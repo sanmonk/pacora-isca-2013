@@ -1,16 +1,15 @@
 \section{Related Work}\label{related_work}
 \subsection{Batch Scheduling and Cluster Management}
-Classic resource management systems were designed for batch scheduling~\cite{Feit97,FRS04}. Like \pacora, Batch scheduling systems can allocate multiple resource types and rely on a gang-scheduling model~\cite{FeRu92}.  However, they tend to use queues and priorities to schedule jobs while trying to keep all resources busy. Resource allocations are always the user's responsibility to specify and pay for. Responsiveness can be improved by buying a higher priority. Few batch systems incorporate deadlines, but one such is \cite{AKKMS95}.
+Classic resource management systems were designed for batch scheduling~\cite{Feit97,FRS04}. Like \pacora, batch scheduling systems can allocate multiple resource types and rely on a gang-scheduling model~\cite{FeRu92}.  However, they tend to use queues and priorities to schedule jobs while trying to keep all resources busy. Resource allocations are always the user's responsibility to specify and pay for. Responsiveness can be improved by buying a higher priority. Few batch systems incorporate deadlines, but one such is \cite{AKKMS95}.
 
 Modern cluster resource management has a similar flavor.  In many systems, such as 
 Amazon EC2~\cite{EC2}, Eucalyptus~\cite{eucalyptus}, and Condor~\cite{Condor}, users must specify their resource requirements.  Other systems, such as Hadoop ~\cite{hadoop_fair, hadoop_cap, hadoop_matei} and Quincy~\cite{Quincy} use a fairness policy to assign resources.
 
-Mesos~\cite{mesos} uses two-level scheduling mechanism to manage resources in a cluster. Mesos decides of many resources to offer to frameworks, and the frameworks decide which resources to accept and how to schedule them. Mesos does not provide a particular resource allocation policy, but is a framework that can support multiple policies and thus is potentially compatible with \pacora. Dominant Resource Fairness~\cite{mesos-DRF}, a generalization of max-min fairness to multiple resource types, has been implemented in Mesos.
+Mesos~\cite{mesos} uses two-level scheduling to manage resources in a cluster. Mesos decides how many resources to offer to frameworks, and the frameworks decide which resources to accept and how to schedule them. Mesos does not provide a particular resource allocation policy, but is a framework that can support multiple policies and thus is potentially compatible with \pacora. Dominant Resource Fairness~\cite{mesos-DRF}, a generalization of max-min fairness to multiple resource types, has been implemented in Mesos.
 
 \subsection{Model-Based Scheduling and Allocation Frameworks for SLAs and Soft Real-Time Requirements}
 
 There is a growing amount of research in the cloud computing and realtime communities which uses application-specific performance ``models'' to try to schedule to meet deadlines or Service-Level Agreements (SLAs).
-
 
 In much of this research area\cite{1078472,1078493,1285843,1345325}
 the performance models are derived from off-line measurements and are either
@@ -91,7 +90,7 @@ Nesbit \emph{et al.}\cite{1436097} introduce the \emph{Virtual Private Machines}
 \label{sec:rel:pm}
 
 
-\pacora relies on resource partitioning and Quality-of-Service mechanisms when available to enforce its resource allocation decisions.  Resource partitioning and QoS research is active for on-chip, cluster, and networking resources.  However, the vast majority of esearch focuses on allocating a single resource type with a fixed policy --typically fairness.
+\pacora relies on resource partitioning and Quality-of-Service mechanisms when available to enforce its resource allocation decisions.  Resource partitioning and QoS research is active for on-chip, cluster, and networking resources.  However, the vast majority of research focuses on allocating a single resource type with a fixed policy -- typically fairness.
 
 Some have researched network bandwidth fairness~\cite{Blanquer, Kleinberg99fairnessin, Liu}, while others~\cite{Baruah96proportionateprogress, Baruah_fastscheduling, Zhu} have focused on CPU fairness. 
 
