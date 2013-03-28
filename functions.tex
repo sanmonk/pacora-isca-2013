@@ -10,8 +10,8 @@
 %	c.	Power Model
 
 
-In this section, we describe the design of \pacora's response time functions in more detail.
-A response time function describes an application's performance given its resource assignments.  These functions capture information about the performance impact of a particular resource to an application on the current hardware at a particular time. Without this information, it would be difficult for any resource allocation system to make informed decisions short of blindly trying a variety of allocations and picking the best one.
+In this section, we describe the design of \pacora's RTFs in more detail.
+RTFs describe an application's performance given its resource assignments.  These functions capture information about the performance impact of a particular resource to an application on the current hardware at a particular time. Without this information, it would be difficult for any resource allocation system to make informed decisions short of blindly trying a variety of allocations and picking the best one.
 
 \subsubsection*{Modeling versus Interpolating} While it might have been possible to model response times by recording past values and interpolating among them, this idea has serious shortcomings:
 \begin{itemize}
@@ -29,8 +29,8 @@ The specific function chosen for \pacora is shown in Equation~\ref{rtf_eq} above
 In this equation, the response time is modeled as a weighted sum of component terms,
 roughly one per resource, where a term $w_i/a_i$ is the amount of work $w_i \geq 0$
 divided by $a_i$, the allocation of the $i$th resource~\cite{Snav}.
-For example, one term might model the number of instructions executed divided by total processor MIPS;
-another might model network accesses divided by network bandwidth, and so forth.
+For example, one term might model instructions executed divided by total processor MIPS;
+another might model network accesses divided by bandwidth, and so forth.
 %Asynchrony and latency tolerance may make response time components overlap partly or fully; and thus we added additional terms to represent the interactions between resources.
 
 Such models are automatically convex in the allocations because $1/a$ is convex for positive $a$ and because a positively-weighted sum of convex functions is convex.  The models are also linear in the weights.
@@ -41,7 +41,7 @@ Such models are automatically convex in the allocations because $1/a$ is convex 
 %it is a simple matter to compute the gradient of $\tau$ once the model is defined.
 
 \subsubsection*{Non-Convexity}
-Forcing our response time functions to be convex assumes that the actual response time are close to convex. We find this to be a plausible requirement as applications almost completely follow the proverbial ``Law of Diminishing Returns'' for resource allocations.
+Forcing RTFs to be convex assumes that the actual response times are close to convex. We find this to be a plausible requirement as applications almost completely follow the proverbial ``Law of Diminishing Returns'' for resource allocations.
 
 However, there are examples of response time versus resource behavior that violate convexity.   For example, we have seen non-convex performance in applications when dealing with hyperthreads or memory pages.  For two of our applications, 5 hyperthreads resulted in significantly worse performance than either 4 or 6.  When studying some other applications, we found that particular numbers of memory pages, (\emph{e.g.,} 2K), resulted in much better performance than the adjacent page allocations.  Avoiding (or seeking out) these allocations would add significant cost to the optimization problem.
 
