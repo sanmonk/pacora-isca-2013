@@ -43,9 +43,14 @@ Such models are automatically convex in the allocations because $1/a$ is convex 
 \subsubsection*{Non-Convexity}
 Forcing RTFs to be convex assumes that the actual response times are close to convex. We find this to be a plausible requirement as applications almost completely follow the proverbial ``Law of Diminishing Returns'' for resource allocations.
 
-However, there are examples of response time versus resource behavior that violate convexity.   For example, we have seen non-convex performance in applications when dealing with hyperthreads or memory pages.  For two of our applications, 5 hyperthreads resulted in significantly worse performance than either 4 or 6.  When studying some other applications, we found that particular numbers of memory pages, (\emph{e.g.,} 2K), resulted in much better performance than the adjacent page allocations.  Avoiding (or seeking out) these allocations would add significant cost to the optimization problem.
+However, there are examples of response time versus resource behavior that violate convexity.   For example, we have seen non-convex performance in applications when dealing with hyperthreads or memory pages.  For two of our applications, 5 hyperthreads resulted in significantly worse performance than either 4 or 6.  When studying some other applications, we found that particular numbers of memory pages, (\emph{e.g.,} 2K), resulted in much better performance than the adjacent page allocations.  Outliers and additional challenges to response time modeling are discussed in Section~\ref{discuss}.
+%Avoiding (or seeking out) these allocations would add significant cost to the optimization problem.
 
-Another kind of convexity violation can occur in memory allocation, where ``plateaus'' can sometimes be seen as in Figure~\ref{f:plat}. Such plateaus are typically caused by algorithm adaptations within the application to accommodate variable resource availability.  The response time is really the \emph{minimum} of several convex functions depending on allocation, and the point-wise minimum that the application implements fails to preserve convexity.  The effect of the plateaus will be a non-convex penalty as shown in Figure~\ref{f:plateffect} and multiple extrema in the optimization problem will be a likely result. There are several ways to avoid this problem.  One is based on the observation that such response time functions will at least be \emph{quasiconvex}.  Another idea is to use additional constraints to explore convex sub-domains of $\tau$. Either approach adds significant computational cost.
+Another kind of convexity violation can occur in memory allocation, where ``plateaus'' can sometimes occur as in Figure~\ref{f:plat}. Such plateaus are typically caused by adaptations within the application (\emph{e.g.,} adjusting the algorithm or output quality).
+%to accommodate variable resource availability.  
+The response time is really the \emph{minimum} of several convex functions depending on allocation, and the point-wise minimum that the application implements fails to preserve convexity.  The effect of the plateaus will be a non-convex penalty as shown in Figure~\ref{f:plateffect} and multiple extrema in the optimization problem will be a likely result. 
+
+
 
 \begin{figure}[hb]
 \parbox{1.6in}{
@@ -58,8 +63,7 @@ Another kind of convexity violation can occur in memory allocation, where ``plat
 \caption{\label{f:plateffect}Net effect of the resource plateaus on the application penalty.}
 }
 \end{figure}
-
-Overall, we found that our simple convex models still resulted in high-quality resource allocations and thus chose not to implement any of these approaches.  Alternative approaches to handling non-convex behavior are described in~\cite{pacora_tr}. Additional challenges to response time modeling are discussed in Section~\ref{discuss}.
+There are several ways to avoid this problem.  One is based on the observation that such response time functions will at least be \emph{quasiconvex}.  Another idea is to use additional constraints to explore convex sub-domains of $\tau$. Either approach adds significant computational cost, and we found that our simple convex models still resulted in high-quality resource allocations. Thus we chose not to implement any of these approaches.  Alternative approaches to handling non-convex behavior are described in~\cite{pacora_tr}. 
 
 %\subsubsection*{Dynamically Changing Applications}
 %
@@ -139,12 +143,8 @@ guaranteeing that the most recent $n$ updates are always part of the model.
 
 To guarantee convexity of the RTF, the solution $w$ to $t \approx QRw$ must have no negative components.
 Intuitively, when a resource is associated with more than a single $w_j$
-or when the measured response time increases with allocation then negative $w_j$ may occur.
-
-A requirement for non-negative solutions to least-squares linear algebra problems is common,
-so much so that it has a name: \emph{Non Negative Least Squares}, or NNLS.
-There are several well-known techniques\cite{ChPl},
-but since \pacora's online model maintenance calls for
+or when the measured response time increases with allocation then negative $w_j$ may occur. \emph{Non-negative Least Squares} problems (NNLS) are common linear algebra, and there are several well-known techniques\cite{ChPl}.
+However since \pacora's online model maintenance calls for
 incremental downdates and updates to rows of $Q^T$, $Q^Tt$ and $R$,
 the NNLS problem is handled with a scheme
 based on the \emph{active-set} method\cite{LaHa} that
@@ -158,7 +158,7 @@ skipping over them in maintaining and using the QR factorization.
 
 The memory used in maintaining a model with $n$ weights is modest, $24n^2 + 21n + \textrm{O}(1)$ bytes.
 For $n = 8$ this is under 2 KB, fitting nicely in L1 cache.
-Our NNLS implementation runs in around \fix{x $\micro$s}.
+Our NNLS implementation runs in around \fix{x $\micro$s} in our \tess implementation.
 %Figure~\ref{model_build_perf} shows the performance of \pacora's NNLS algorithm.
 
 \subsubsection*{Model Rank Preservation}
