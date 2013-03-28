@@ -2,26 +2,26 @@
 \subsection{Batch Scheduling and Cluster Management}
 Classic resource management systems were designed for batch scheduling~\cite{Feit97,FRS04}. Like \pacora, batch scheduling systems can allocate multiple resource types and rely on a gang-scheduling model~\cite{FeRu92}.  However, they tend to use queues and priorities to schedule jobs while trying to keep all resources busy. Resource allocations are always the user's responsibility to specify and pay for. Responsiveness can be improved by buying a higher priority. Few batch systems incorporate deadlines, but one such is \cite{AKKMS95}.
 
-Modern cluster resource management has a similar flavor.  In many systems, such as 
-Amazon EC2~\cite{EC2}, Eucalyptus~\cite{eucalyptus}, and Condor~\cite{Condor}, users must specify their resource requirements.  Other systems, such as Hadoop ~\cite{hadoop_fair, hadoop_cap, hadoop_matei} and Quincy~\cite{Quincy} use a fairness policy to assign resources. Mesos~\cite{mesos} uses two-level scheduling to manage resources in a cluster. Mesos decides how many resources to offer to frameworks, and the frameworks decide which resources to accept and how to schedule them. Mesos does not provide a particular resource allocation policy, but is a framework that can support multiple policies. Dominant Resource Fairness~\cite{mesos-DRF}, a generalization of max-min fairness to multiple resources types, has been implemented in Mesos.
+Modern cluster resource management has a similar flavor.  In systems such as
+Amazon EC2~\cite{EC2}, Eucalyptus~\cite{eucalyptus}, and Condor~\cite{Condor}, users must specify their resource requirements.  Other systems such as Hadoop ~\cite{hadoop_fair, hadoop_cap, hadoop_matei} and Quincy~\cite{Quincy} use a fairness policy to assign resources. Mesos~\cite{mesos} uses two-level scheduling to manage resources in a cluster. Mesos decides how many resources to offer to its applications; they decide which resources to accept and how to schedule them. Mesos does not provide a particular resource allocation policy, but is a framework that can support multiple policies. Dominant Resource Fairness~\cite{mesos-DRF}, a generalization of max-min fairness to multiple resources types, has been implemented in Mesos.
 
 \subsection{Model-Based Scheduling and Allocation Frameworks for SLAs and Soft Real-Time Requirements}
 
-There is a growing amount of research in the cloud computing and realtime communities which uses application-specific performance ``models'' to try to schedule to meet deadlines or Service-Level Agreements (SLAs).
+Research is growing in the cloud computing and realtime communities, which use application-specific performance ``models'' to try to schedule to meet deadlines or Service-Level Agreements (SLAs).
 
-Much of this research has been in autonomic computing~\cite{1078472,1078493,1285843,1345325}. Typically, the performance models, utility functions, are derived from off-line measurements of raw resources utiilization and are either interpolations from tables or analytic functions based on queueing theory. 
-%The utility functions typically map the number of servers each execution environment receives to its performance relative to its requirements, which may be several. 
+Much of this research has been in autonomic computing~\cite{1078472,1078493,1285843,1345325}. Typically, the performance models are utility functions derived from off-line measurements of raw resources utiilization. These functions are either interpolations from tables or analytic functions based on queueing theory.
+%The utility functions typically map the number of servers each execution environment receives to its performance relative to its requirements, which may be several.
 A central arbiter maximizes total utility. The utility functions are not necessarily concave,
 so the arbiter must use reinforcement learning or combinatorial search to make allocations.
 %Each application has a manager that schedules the resources given to it by the arbiter.
 Walsh \emph{et al.}\cite{1078411} note the importance of basing utility functions
 on the metrics in which QoS is expressed rather than on the raw quantities of resources.
-There are other philosophical similarities to \pacora, but since the objective functions are neither continuous nor convex their optimization is difficult. A survey of autonomic systems research appears in \cite{1380585}.
+There are other philosophical similarities to \pacora, but since the objective functions are discrete and non-convex their optimization is difficult. A survey of autonomic systems research appears in \cite{1380585}.
 
 Rajkumar \emph{et al.}\cite{828990} propose a system Q-RAM that maximizes the weighted sum of utility functions, each of which is a function of the resource allocation to the associated application. Unlike \pacora, there is no distinction between performance and utility, and the utility functions are assumed as input rather than being discovered by the system. The functions are sometimes concave, and in these cases the optimal allocation is easily found by a form of gradient ascent. When the utility functions are not concave, a suboptimal greedy algorithm is proposed.
 %They are always nondecreasing in every resource and sometimes are piecewise-linear and concave;
 
-Several systems use a feedback-driven reactive approach to resource allocation where a control loop or reinforcement learning adjusts allocations continuously. AcOS\cite{AcOS} and Metronome\cite{Metronome} feature hardware-thread based maintenance of ``Heart Rate'' targets using adaptive reinforcement learning techniques.
+Several systems use a feedback-driven reactive approach to resource allocation where a control loop or reinforcement learning adjusts allocations continuously. AcOS\cite{AcOS} and Metronome\cite{Metronome} feature hardware-thread based maintenance of ``heart rate'' targets using adaptive reinforcement learning.
 %AcOS also senses thermal conditions and can exploit Dynamic Voltage and Frequency Scaling (DVFS).
 Bodik \emph{et al.}\cite{bodik-acdc09} builds on-line performance models like \pacora.
 Initially, it uses an \emph{exploration policy} that avoids nearly all SLA violations while it builds the model; later, it shifts to a controller based on the model it has built.
@@ -36,39 +36,37 @@ Jockey does not optimize total utility but simply increases processors until uti
 \emph{i.e.,} each deadline is met.
 A fairly sophisticated control loop prevents oscillatory behavior.
 
-Other systems use user provide resource specifications and employ a realtime scheduling algorithm to schedule them all.  In the Redline system\cite{Redline}, compact resource requirement specifications are written by hand to guarantee response times and scheduled with EDF.
+Other systems base decisions on user-provided resource specifications and a real-time scheduling algorithm.  In the Redline system\cite{Redline}, compact resource requirement specifications written by hand to guarantee response times are scheduled Earliest-Deadline-First.
 %Isolation of resources is strong, as in \pacora.  Scheduling is Earliest-Deadline-First.
 %Admission control is lenient but oversubscription situations are remedied by de-admitting some of the non-interactive applications.
 
-A lot of research focuses measuring resource usage to make co-scheduling decisions.
-For example, Calandrino \emph{et al.}\cite{unc} use working set sizes to make co-scheduling decisions and enhance soft real-time behavior. Merkel and Bellosa\cite{merkel-eurosys08} propose \emph{Task Activity Vectors} that describe how much each application uses the various functional units; these vectors are used to balance usage across multiple cores.
+Much research focuses on measuring resource usage to make smart co-scheduling decisions.
+For example, Calandrino \emph{et al.}\cite{unc} uses working set sizes to make co-scheduling decisions and enhance soft real-time behavior. Merkel and Bellosa\cite{merkel-eurosys08} propose \emph{Task Activity Vectors} that describe how much each application uses the various functional units; these vectors are used to balance usage across multiple cores.
 %and unbalance usage among hardware threads within each core.
 %The intended effect is to distribute chip temperature more evenly, but the idea may be more broadly applicable, \emph{e.g.,} for heterogeneous systems.
 
-Other systems design framework that can support many scheduling and resource allocation policy. Guo \emph{et al.}\cite{1331730} present a framework that incorporates a scheduler which supports multiple execution modes.  They point out that much prior work is insufficient for true QoS -- merely partitioning hardware is not enough, because there must also be a way to specify performance targets and an admission control policy for jobs. Unlike \pacora, they argue that targets should be expressed in terms of capacity requirements rather than rates.
+ Some frameworks can support multiple scheduling and resource allocation policies. Guo \emph{et al.}\cite{1331730} present such a framework.  They point out that much prior work is insufficient for true QoS; merely partitioning hardware is not enough because there must also be a way to specify performance targets and an admission control policy for jobs. Unlike \pacora, they argue that targets should be expressed in terms of capacity requirements rather than rates or times.
 
-Nesbit \emph{et al.}\cite{1436097} introduce the \emph{Virtual Private Machines} (VPM), a framework for resource allocation and management in multicore systems. A VPM consists of a set of virtual hardware resources, both spatial (physical allocations) and temporal (scheduled time-slices).  
-%They break down the framework components into policies and mechanisms which may be implemented in hardware or software. 
-VPM {\em modeling} maps high-level application objectives into VPM configurations, and VPM {\em translation}, which uses VPM models to assign an acceptable VPM to the application while adhering to system-level policies. A VPM scheduler decides if the system can accommodate all applications. The VPM approach and terminology is similar to \pacora's design at the high-level.  However, Nesbit \emph{et al.} did not perform design, implementation or evaluations of the modeling, translation, or scheduling components suggested in their paper.
+Nesbit \emph{et al.}\cite{1436097} introduces \emph{Virtual Private Machines} (VPM), a framework for resource allocation and management in multicore systems. A VPM comprises a set of virtual hardware resources, both spatial (physical allocations) and temporal (scheduled time-slices).
+%They break down the framework components into policies and mechanisms which may be implemented in hardware or software.
+VPM \emph{modeling} maps high-level application objectives via \emph{translation}, which uses models to assign acceptable VPMs to applications while adhering to system-level policies. A \emph{scheduler} decides if the system can accommodate all applications. The VPM approach and terminology are similar to \pacora's at a high level.  However, Nesbit \emph{et al.} did not perform design, implementation or evaluations of the modeling, translation, or scheduling components suggested in their paper.
 
-%mesh well with our study, which can be seen as a specific implementation of several key aspects of the type of framework they describe (i.e. VPM modeling and translation). 
+%mesh well with our study, which can be seen as a specific implementation of several key aspects of the type of framework they describe (i.e. VPM modeling and translation).
 %
 %Unlike traditional virtual machines that only virtualize resource functionality, VPMs virtualize a system's performance and power characteristics, meaning that a VPM has the same performance and power profile as a real machine with an equivalent set of hardware resources.
 
 \subsection{Resource Partitioning and QoS}
 \label{sec:rel:pm}
 
+\pacora relies on resource partitioning and Quality-of-Service mechanisms when available to enforce its resource allocation decisions.  Resource partitioning and QoS research is active for on-chip, cluster, and networking resources.  However, the vast majority of research focuses on allocating a single resource type with a fixed policy, typically \emph{fairness}.
+Some have researched network bandwidth fairness~\cite{Blanquer, Kleinberg99fairnessin, Liu}, while others~\cite{Baruah96proportionateprogress, Baruah_fastscheduling, Zhu} have concentrated on CPU fairness.
 
-\pacora relies on resource partitioning and Quality-of-Service mechanisms when available to enforce its resource allocation decisions.  Resource partitioning and QoS research is active for on-chip, cluster, and networking resources.  However, the vast majority of research focuses on allocating a single resource type with a fixed policy -- typically fairness.
-
-Some have researched network bandwidth fairness~\cite{Blanquer, Kleinberg99fairnessin, Liu}, while others~\cite{Baruah96proportionateprogress, Baruah_fastscheduling, Zhu} have focused on CPU fairness. 
-
-Hardware partitioning research, which has focused mainly on caches, provides mechanisms to partition research according to a policy designed into the hardware, not the flexible allocations \pacora requires \cite{876484, 967444,1194855,1275005,1194858,1318096,1088154,1399973,1069998,1399982} .  Early work focused on providing adaptive, fair policies that ensure equal performance degradation \cite{605420,1086328}, not guaranteeing responsiveness. More recent proposals have incorporated more sophisticated policy management \cite{1241608,1331730,1152161,1254886}. Iyer\cite{1006246} suggests a priority-based cache QoS framework, CQoS, for shared cache way-partitioning. 
-%The priorities might be specified per core, per application, per memory type, or even per memory reference. 
+Hardware partitioning research, which has largely focused on caches, provides mechanisms based on policies baked into the hardware, not the flexible allocations \pacora requires \cite{876484, 967444,1194855,1275005,1194858,1318096,1088154,1399973,1069998,1399982}.  Early work focused on providing adaptive, fair policies that ensure equal performance degradation \cite{605420,1086328}, not guarantees of responsiveness. More recent proposals have incorporated more sophisticated policy management \cite{1241608,1331730,1152161,1254886}. Iyer\cite{1006246} suggests a priority-based cache QoS framework, CQoS, for shared cache way-partitioning.
+%The priorities might be specified per core, per application, per memory type, or even per memory reference.
 However, simultaneous achievement of performance targets as in \pacora is not addressed.
 
 
-%In general, these papers focus on designing and proving the effectiveness of particular mechanisms for particular goalswithout a concrete notion of a general-purpose resource allocation or scheduling framework. 
+%In general, these papers focus on designing and proving the effectiveness of particular mechanisms for particular goalswithout a concrete notion of a general-purpose resource allocation or scheduling framework.
 %in which a variety of application-specific QoS requirements can be communicated to an all-purpose resource allocator and scheduler.
 
 
@@ -80,7 +78,7 @@ However, simultaneous achievement of performance targets as in \pacora is not ad
 %CQoS: a framework for enabling QoS in shared caches of CMP platforms
 %\cite{1006246}
 
-%Suh \emph{et al.}\cite{876484, 967444} and Qureshi and Patt \cite{1194855} monitor individual applications' cache performance to decide partitioning in an attempt to reduce the total amount of cache misses and off-chip memory traffic. 
+%Suh \emph{et al.}\cite{876484, 967444} and Qureshi and Patt \cite{1194855} monitor individual applications' cache performance to decide partitioning in an attempt to reduce the total amount of cache misses and off-chip memory traffic.
 %A wide variety of proposals exist for multicore last-level cache structures that partition the spatial resources between private and shared data, in an attempt to create a manageable trade-off between capacity for shared data and low latency for private data \cite{1275005,1194858,1318096,1088154,1399973,1069998,1399982}.
 
 %\subsection{Application Performance Modeling}
@@ -88,7 +86,7 @@ However, simultaneous achievement of performance targets as in \pacora is not ad
 %\fix{add information here}
 
 
-%Citations supporting PACORA's assumptions. 
+%Citations supporting PACORA's assumptions.
 
 %Ganapathi \emph{et al.} have had success using machine learning to model application performance and select the best performing configuration in \cite{Archana}.
 
