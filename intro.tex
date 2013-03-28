@@ -5,11 +5,11 @@ ranging from webservers and databases running on cloud systems,
 through interactive multimedia applications on mobile clients, to
 emerging distributed embedded systems. Additionally, systems are
 required to meet these response-time demands while improving energy
-efficiency to reduce system power consumption and improve battery
+efficiency in order to reduce system power consumption and improve battery
 life.
 
 Ideally, applications should be given just enough system resources
-(\emph{e.g.,}  nodes, processor cores, cache slices, memory pages,
+(\emph{e.g.,} nodes, processor cores, cache slices, memory pages,
 various kinds of bandwidth) to meet their performance requirements
 consistently.  However, allocating resources among multiple parallel,
 real-time applications while satisfying all of their
@@ -50,7 +50,7 @@ concerns for the overall user experience.  In the embedded space,
 realtime developers often use completely separate systems for each
 application to ensure QoS, despite the high cost of this approach.
 
-In this paper, we present \pacora, a resource-allocation framework to
+In this paper, we present \pacora, a resource-allocation framework designed to
 provide responsiveness guarantees for a simultaneous mix of parallel,
 interactive, and real-time applications in an efficient, scalable
 manner.  It allows both application deadlines and the relative
@@ -66,7 +66,7 @@ efficiency.
 
 We believe \pacora is applicable to many resource-allocation
 scenarios, from cloud providers determining how many resources to give
-each job to avoid violating SLAs, through databases allocating
+each job to avoid violating Service-Level Agreements (SLAs), through databases allocating
 resources to queries, to distributed embedded systems allocating
 bandwidth among devices and sensors.  In this paper we choose to study
 \pacora implemented in a general-purpose operating system for client
@@ -78,15 +78,13 @@ platforms that are too diverse to allow \emph{a priori} performance
 prediction.
 % applications that are more likely to be written by domain experts, thus less highly optimized.
 
-\pacora makes resource allocation decisions in less than 400
-microseconds in the worst case and often faster than 40 microseconds
-in our manycore OS implementation.  Static allocation decisions are
+\pacora makes resource allocation decisions in 350 $\micro$s in the worst case and often faster than 50 $\micro$s in our manycore OS implementation.  Static allocation decisions are
 near optimal---only 2\% from the best possible allocation on average.
 \pacora is able to dynamically allocate resources to adjust to the
 changing state of the system and trade off responsiveness and
 energy. By automatically generating performance models of
 applications, \pacora alleviates the developer from having to
 understand hardware resources and requires only a few hundred bytes of
-additional storage per application.  We have found that the impact of model accuracy on the quality of resource allocations is not significant; models with errors above 20\% still produce in near optimal allocations.  This effect enables modeling to be feasible in a real system with variable applications.
+additional storage per application.  We have found that the impact of model accuracy on the quality of resource allocations is not significant; models with errors above 20\% still produce near optimal allocations.  This effect enables modeling to be feasible in a real system with variable applications.
 
 In this paper we first present the architecture of \pacora in Section~\ref{sys_design}.  In Section~\ref{eval-static}, we evaluate its effectiveness at static resource allocation decisions, and in Section~\ref{eval-dynamic}, we assess how well it dynamically allocates resources in a manycore OS.  Section~\ref{dyn_opt} describes and evaluates our dynamic penalty optimization algorithm. Section~\ref{RTFs} discusses response time functions and their creation in detail.  Section~\ref{discuss} describes some challenges and possible solutions for \pacora. Section~\ref{related_work} discusses related work, and Section~\ref{conclusion} concludes.
