@@ -50,7 +50,7 @@ from scheduling.  This split enables the use of application-specific
 scheduling policies, which have the potential to be easier to design
 and more efficient than general-purpose schedulers that have to work
 for everything.  This approach leaves the system to focus on the
-problem of \emph{how many} of each resource type to assign to each
+problem of \emph{how much} of each resource type to assign to each
 application.  In client machines, \pacora is used to make coarse-grain
 resource-allocation decisions (\emph{e.g.,} cores and memory pages) at
 the OS level, while the micro-management of these resources to run
@@ -68,7 +68,7 @@ response-time function and a penalty function. The response-time
 function represents the performance of the application with different
 resources, and is built with runtime measurements.  The penalty
 function represents the user-level goals for the application
-(\emph{i.e.} the deadline and how important it is to make that
+(\emph{i.e.,} the deadline and how important it is to make that
 deadline). \pacora then uses convex optimization\cite{BoVa} to
 determine the ideal resource allocation across all active
 applications.  The following subsections briefly introduce the primary
@@ -154,19 +154,20 @@ optimizations that are difficult in today's systems, such as running
 just fast enough to make the deadline. Like priorities, the penalty
 functions are set by the system on behalf of the user.
 
-\pacora's penalty function $\pi$ is a non-decreasing piecewise-linear
-function of the response time $\tau$ with the form:
-
-\begin{equation}\label{pen_eq}
-\pi(\tau) = \max(0, (\tau - d)s)
-\end{equation}
-
+\pacora's penalty functions $\pi$ are non-decreasing piecewise-linear
+functions of the response time $\tau$ of the form $\pi(\tau) = \max(0, (\tau - d)s)$
 where $d$ represents the deadline of the application and $s$ (slope)
 defines the rate the penalty increases as response time increases. For
 applications without response-time constraints the deadline can be set
 to $0$. Two representative graphs of this type appear in
-Figures~\ref{f:pen1} and~\ref{f:pen2}. Penalty functions will be
-described further in Section~\ref{app_func}.
+Figures~\ref{f:pen1} and~\ref{f:pen2}. 
+Penalty functions will be described further in Section~\ref{app_func}.
+
+%In a client operating system, management of penalty function modifications
+%should be highly automated by the system to avoid unduly burdening the user.
+%As an application grows or diminishes in importance, its penalty function can be modified accordingly.
+%Adjustment is also likely to occur in transitions between operating scenarios.
+%For example, when unplugging a device all of the background activities could have their slopes significantly reduced to save battery life.
 
 \begin{figure}[hb]
 \parbox{1.6in}{

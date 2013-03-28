@@ -45,7 +45,7 @@ In such cases, the associated step component is set to zero.
 
 We added an additional optimization to move along boundaries more rapidly in the scenario when a completely allocated resource had a large gradient.  We scale all the allocations of that resource type down to satisfy resource constraint while leaving the allocations of other resources untouched.
 
-The rate of convergence of gradient descent depends on how well the sublevel sets of the objective function
+The rate of convergence of gradient descent depends on how well the sub-level sets of the objective function
 are conditioned (basically, how ``spherical'' they are).
 Conditioning will improve if resource allocation units are scaled to make their relative effects on $t$ similar.
 For example, when compared with processor allocation units,
