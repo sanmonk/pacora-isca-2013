@@ -97,35 +97,22 @@ Nesbit \emph{et al.}\cite{1436097} introduce the \emph{Virtual Private Machines}
 %
 %Unlike traditional virtual machines that only virtualize resource functionality, VPMs virtualize a system's performance and power characteristics, meaning that a VPM has the same performance and power profile as a real machine with an equivalent set of hardware resources.
 
-
-
-
-
-
-
-
-
-
-
 \subsection{Resource Partitioning and QoS}
 \label{sec:rel:pm}
 
-%Utility-Based Cache Partitioning: A Low-Overhead, High-Performance, Runtime Mechanism to Partition Shared Caches
-%\cite{1194855}
-%
-\pacora relies on resource partitioning and Quality-of-Service mechanisms when available to enforce its resource allocation decisions.  However, the vast majority of hardware partitioning research, which has focused mainly on caches, provides mechanisms to partition research according to a policy designed into the hardware, not the flexible allocations \pacora requires.  Early work focused on providing adaptive, fair policies that ensure equal performance degradation \cite{605420,1086328}, not guaranteeing responsiveness.
 
-More recent proposals have incorporated more sophisticated policy management \cite{1241608,1331730,1152161,1254886}. In general, these papers focus on designing and proving the effectiveness of particular mechanisms for particular goals \cite{876484, 967444,1194855,1275005,1194858,1318096,1088154,1399973,1069998,1399982} without a concrete notion of a general-purpose resource allocation or scheduling framework. 
-%in which a variety of application-specific QoS requirements can be communicated to an all-purpose resource allocator and scheduler.
-Iyer\cite{1006246} suggests a priority-based cache QoS framework, CQoS, for shared cache way-partitioning. 
+\pacora relies on resource partitioning and Quality-of-Service mechanisms when available to enforce its resource allocation decisions.  Resource partitioning and QoS research is active for on-chip, cluster, and networking resources.  However, the vast majority of esearch focuses on allocating a single resource type with a fixed policy --typically fairness.
+
+Some have researched network bandwidth fairness~\cite{Blanquer, Kleinberg99fairnessin, Liu}, while others~\cite{Baruah96proportionateprogress, Baruah_fastscheduling, Zhu} have focused on CPU fairness. 
+
+Hardware partitioning research, which has focused mainly on caches, provides mechanisms to partition research according to a policy designed into the hardware, not the flexible allocations \pacora requires \cite{876484, 967444,1194855,1275005,1194858,1318096,1088154,1399973,1069998,1399982} .  Early work focused on providing adaptive, fair policies that ensure equal performance degradation \cite{605420,1086328}, not guaranteeing responsiveness. More recent proposals have incorporated more sophisticated policy management \cite{1241608,1331730,1152161,1254886}. Iyer\cite{1006246} suggests a priority-based cache QoS framework, CQoS, for shared cache way-partitioning. 
 %The priorities might be specified per core, per application, per memory type, or even per memory reference. 
 However, simultaneous achievement of performance targets as in \pacora is not addressed.
 
-While many papers in computer science focus on
-multi-resource fairness, they are only considering multiple instances of the same interchangeable resource, e.g.,
-CPU\cite{Baruah96proportionateprogress, Baruah_fastscheduling, Zhu}, and bandwidth ~\cite{Blanquer, Kleinberg99fairnessin, Liu}. Unlike these
-approaches, we focus on the allocation of resources of
-different types.
+
+%In general, these papers focus on designing and proving the effectiveness of particular mechanisms for particular goalswithout a concrete notion of a general-purpose resource allocation or scheduling framework. 
+%in which a variety of application-specific QoS requirements can be communicated to an all-purpose resource allocator and scheduler.
+
 
 
 %The Singularity operating system\cite{aiken-mspc06} provides process isolation through software rather than hardware.  This isolation in accessibility is not the same as the performance isolation that is desirable for \pacora.
@@ -200,3 +187,6 @@ different types.
 %\cite{828990}
 %
 
+%Utility-Based Cache Partitioning: A Low-Overhead, High-Performance, Runtime Mechanism to Partition Shared Caches
+%\cite{1194855}
+%
