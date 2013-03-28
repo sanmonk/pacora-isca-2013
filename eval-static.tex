@@ -47,21 +47,21 @@ the 12 ways to a set of hyperthreads, thereby allowing only those hyperthreads t
 We use a customized BIOS that enables the cache partitioning
 mechanism, and run unmodified Linux-2.6.36 for all of our experiments.
 To allocate cores, we use the Linux {\tt taskset} command to pin applications to
-sets of hyperthreads. The standard Linux scheduler performs the scheduling for applications within these containers of hyperthreads. For our experiments we consider each hyperthread to be an independent core. To minimize the interference between hyperthreads, we first assign both hyperthreads available in one core before moving on to the next core. For example, allocations with 4 cores correspond to running on both hyperthreads of 2 cores.
+sets of hyperthreads. The standard Linux scheduler performs the scheduling for applications within these containers of hyperthreads. For our experiments we consider each hyperthread to be an independent core. To minimize inter-application interference, we first assign both hyperthreads available in one core before moving on to the next core. For example, a 4-core allocation represents both hyperthreads of 2 cores.
 
 \subsection{Performance and Energy Measurement}
 
 To measure application performance, we use the \texttt{libpfm}
 library~\cite{Eranian:OLS06,Perfmon2}, built on top of the
-\texttt{perf\_events} infrastructure introduced in Linux 2.6.31, to
+\texttt{perf\_events} infrastructure in Linux, to
 access available performance counters~\cite{Intel:Manual2012}.
 
 To measure on-chip energy, we use the energy counters available on
 Sandy Bridge to measure the consumption of  the entire socket and also
 the total combined energy of cores, their private caches, and the
 LLC. We access these counters using the Running Average Power Limit
-(RAPL) interfaces~\cite{Intel:Manual2012}.  The counters measure power
-at a $1/2^{16}$ second granularity.
+(RAPL) interfaces~\cite{Intel:Manual2012}.  %The counters measure power
+%at a $1/2^{16}$ second granularity.
 
 %In addition, we use a FitPC external multimeter to measure at the wall socket the power
 %consumed by the entire system, at a
@@ -83,8 +83,8 @@ system features.
 The \textbf{SPEC CPU2006} benchmark suite~\cite{SPEC2006} is a
 CPU-intensive, single-threaded benchmark suite, designed to stress a
 system's processor, memory subsystem, and compiler.  Using the
-similarity analysis performed by Phansalkar et
-al.~\cite{Phansalkar:ISCA2007}, we subset the suite, selecting 4
+similarity analysis performed by Phansalkar \emph{et
+al.}~\cite{Phansalkar:ISCA2007}, we subset the suite, selecting 4
 integer benchmarks ({\tt astar}, {\tt libquantum}, {\tt mcf}, {\tt omnetpp}) and 4
 floating-point benchmarks (cactusADM, calculix, lbm, povray).  Based
 on the characterization study by Jaleel~\cite{Jaleel:TR2007}, we also
