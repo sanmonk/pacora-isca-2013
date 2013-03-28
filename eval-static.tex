@@ -84,19 +84,18 @@ system features.
 
 The \textbf{SPEC CPU2006} benchmark suite~\cite{SPEC2006} is a
 CPU-intensive, single-threaded benchmark suite, designed to stress a
-system's processor, memory subsystem and compiler.  Using the
+system's processor, memory subsystem, and compiler.  Using the
 similarity analysis performed by Phansalkar et
 al.~\cite{Phansalkar:ISCA2007}, we subset the suite, selecting 4
 integer benchmarks ({\tt astar}, {\tt libquantum}, {\tt mcf}, {\tt omnetpp}) and 4
 floating-point benchmarks (cactusADM, calculix, lbm, povray).  Based
 on the characterization study by Jaleel~\cite{Jaleel:TR2007}, we also
 pick 4 extra floating-point benchmarks that stress the LLC: {\tt GemsFDTD},
-{\tt leslie3d}, {\tt soplex} and {\tt sphinx3}.  When multiple input sets and sizes are
-available, we pick the single \textit{ref} input indicated by
-Phansalkar et al.~\cite{Phansalkar:ISCA2007}.
+{\tt leslie3d}, {\tt soplex} and {\tt sphinx3}.  When multiple input sets are
+available, we pick the single \textit{ref} input indicated by~\cite{Phansalkar:ISCA2007}.
 
 We include the \textbf{DaCapo} Java benchmark suite as a
-representative of a managed-language workloads. We use the latest 2009 release, which consists of a set of open-source, real-world
+representative of managed-language workloads. We use the latest 2009 release, which consists of a set of open-source, real-world
 applications with non-trivial memory loads, and includes both client and
 server-side applications.
 
@@ -150,7 +149,7 @@ The clustering results in 6 clusters representing the following (applications at
 \end{figure*}
 To test the effectiveness of our RTFs in capturing real application behavior, we measure each of our 44 benchmarks running alone on the machine for all possible resource allocations of cache ways and cores.  Cores can be allocated from 1--8 and cache ways from 1--12 resulting in 96 possible allocations for each application.   We use a genetic algorithm design of experiments~\cite{bates-aes03} to select 10 and 20 of the collected allocations to build the RTFs.  We also experimented with building RTFs with more data points but found that they provided little improvement over 20~\cite{pacora_tr}.  We then use the model to predict the performance of every resource allocation and compare it with the actual measured performance (median value of 3 trials) of that resource allocation.  We built 3 different models from 3 trials and tested each of them against median measured value.
 
-Figure~\ref{model_accuracy} shows the 1-norm of the relative error of the predicted response times per resource allocation for an RTF built with 10 training points and one built with 20.  The average error per point is 16\% for an RTF built with 10 training points and 9\% for an RTF built with 20 training points.  We also calculated the percentage variability (average standard deviation) for each resource allocation in the application between the 3 trials (shown as ``App'' in Figure~\ref{model_accuracy}).  The average variability is 9\%, so we can see that \pacora's RTFs are not much more inaccurate than the natural variation in response time in the application.  It is not possible an RTF to be more accurate than the application variability, and we can also see that applications with higher variability result in RTFs with larger relative errors, \emph{e.g.,} {\tt stencilprobe}, {\tt tradebeans}.  Section~\ref{discuss} discusses application variability in more detail.
+Figure~\ref{model_accuracy} shows the 1-norm of the relative error of the predicted response times per resource allocation for an RTF built with 10 training points and one built with 20.  The average error per point is 16\% for an RTF built with 10 training points and 9\% for an RTF built with 20 training points.  We also calculated the percentage variability (average standard deviation) for each resource allocation in the application between the 3 trials (shown as ``App'' in Figure~\ref{model_accuracy}).  The average variability is 9\%, so we can see that \pacora's RTFs are not much more inaccurate than the natural variation in response time in the application.  It is not for possible an RTF to be more accurate than the application variability, and we can also see that applications with higher variability result in RTFs with larger relative errors, (\emph{e.g.,} {\tt stencilprobe}, {\tt tradebeans}).  Section~\ref{discuss} discusses application variability in more detail.
 
 
 \subsection{Resource Allocation Experiments}
@@ -167,7 +166,7 @@ Using the RTFs built for the applications, we let \pacora make static resource a
 
 %how \pacora's decisions compared with the optimal allocation, equally dividing the machine, and the Linux baseline for each pair of the cluster representative applications.
 Figure~\ref{decision_quality} shows these results for our 10 point RTFs. As we might expect, simple naive heuristics do not perform well and dividing the machine in half is around 20\% slower than either \pacora or standard Linux.
- \pacora's resource allocations are 2\% from the optimal static allocation on average.  Using shared resources with the standard Linux scheduler performs similarly but with a higher standard deviation.  The shared resources comparison is interesting because while most of the time sharing resources can result in higher utilization as the applications can dynamically take advantage of available resources, we found that in some cases the interference between applications was so harmful to performance that on average optimal static partitioning performs slightly better.  As a result \pacora is able to provide performance comparable to Linux scheduling on shared resources with more predictable performance on average (lower worst cases).  Additionally as the shown in the next Section, \pacora's resource allocation decisions do not need to be static, but can be made dynamically to adjust to the changing needs of the applications.
+ \pacora's resource allocations are 2\% from the optimal static allocation on average.  Using shared resources with the standard Linux scheduler performs similarly but with a higher standard deviation.  The shared resources comparison is interesting: while most of the time sharing resources can result in higher utilization, as the applications can dynamically take advantage of available resources, in some cases the interference between applications was so harmful to performance that on average optimal static partitioning performs slightly better.  As a result \pacora is able to provide performance comparable to Linux scheduling on shared resources with more predictable performance on average (lower worst cases).  Additionally, as the shown in the next Section, \pacora's resource allocation decisions do not need to be static, but can be made dynamically to adjust to the changing needs of the applications.
 
 
 %These results indicate the \pacora is able to get a near optimal resource allocation and match the performance of the traditional Linux scheduler with more predictability.

@@ -43,9 +43,9 @@ Such models are automatically convex in the allocations because $1/a$ is convex 
 \subsubsection*{Non-Convexity}
 Forcing our response time functions to be convex assumes that the actual response time are close to convex. We find this to be a plausible requirement as applications almost completely follow the proverbial ``Law of Diminishing Returns'' for resource allocations.
 
-However, there are examples of response time versus resource behavior that violate convexity.   For example, we have seen non-convex performance in applications when dealing with hyperthreads or memory pages.  For two of our applications, 5 hyperthreads resulted in significantly worse performance than either 4 or 6.  When studying some other applications applications we found that particular numbers of memory pages, \emph{e.g.,} 2K, resulted in much better performance than the adjacent page allocations.  Avoiding (or seeking out) these allocations would add significant cost to the optimization problem.
+However, there are examples of response time versus resource behavior that violate convexity.   For example, we have seen non-convex performance in applications when dealing with hyperthreads or memory pages.  For two of our applications, 5 hyperthreads resulted in significantly worse performance than either 4 or 6.  When studying some other applications, we found that particular numbers of memory pages, (\emph{e.g.,} 2K), resulted in much better performance than the adjacent page allocations.  Avoiding (or seeking out) these allocations would add significant cost to the optimization problem.
 
-Another kind of convexity violation can occur in memory allocation, where ``plateaus'' can sometimes be seen as in Figure~\ref{f:plat}. Such plateaus are typically caused by algorithm adaptations within the application to accommodate variable resource availability.  The response time is really the \emph{minimum} of several convex functions depending on allocation and the point-wise minimum that the application implements fails to preserve convexity.  The effect of the plateaus will be a non-convex penalty as shown in Figure~\ref{f:plateffect} and multiple extrema in the optimization problem will be a likely result. There are several ways to avoid this problem.  One is based on the observation that such response time functions will at least be \emph{quasiconvex}.  Another idea is to use additional constraints to explore convex sub-domains of $\tau$. Either approach adds significant computational cost.
+Another kind of convexity violation can occur in memory allocation, where ``plateaus'' can sometimes be seen as in Figure~\ref{f:plat}. Such plateaus are typically caused by algorithm adaptations within the application to accommodate variable resource availability.  The response time is really the \emph{minimum} of several convex functions depending on allocation, and the point-wise minimum that the application implements fails to preserve convexity.  The effect of the plateaus will be a non-convex penalty as shown in Figure~\ref{f:plateffect} and multiple extrema in the optimization problem will be a likely result. There are several ways to avoid this problem.  One is based on the observation that such response time functions will at least be \emph{quasiconvex}.  Another idea is to use additional constraints to explore convex sub-domains of $\tau$. Either approach adds significant computational cost.
 
 \begin{figure}[hb]
 \parbox{1.6in}{
@@ -59,7 +59,7 @@ Another kind of convexity violation can occur in memory allocation, where ``plat
 }
 \end{figure}
 
-Overall, we found that our simple convex models still resulted in high-quality resource allocations and thus chose not to implement any of these approaches.  Alternative approaches to handling non-convex behavior are described in Appendix~\ref{convex}. Additional challenges to response time modeling are discussed in Section~\ref{discuss}.
+Overall, we found that our simple convex models still resulted in high-quality resource allocations and thus chose not to implement any of these approaches.  Alternative approaches to handling non-convex behavior are described in~\cite{pacora_tr}. Additional challenges to response time modeling are discussed in Section~\ref{discuss}.
 
 %\subsubsection*{Dynamically Changing Applications}
 %
@@ -76,7 +76,7 @@ Overall, we found that our simple convex models still resulted in high-quality r
 \subsubsection*{Data Collection and Model Creation Time}
 There are many ways to collect the response time data for applications. The user-level runtime scheduler is one possible source, or the operating system could measure progress using performance counters.  In our implementation, applications report their own measured values; however, this solution was chosen simply as a way to test the validity of the concept.  In a production operating system it may not be a good idea because applications could lie about their performance.  In a datacenter environment this might be less of a concern.
 
-There are also many different possible moments to create response time functions.  RTFs could be created in advance and distributed with the application. This approach could make lots of sense for app stores since most of them cater to just a few platforms. RTFs could also be crowd-sourced and built in the cloud, which has the advantage making it easy to collect a diverse set of training points.  However, all of these approaches lack adaptability.  As a result, we have chosen to implement two solutions that collect data directly from the user's machine.  The first approach is to adapt to the system by collecting all of the training points at application install time and building the model then.  The most highly adaptive approach collects data continuously as the application runs, uses the data to modify the model training set, and rebuilds the model.  A hybrid approach may be the most effective: applications can begin with a generic model and improve it over time. Section~\ref{RTFs} describes our model creation process in detail.
+There are also many different possible moments to create response time functions.  RTFs could be created in advance and distributed with the application. This approach could make lots of sense for app stores since most of them cater to just a few platforms. RTFs could also be crowd-sourced and built in the cloud, which has the advantage making it easy to collect a diverse set of training points.  However, all of these approaches lack adaptability.  As a result, we have chosen to implement two solutions that collect data directly from the user's machine.  The first approach is to adapt to the system by collecting all of the training points at application install time and building the model then.  The most highly adaptive approach collects data continuously as the application runs, uses the data to modify the model training set, and rebuilds the model.  A hybrid approach may be the most effective: applications can begin with a generic model and improve it over time. The remainder of this Section describes our model creation process in detail.
 \subsection{Response Time Model Creation}
 To create RTF models either at install time or online we use a least squares approach described below.  For the install time approach we use a genetic algorithm, Audze-Eglasis Design of Experiments\cite{bates-aes03}, to select the resource vectors to use for training.  These vectors and their response times are fed into the least squares algorithm. In the online approach the information comes from the application's response time history.
 
@@ -84,7 +84,7 @@ To create RTF models either at install time or online we use a least squares app
 After enough measurements, discovery of the model parameters $w$ that define the function $\tau$
 can be based on a solution to the over-determined linear system $t=Dw$,
 where $t$ is a column vector of actual response times measured for the application
-and $D$ is a matrix whose ith row $D_{i,*}$ contains the corresponding resource vector.
+and $D$ is a matrix whose $i$th row $D_{i,*}$ contains the corresponding resource vector.
 Estimating $w$ is relatively straightforward: a least-squares solution accomplished via
 \emph{QR factorization}\cite{GoVL} of $D$ will determine the $w$ that minimizes the \emph residual error of
 $\|Dw - t\|^2_2 =  \|\varepsilon\|^2_2$.
@@ -117,7 +117,7 @@ and adding a row, perhaps at the top.
 Corresponding elements of $t$ are dropped and added to form $\tilde{t}$.
 
 The matrices $\tilde{Q}$ and $\tilde{R}$ can be generated by applying Givens rotations
-in the way described in Section 12 of \cite{GoVL} to \emph{downdate} or \emph{update} the factorization
+as described in Section 12 of \cite{GoVL} to \emph{downdate} or \emph{update} the factorization
 much more cheaply than recomputing it \emph{ab initio}.
 The method requires retention and maintenance of $Q^T$ but not of $D$.
 Every update in \pacora is preceded by a downdate that makes room for it.
@@ -198,7 +198,7 @@ $dd = \arg\max_i |\varepsilon_i| \cdot \eta^{g(i)}$ and that does not reduce the
 
 
 \subsubsection*{Power Response Modeling}
-Recall that we manage power and battery energy with an artificial application named Application 0 which receives all resources not allocated to other applications. Application 0's "response time" function is similar to the other applications' response time functions.  The function inputs are resource allocations just as with the other applications.  However, the function output is system power rather than response time.   To create the RTF, system power can be measured directly from on-chip energy counters in systems where they are available or from a power meter.  These models can be built in advance, during a training phase or online while the system runs, just as with the application RTFs.  Alternatively, the model could be part of the operating system's platform-specific information.
+Recall that we manage power and battery energy with an artificial application named application 0 which receives all resources not allocated to other applications. Application 0's "response time" function is similar to the other applications' RTFs.  The function inputs are resource allocations just as with the other applications.  However, the function output is system power rather than response time.   To create the RTF, system power can be measured directly from on-chip energy counters in systems where they are available or from a power meter.  These models can be built in advance, during a training phase or online while the system runs, just as with the application RTFs.  Alternatively, the model could be part of the operating system's platform-specific information.
 
-Although system power may not be perfectly convex in reality, forcing it to be convex is reasonable because idling a resource should not increase power.  As a result, Application 0 still fills its purpose of keeping applications from using additional resources that have poor performance/power ratios.
+Although system power may not be perfectly convex in reality, forcing it to be convex is reasonable because idling a resource should not increase power.  As a result, application 0 still fufills its purpose of keeping applications from using additional resources that have poor performance/power ratios.
 

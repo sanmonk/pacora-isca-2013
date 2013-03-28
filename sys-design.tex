@@ -56,7 +56,9 @@ resource-allocation decisions (\emph{e.g.,} cores and memory pages) at
 the OS level, while the micro-management of these resources to run
 application tasks is left to user-level runtimes such as Intel
 Threaded Building Blocks~\cite{CoMa08} or Lithe~\cite{lithe}, and to
-user-level memory managers.  As a result, \pacora could be used to consolidate realtime systems.  Resources can be allocated to various realtime user-level schedulers such as Earliest-Deadline-First or Rate-Monotonic schedulers, eliminating the need in the case of many applications for a realtime OS designed around one of these schedulers.  In the cloud environment, \pacora allocates
+user-level memory managers.  
+%As a result, \pacora could be used to consolidate realtime systems.  Resources can be allocated to various realtime user-level schedulers such as Earliest-Deadline-First or Rate-Monotonic schedulers, eliminating the need in the case of many applications for a realtime OS designed around one of these schedulers.  
+In the cloud environment, \pacora allocates
 resources (\emph{e.g.,} nodes and storage) to jobs, and scheduling is
 left to other entities such as the MapReduce framework\cite{mapreduce}
 or the node OS.  \pacora can also be used in a hypervisor to allocate
@@ -142,12 +144,12 @@ Alternative models and the initial model evaluations are described in Appendix~\
 
 \pacora assumes some amount of performance isolation between
 applications.  In order for the RTFs to accurately reflect the
-expected response times of the applications, it is important the
+expected response times of the applications, it is important that the
 response time does not change much as a function of the other
 applications currently running on the machine.  However, the
 performance isolation need not be completely perfect: all of our
 evaluation was run on current x86 hardware with some shared resources,
-and \pacora still performs quite well. Section~\ref{discuss} discusses
+and \pacora is still effective. Section~\ref{discuss} discusses
 handling shared resources in more detail.
 
 \subsection{Penalty Functions}
@@ -185,13 +187,13 @@ Figures~\ref{f:pen1} and~\ref{f:pen2}.
 }
 \end{figure}
 
-\subsection{Resource Allocation As Optimization}
+\subsection{Resource Allocation as Optimization}
 
 \pacora formulates resource allocation as an optimization problem
 designed to minimize the total penalty of the system. This approach is
 analogous to minimizing user dissatisfaction with the user experience
 due to missed deadlines in a client system, and minimizing the contract
-penalties paid for violated service-level agreements in a cloud
+penalties paid for violated SLAs in a cloud
 system.
 
 The optimization selects the allocations for all resources and
@@ -201,7 +203,7 @@ choose to allocate more memory bandwidth in lieu of on-chip cache, or
 one large core instead of several small cores.  Given that all of the
 resources allocated to an application contribute to the response time,
 it would difficult to provide predictable response times for
-applications considering the allocation of only one resource type at a
+applications by considering the allocation of only one resource type at a
 time.
 
 A succinct mathematical characterization of this resource allocation scheme is the following:
@@ -257,9 +259,9 @@ are affine and therefore convex; they can be rewritten as $\sum_{p\in
 
 The convex formulation makes the optimization scale linearly in the
 number of resource types and the number of applications.  For client
-operating systems with around 100 application running and 10 resource
+operating systems with around 100 applications running and 10 resource
 dimensions, the total number of variables in the optimization problem
-is 1000---a very small problem which is solved in microseconds on
+is 1000 --a very small problem which is solved in microseconds on
 current systems.  Cloud systems could have many more than 100
 applications running, but the problem size scales linearly and the
 potential benefits of a good allocation should scale rapidly with the
