@@ -45,9 +45,9 @@
 
 To evaluate \pacora's ability to make real-time decisions in a real operating system, we implemented it in an in-house research operating system, \tess. We chose to implement in \tess rather than Linux for three reasons:
  \begin{itemize}\itemsep0pt \parskip0pt \parsep5pt
-\item \tess separates resource allocation from scheduling so it more accurately reflects the system design \pacora assumes
+\item \tess separates resource allocation from scheduling, so it more accurately reflects the system architecture \pacora assumes
 \item \tess allows resource revocation, enabling \pacora to dynamically reallocate resources
-\item \tess implements additional resource partitioning and QoS mechanisms, letting \pacora explore allocating more resource types
+\item \tess implements additional resource partitioning mechanisms, letting \pacora explore allocating more resource types
 \end{itemize}
 This dynamic framework is used to test our implementations of the algorithms, measure the overhead and reaction times, and illustrate \pacora's ability to work in a real system.
 
@@ -55,7 +55,7 @@ This dynamic framework is used to test our implementations of the algorithms, me
 Our dynamic experiments are all run on an Intel Nehalem-EP system with two 2.66-GHz Xeon X5550 quad-core processors and hyperthreading enabled with 16 hardware threads. Tis system also contains a 1-Gbps Intel Pro/1000 Ethernet network adapter.
 \tess allocates resources directly to applications, and the applications employ a second-level scheduler to schedule work onto the resources.  
 %There are two scheduling frameworks available in \tess: a cooperative framework called Lithe (LIquid THrEads)~\cite{lithe} and a preemptive one called PULSE (Preemptive User-Level SchEduling).  
-All of our experiments use a preemptive scheduling framework called PULSE (Preemptive User-Level SchEduling), with two different scheduling strategies: applications with responsiveness requirements use an earliest-deadline-first (EDF) scheduler and throughput-oriented applications use a global-round-robin (GRR) scheduler.
+All of our experiments use a preemptive scheduling framework called PULSE (Preemptive User-Level SchEduling), with two different scheduling strategies: applications with responsiveness requirements use an earliest-deadline-first (EDF) scheduler and throughput-oriented applications use a round-robin (GRR) scheduler.
 
 In addition to allocating cores and cache ways as with our static framework, \tess can also allocate fractions of network bandwidth.  In our experiments, we show \pacora allocating cores and network bandwidth because the experimental platform, which has the advantage of more cores, does not have cache partitioning.  We have also experimented with additional resources such as memory pages and cpu utilization, but the results are not presented here.
 
