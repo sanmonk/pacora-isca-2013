@@ -121,19 +121,24 @@ from applications we studied.
   breadth-first search algorithm and streamcluster from PARSEC. We show two resource dimensions: cores and cache slices.}
 \end{figure}
 
-Equation~\ref{rtf_eq} below shows the form of the RTF we use in \pacora.
+Equation~\ref{rtf_eq} below shows the RTF we use in \pacora.
 
 \begin{equation}\label{rtf_eq}
 \tau(w,a) = \tau_0 + \sum_{i\in n,j\in n}{\frac{w_{i,j}}{\sqrt{a_i * a_j}}}
 \end{equation}
 
-Here $\tau$ represents the response time, $i$ and $j$ represent
-resource types, $n$ represents the total number of resource types,
-$a_{i}$ and $a_{j}$ represent the allocation of resources types $i$
-and $j$, and $w_{i,j}$ represents the application-specific weight for
-the term representing resources $i$ resource $j$.  The dimensionality
-of the function increases linearly with the number of resource
-types. The RTFs will be described further in Section~\ref{app_func}.
+Here $\tau$ is the response time, $i$ and $j$ are
+resource types, $n$ is the total number of resource types,
+$a_{i}$ and $a_{j}$ are the allocations of resource types $i$
+and $j$, and $w_{i,j}$ is the application-specific weight for
+the term representing resources $i$ and $j$.
+We choose this specific function because it is convex in the resources and in initial application studies
+we found it models response time behavior accurately enough to allow the optimization to make good decisions.
+In our experience the cross term weights (those with $i\neq j$) are almost always negligible and can be omitted.
+The dimensionality of the function increases roughly linearly with the number of resource types.
+The RTFs will be described further in Section~\ref{RTFs}.
+Alternative models and the initial model evaluations are described in Appendix~\ref{rtf_choice}.
+
 
 \pacora assumes some amount of performance isolation between
 applications.  In order for the RTFs to accurately reflect the
@@ -161,7 +166,6 @@ defines the rate the penalty increases as response time increases. For
 applications without response-time constraints the deadline can be set
 to $0$. Two representative graphs of this type appear in
 Figures~\ref{f:pen1} and~\ref{f:pen2}.
-Penalty functions will be described further in Section~\ref{app_func}.
 
 %In a client operating system, management of penalty function modifications
 %should be highly automated by the system to avoid unduly burdening the user.
@@ -262,7 +266,7 @@ potential benefits of a good allocation should scale rapidly with the
 size of the system.
 
 \pacora also formulates RTF \emph{creation} as a convex optimization
-problem, as explained in Section~\ref{model_creation}.
+problem, as explained in Section~\ref{RTFs}.
 
 \subsection{Power and Energy}
 In \pacora, we create an artificial application to represent the
