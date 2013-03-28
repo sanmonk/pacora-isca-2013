@@ -51,7 +51,9 @@ AcOS also senses thermal conditions and can exploit Dynamic Voltage and Frequenc
 
 A survey of autonomic systems research appears in \cite{1380585}.
 
-\subsection{Soft Real-Time and SLAs}
+\subsection{``Model-Based'' Scheduling and Allocation Frameworks for SLAs and Soft Real-Time Requirements}
+
+
 Soft real-time systems typically modify an existing operating system to improve responsiveness.
 Calandrino \emph{et al.}\cite{unc} use working set sizes to make co-scheduling decisions and enhance soft real-time behavior.
 
@@ -95,19 +97,17 @@ The models are statistical, and bootstrapping is used to estimate performance va
 Major changes in the application model are detected and cause model exploration to resume.
 The models are not convex or concave in general, and all SLAs must be met with high probability.
 
-
-
-\subsection{Resource Allocation Frameworks}
+Ganapathi \emph{et al.} have had success using machine learning to model application performance and select the best performing configuration in \cite{Archana}.
 
 Guo \emph{et al.}\cite{1331730} point out that much prior work is insufficient for true QoS -- merely partitioning hardware is not enough, because there must also be a way to specify performance targets and an admission control policy for jobs.
 %They argue that targets should be expressed in terms of capacity requirements rather than rates.
 The framework they present incorporates a scheduler that supports multiple execution modes.
 
-Nesbit \emph{et al.}\cite{1436097} introduce the \emph{Virtual Private Machines} (VPM), a framework for resource allocation and management in multicore systems. A VPM consists of a set of virtual hardware resources, both spatial (physical allocations) and temporal (scheduled time-slices).  Unlike traditional virtual machines that only virtualize resource functionality, VPMs virtualize a system's performance and power characteristics, meaning that a VPM has the same performance and power profile as a real machine with an equivalent set of hardware resources.
+Nesbit \emph{et al.}\cite{1436097} introduce the \emph{Virtual Private Machines} (VPM), a framework for resource allocation and management in multicore systems. A VPM consists of a set of virtual hardware resources, both spatial (physical allocations) and temporal (scheduled time-slices).  They break down the framework components into policies and mechanisms which may be implemented in hardware or software. VPM {\em modeling} maps high-level application objectives into VPM configurations, and VPM {\em translation}, which uses VPM models to assign an acceptable VPM to the application while adhering to system-level policies. A VPM scheduler decides if the system can accommodate all applications. The VPM approach and terminology is similar to \pacora's design at the high-level.  However, Nesbit \emph{et al.} did not perform design, implementation or evaluations of the modeling, translation, or scheduling components suggested in their paper.
 
-They break down the framework components into policies and mechanisms which may be implemented in hardware or software. Critical software components of the VPM framework are VPM {\em modeling}, which maps high-level application objectives into VPM configurations, and VPM {\em translation}, which uses VPM models to assign an acceptable VPM to the application while adhering to system-level policies. A VPM scheduler then decides if the system can accommodate all applications or whether resources need to be revoked.
-
-The VPM approach and terminology mesh well with our study, which can be seen as a specific implementation of several key aspects of the type of framework they describe (i.e. VPM modeling and translation). Nesbit \emph{et al.} did not perform any evaluations of the modeling, translation, or scheduling processes suggested in their paper.
+%mesh well with our study, which can be seen as a specific implementation of several key aspects of the type of framework they describe (i.e. VPM modeling and translation). 
+%
+%Unlike traditional virtual machines that only virtualize resource functionality, VPMs virtualize a system's performance and power characteristics, meaning that a VPM has the same performance and power profile as a real machine with an equivalent set of hardware resources.
 
 
 
@@ -116,7 +116,7 @@ The VPM approach and terminology mesh well with our study, which can be seen as 
 Merkel and Bellosa\cite{merkel-eurosys08} propose \emph{Task Activity Vectors} that describe how much each application uses the various functional units; these vectors are used to balance usage across multiple cores and unbalance usage among hardware threads within each core.
 The intended effect is to distribute chip temperature more evenly, but the idea may be more broadly applicable, \emph{e.g.,} for heterogeneous systems.
 
-Ganapathi \emph{et al.} have had success using machine learning to model application performance and select the best performing configuration in \cite{Archana}.
+
 
 %\todo{I DON'T KNOW WHY \cite{975344,wasserman-book} ARE IN HERE}
 
