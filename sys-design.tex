@@ -70,11 +70,10 @@ response-time function and a penalty function. The response-time
 function represents the performance of the application with different
 resources, and is built with runtime measurements.  The penalty
 function represents the user-level goals for the application
-(\emph{i.e.,} the deadline and how important it is to make that
-deadline). \pacora then uses convex optimization\cite{BoVa} to
+(\emph{i.e.,} the deadline and how important it is to meet). \pacora uses convex optimization\cite{BoVa} to
 determine the ideal resource allocation across all active
 applications.  The following subsections briefly introduce the primary
-components of \pacora and the optimization problem itself.
+components of \pacora and the optimization formulation.
 
 \subsection{Resources}
 

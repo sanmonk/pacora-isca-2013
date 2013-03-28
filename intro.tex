@@ -85,6 +85,6 @@ changing state of the system and trade off responsiveness and
 energy. By automatically generating performance models of
 applications, \pacora alleviates the developer from having to
 understand hardware resources and requires only a few hundred bytes of
-additional storage per application.  We have found that the impact of model accuracy on the quality of resource allocations is not significant; models with errors above 20\% still produce near optimal allocations.  This effect enables modeling to be feasible in a real system with variable applications.
+additional storage per application.  We have found that the impact of model accuracy on the quality of resource decisions is not significant; models with errors above 20\% still produce near optimal allocations.  This effect enables modeling to be feasible in real systems with noisy applications.
 
 In this paper we first present the architecture of \pacora in Section~\ref{sys_design}.  In Section~\ref{eval-static}, we evaluate its effectiveness at static resource allocation decisions, and in Section~\ref{eval-dynamic}, we assess how well it dynamically allocates resources in a manycore OS.  Section~\ref{dyn_opt} describes our dynamic penalty optimization algorithm. Section~\ref{RTFs} discusses response time functions and their creation in detail.  Section~\ref{discuss} describes some challenges and possible solutions for \pacora. Section~\ref{related_work} discusses related work, and Section~\ref{conclusion} concludes.
