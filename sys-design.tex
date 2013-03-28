@@ -56,8 +56,8 @@ resource-allocation decisions (\emph{e.g.,} cores and memory pages) at
 the OS level, while the micro-management of these resources to run
 application tasks is left to user-level runtimes such as Intel
 Threaded Building Blocks~\cite{CoMa08} or Lithe~\cite{lithe}, and to
-user-level memory managers.  
-%As a result, \pacora could be used to consolidate realtime systems.  Resources can be allocated to various realtime user-level schedulers such as Earliest-Deadline-First or Rate-Monotonic schedulers, eliminating the need in the case of many applications for a realtime OS designed around one of these schedulers.  
+user-level memory managers.
+%As a result, \pacora could be used to consolidate realtime systems.  Resources can be allocated to various realtime user-level schedulers such as Earliest-Deadline-First or Rate-Monotonic schedulers, eliminating the need in the case of many applications for a realtime OS designed around one of these schedulers.
 In the cloud environment, \pacora allocates
 resources (\emph{e.g.,} nodes and storage) to jobs, and scheduling is
 left to other entities such as the MapReduce framework\cite{mapreduce}
@@ -139,7 +139,9 @@ we found it models response time behavior accurately enough to allow the optimiz
 In our experience the cross term weights (those with $i\neq j$) are almost always negligible and can be omitted.
 The dimensionality of the function increases roughly linearly with the number of resource types.
 The RTFs will be described further in Section~\ref{RTFs}.
-Alternative models and the initial model evaluations are described in Appendix~\ref{rtf_choice}.
+Alternative models and the initial model evaluations are described in
+\cite{pacora_tr}.
+%Appendix~\ref{rtf_choice}.
 
 
 \pacora assumes some amount of performance isolation between
@@ -253,7 +255,9 @@ optimization problem in the $m = |P|\cdot n$ variables $a_{p,r}$ as
 long as the penalty functions $\pi_p$ are convex non-decreasing and
 the response-time functions $\tau_p$ are convex.  We designed our
 functions to meet these constraints, and proofs of their convexity can
-be found in Appendix~\ref{convex}. Note that the resource constraints
+be found in~\cite{pacora_tr}.
+%Appendix~\ref{convex}. 
+Note that the resource constraints
 are affine and therefore convex; they can be rewritten as $\sum_{p\in
   P} (a_{p,r} - A_r) \leq 0$ and $-a_{p,r} \leq 0$.
 

@@ -26,9 +26,20 @@ G.~Alverson \emph{et~al.}, ``Scheduling on the {T}era {M}{T}{A},'' in \emph{In
   Job Scheduling Strategies for Parallel Processing}.\hskip 1em plus 0.5em
   minus 0.4em\relax Springer-Verlag, 1995, pp. 19--44.
 
+\bibitem{EC2}
+Amazon.com, ``Ec2,'' \url{http://aws.amazon.com/ec2}.
+
 \bibitem{pacora_tr}
 Anonymized, ``Oradia: Optimizing resource allocations for dynamic interactive
   applications,'' Anonymized, Tech. Rep., 2013.
+
+\bibitem{hadoop_cap}
+Apache.org, ``Hadoop capacity scheduler,''
+  \url{http://hadoop.apache.org/common/docs/r0.20.2/capacity_scheduler.html}.
+
+\bibitem{hadoop_fair}
+Apache.org, ``Hadoop fair scheduler,''
+  \url{http://hadoop.apache.org/common/docs/r0.20.2/fair_scheduler.html}.
 
 \bibitem{iOsDev}
 {Apple Inc.}, ``{iOS App Programming Guide},''
@@ -47,6 +58,15 @@ D.~B. Bartolini \emph{et~al.}, ``Acos: an autonomic management layer enhancing
   Heterogeneous, Autonomous, 'N' Goal-oriented Environments (CHANGE),
   co-located with the Annual Design Automation Conference (DAC)}, 2012.
 
+\bibitem{Baruah96proportionateprogress}
+S.~K. Baruah \emph{et~al.}, ``Proportionate progress: A notion of fairness in
+  resource allocation,'' \emph{Algorithmica}, vol.~15, pp. 600--625, 1996.
+
+\bibitem{Baruah_fastscheduling}
+S.~K. Baruah, J.~E. Gehrke, and C.~G. Plaxton, ``Fast scheduling of periodic
+  tasks on multiple resources,'' in \emph{In Proceedings of the 9th
+  International Parallel Processing Symposium}, 1995, pp. 280--288.
+
 \bibitem{bates-aes03}
 S.~J. Bates, J.~Sienz, and D.~S. Langley, ``Formulation of the audze--eglais
   uniform latin hypercube design of experiments,'' \emph{Adv. Eng. Softw.},
@@ -60,6 +80,15 @@ C.~Bienia \emph{et~al.}, ``The parsec benchmark suite: Characterization and the
 \bibitem{dacapo}
 S.~M. Blackburn \emph{et~al.}, ``The {DaCapo} benchmarks: {J}ava benchmarking
   development and analysis,'' in \emph{OOPSLA}, 2006, pp. 169--190.
+
+\bibitem{Blanquer}
+\BIBentryALTinterwordspacing
+J.~M. Blanquer and B.~\"{O}zden, ``Fair queuing for aggregated multiple
+  links,'' in \emph{Proceedings of the 2001 conference on Applications,
+  technologies, architectures, and protocols for computer communications}, ser.
+  SIGCOMM '01.\hskip 1em plus 0.5em minus 0.4em\relax New York, NY, USA: ACM,
+  2001, pp. 189--197. Available: \url{http://doi.acm.org/10.1145/383059.383074}
+\BIBentrySTDinterwordspacing
 
 \bibitem{bodik-acdc09}
 P.~Bodik \emph{et~al.}, ``Automatic exploration of datacenter performance
@@ -83,11 +112,6 @@ J.~Chang and G.~S. Sohi, ``Cooperative cache partitioning for chip
 D.~Chen and R.~J. Plemmons, ``Nonnegativity constraints in numerical
   analysis,'' Lecture presented at the symposium to celebrate the 60th birthday
   of numerical analysis, Leuven, Belgium, October 2007.
-
-\bibitem{1248396}
-S.~Chen \emph{et~al.}, ``Scheduling threads for constructive cache sharing on
-  {CMP}s,'' in \emph{Proc. SPAA '07}.\hskip 1em plus 0.5em minus 0.4em\relax
-  New York, NY, USA: ACM, 2007, pp. 105--115.
 
 \bibitem{1194858}
 S.~Cho and L.~Jin, ``Managing distributed, shared l2 caches through os-level
@@ -128,6 +152,11 @@ S.~Eranian, ``Perfmon2: a flexible performance monitoring interface for
 \bibitem{Feit97}
 D.~G. Feitelson, ``Job scheduling in multiprogrammed parallel systems,'' 1997.
 
+\bibitem{FeRu92}
+D.~G. Feitelson and L.~Rudolph, ``Gang scheduling performance benefits for
+  fine-grain synchronization,'' \emph{J. Parallel Distrib. Comput.}, vol.~16,
+  no.~4, pp. 306--318, 1992.
+
 \bibitem{FRS04}
 D.~G. Feitelson, L.~Rudolph, and U.~Schwiegelshohn, ``Parallel job scheduling -
   a status report,'' in \emph{JSSPP}, 2004, pp. 1--16.
@@ -146,6 +175,15 @@ A.~D. Ferguson \emph{et~al.}, ``Jockey: guaranteed job latency in data parallel
 A.~Ganapathi \emph{et~al.}, ``A case for machine learning to optimize multicore
   performance,'' in \emph{HotPar09}, Berkeley, CA, 3/2009 2009. Available:
   \url{http://www.usenix.org/event/hotpar09/tech/}
+\BIBentrySTDinterwordspacing
+
+\bibitem{mesos-DRF}
+\BIBentryALTinterwordspacing
+A.~Ghodsi \emph{et~al.}, ``Dominant resource fairness: fair allocation of
+  multiple resource types,'' in \emph{Proceedings of the 8th USENIX conference
+  on Networked systems design and implementation}, ser. NSDI'11.\hskip 1em plus
+  0.5em minus 0.4em\relax Berkeley, CA, USA: USENIX Association, 2011, pp.
+  24--24. Available: \url{http://dl.acm.org/citation.cfm?id=1972457.1972490}
 \BIBentrySTDinterwordspacing
 
 \bibitem{GoVL}
@@ -167,6 +205,15 @@ F.~Guo \emph{et~al.}, ``A framework for providing quality of service in chip
 J.~L. Hennessy and D.~A. Patterson, \emph{Computer Architecture - A
   Quantitative Approach (5. ed.)}.\hskip 1em plus 0.5em minus 0.4em\relax
   Morgan Kaufmann, 2012.
+
+\bibitem{mesos}
+\BIBentryALTinterwordspacing
+B.~Hindman \emph{et~al.}, ``Mesos: a platform for fine-grained resource sharing
+  in the data center,'' in \emph{Proceedings of the 8th USENIX conference on
+  Networked systems design and implementation}, ser. NSDI'11.\hskip 1em plus
+  0.5em minus 0.4em\relax Berkeley, CA, USA: USENIX Association, 2011, pp.
+  22--22. Available: \url{http://dl.acm.org/citation.cfm?id=1972457.1972488}
+\BIBentrySTDinterwordspacing
 
 \bibitem{1152161}
 L.~R. Hsu \emph{et~al.}, ``Communist, utilitarian, and capitalist cache
@@ -191,6 +238,15 @@ J.~Huh \emph{et~al.}, ``A nuca substrate for flexible cmp cache sharing,'' in
 \bibitem{Intel:Manual2012}
 {Intel Corp.}, ``Intel 64 and ia-32 architectures software developer's
   manual,'' March 2012.
+
+\bibitem{Quincy}
+\BIBentryALTinterwordspacing
+M.~Isard \emph{et~al.}, ``Quincy: fair scheduling for distributed computing
+  clusters,'' in \emph{Proceedings of the ACM SIGOPS 22nd symposium on
+  Operating systems principles}, ser. SOSP '09.\hskip 1em plus 0.5em minus
+  0.4em\relax New York, NY, USA: ACM, 2009, pp. 261--276. Available:
+  \url{http://doi.acm.org/10.1145/1629575.1629601}
+\BIBentrySTDinterwordspacing
 
 \bibitem{1006246}
 R.~Iyer, ``Cqos: a framework for enabling qos in shared caches of cmp
@@ -217,18 +273,24 @@ C.~Kim, D.~Burger, and S.~W. Keckler, ``An adaptive, non-uniform cache
   ASPLOS-X}.\hskip 1em plus 0.5em minus 0.4em\relax New York, NY, USA: ACM,
   2002, pp. 211--222.
 
+\bibitem{Kleinberg99fairnessin}
+J.~Kleinberg, Y.~Rabani, and E.~Tardos, ``Fairness in routing and load
+  balancing,'' in \emph{J. Comput. Syst. Sci}, 1999, pp. 568--578.
+
 \bibitem{1345325}
 S.~Kounev, R.~Nou, and J.~Torres, ``Autonomic qos-aware resource management in
   grid computing using online performance models,'' in \emph{Proc. ValueTools
   '07}.\hskip 1em plus 0.5em minus 0.4em\relax ICST, 2007, pp. 1--10.
 
-\bibitem{Kung}
-H.~T. Kung, ``Memory requirements for balanced computer architectures,'' in
-  \emph{International Symposium on Computer Architecture}, 1986, pp. 49--54.
-
 \bibitem{LaHa}
 C.~L. Lawson and R.~J. Hanson, \emph{Solving Least Squares Problems}.\hskip 1em
   plus 0.5em minus 0.4em\relax Englewood Cliffs, NJ: Prentice Hall, 1974.
+
+\bibitem{Liu}
+Y.~Liu and E.~Knightly, ``Opportunistic fair scheduling over multiple wireless
+  channels,'' in \emph{INFOCOM 2003. Twenty-Second Annual Joint Conference of
+  the IEEE Computer and Communications. IEEE Societies}, vol.~2, 2003, pp.
+  1106--1115 vol.2.
 
 \bibitem{LuDu}
 Y.~Luo and R.~Duraiswami, ``Efficient parallel nonnegative least squares on
@@ -261,6 +323,15 @@ M.~N.~Bennani and D.~A.~Menasce, ``Resource allocation for autonomic data
 K.~J. Nesbit \emph{et~al.}, ``Multicore resource management,'' \emph{IEEE
   Micro}, vol.~28, no.~3, pp. 6--16, 2008.
 
+\bibitem{eucalyptus}
+\BIBentryALTinterwordspacing
+D.~Nurmi \emph{et~al.}, ``The eucalyptus open-source cloud-computing system,''
+  in \emph{Proceedings of the 2009 9th IEEE/ACM International Symposium on
+  Cluster Computing and the Grid}, ser. CCGRID '09.\hskip 1em plus 0.5em minus
+  0.4em\relax Washington, DC, USA: IEEE Computer Society, 2009, pp. 124--131.
+  Available: \url{http://dx.doi.org/10.1109/CCGRID.2009.93}
+\BIBentrySTDinterwordspacing
+
 \bibitem{lithe}
 \BIBentryALTinterwordspacing
 H.~Pan, B.~Hindman, and K.~Asanovi{\'c}, ``Lithe: Enabling efficient
@@ -286,6 +357,14 @@ M.~K. Qureshi and Y.~N. Patt, ``Utility-based cache partitioning: A
 R.~Rajkumar \emph{et~al.}, ``A resource allocation model for qos management,''
   in \emph{Proc. RTSS '97}.\hskip 1em plus 0.5em minus 0.4em\relax Washington,
   DC, USA: IEEE Computer Society, 1997, p. 298.
+
+\bibitem{Condor}
+\BIBentryALTinterwordspacing
+R.~Raman, M.~Livny, and M.~Solomon, ``Matchmaking: An extensible framework for
+  distributed resource management,'' \emph{Cluster Computing}, vol.~2, no.~2,
+  pp. 129--138, Apr. 1999. Available:
+  \url{http://dx.doi.org/10.1023/A:1019022624119}
+\BIBentrySTDinterwordspacing
 
 \bibitem{Metronome}
 \BIBentryALTinterwordspacing
@@ -345,6 +424,15 @@ T.~Y. Yeh and G.~Reinman, ``Fast and fair: data-stream quality of service,'' in
   \emph{Proc. CASES '05}.\hskip 1em plus 0.5em minus 0.4em\relax New York, NY,
   USA: ACM, 2005, pp. 237--248.
 
+\bibitem{hadoop_matei}
+\BIBentryALTinterwordspacing
+M.~Zaharia \emph{et~al.}, ``Delay scheduling: a simple technique for achieving
+  locality and fairness in cluster scheduling,'' in \emph{Proceedings of the
+  5th European conference on Computer systems}, ser. EuroSys '10.\hskip 1em
+  plus 0.5em minus 0.4em\relax New York, NY, USA: ACM, 2010, pp. 265--278.
+  Available: \url{http://doi.acm.org/10.1145/1755913.1755940}
+\BIBentrySTDinterwordspacing
+
 \bibitem{1069998}
 M.~Zhang and K.~Asanovic, ``Victim replication: Maximizing capacity while
   hiding wire delay in tiled chip multiprocessors,'' in \emph{Proc. ISCA
@@ -355,5 +443,15 @@ M.~Zhang and K.~Asanovic, ``Victim replication: Maximizing capacity while
 L.~Zhao \emph{et~al.}, ``Towards hybrid last level caches for
   chip-multiprocessors,'' \emph{SIGARCH Comput. Archit. News}, vol.~36, no.~2,
   pp. 56--63, 2008.
+
+\bibitem{Zhu}
+\BIBentryALTinterwordspacing
+D.~Zhu, D.~Moss{\'e}, and R.~Melhem, ``Multiple-resource periodic scheduling
+  problem: how much fairness is necessary?'' in \emph{Proceedings of the 24th
+  IEEE International Real-Time Systems Symposium}, ser. RTSS '03.\hskip 1em
+  plus 0.5em minus 0.4em\relax Washington, DC, USA: IEEE Computer Society,
+  2003, pp. 142--. Available:
+  \url{http://dl.acm.org/citation.cfm?id=956418.956616}
+\BIBentrySTDinterwordspacing
 
 \end{thebibliography}
