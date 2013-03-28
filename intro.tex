@@ -34,8 +34,7 @@ Priority-based approaches have no mechanism to describe deadlines or
 the resources required to meet them, and so must run the highest
 priority applications as fast as possible on all the resources
 requested.  Consequently, interactive and real-time applications are
-often run needlessly fast with significant over-provisioning ---
-wasting energy and reducing throughput by preventing other
+often run needlessly fast with significant over-provisioning---wasting energy and reducing throughput by preventing other
 applications from using the resources.  Evidence of this behavior can
 be found in current systems of all sizes.  Cloud computing providers
 routinely utilize their clusters at only 10\% to 50\% to keep the
@@ -51,7 +50,7 @@ realtime developers often use completely separate systems for each
 application to ensure QoS, despite the high cost of this approach.
 
 In this paper, we present \pacora, a resource-allocation framework designed to
-provide responsiveness guarantees for a simultaneous mix of parallel,
+provide responsiveness guarantees for a simultaneous mix of throughput,
 interactive, and real-time applications in an efficient, scalable
 manner.  It allows both application deadlines and the relative
 importance of meeting these deadlines to be specified.  Unlike
@@ -85,6 +84,6 @@ changing state of the system and trade off responsiveness and
 energy. By automatically generating performance models of
 applications, \pacora alleviates the developer from having to
 understand hardware resources and requires only a few hundred bytes of
-additional storage per application.  We have found that the impact of model accuracy on the quality of resource allocations is not significant; models with errors above 20\% still produce near optimal allocations.  This effect enables modeling to be feasible in a real system with variable applications.
+additional storage per application.  We have found that the impact of model accuracy on the quality of resource decisions is not significant; models with errors above 20\% still produce near optimal allocations.  This effect enables modeling to be feasible in real systems with noisy applications.
 
-In this paper we first present the architecture of \pacora in Section~\ref{sys_design}.  In Section~\ref{eval-static}, we evaluate its effectiveness at static resource allocation decisions, and in Section~\ref{eval-dynamic}, we assess how well it dynamically allocates resources in a manycore OS.  Section~\ref{dyn_opt} describes and evaluates our dynamic penalty optimization algorithm. Section~\ref{RTFs} discusses response time functions and their creation in detail.  Section~\ref{discuss} describes some challenges and possible solutions for \pacora. Section~\ref{related_work} discusses related work, and Section~\ref{conclusion} concludes.
+In this paper we first present the architecture of \pacora in Section~\ref{sys_design}.  In Section~\ref{eval-static}, we evaluate its effectiveness at static resource allocation decisions, and in Section~\ref{eval-dynamic}, we assess how well it dynamically allocates resources in a manycore OS.  Section~\ref{dyn_opt} describes our dynamic penalty optimization algorithm. Section~\ref{RTFs} discusses response time functions and their creation in detail.  Section~\ref{discuss} describes some challenges and possible solutions for \pacora. Section~\ref{related_work} discusses related work, and Section~\ref{conclusion} concludes.
