@@ -3,7 +3,7 @@ To create RTF models either at install time or online we use a least squares app
 
 \subsubsection*{Model Creation using Least Squares}
 After enough measurements, discovery of the model parameters $w$ that define the function $\tau$
-can be based on a solution to the over-determined linear system $t=Dw$, 
+can be based on a solution to the over-determined linear system $t=Dw$,
 where $t$ is a column vector of actual response times measured for the application
 and $D$ is a matrix whose ith row $D_{i,*}$ contains the corresponding resource vector.
 Estimating $w$ is relatively straightforward: a least-squares solution accomplished via
@@ -75,10 +75,11 @@ However, \pacora's algorithm cannot ignore downdated columns of $R$
 because subsequent \emph{row} updates and downdates must have due effect
 on these columns to allow their later reintroduction via column updates as necessary.
 This problem is solved by leaving the downdated columns in place,
-skipping over them in maintaining and using the QR factorization. 
+skipping over them in maintaining and using the QR factorization.
 
 The memory used in maintaining a model with $n$ weights is modest, $24n^2 + 21n + \textrm{O}(1)$ bytes.
-For $n = 8$ this is under 2 KB, fitting nicely in L1 cache. Our NNLS implementation runs in around \fix{x $\micro$s}.
+For $n = 8$ this is under 2 KB, fitting nicely in L1 cache.
+Our NNLS implementation runs in around \fix{x $\micro$s}.
 %Figure~\ref{model_build_perf} shows the performance of \pacora's NNLS algorithm.
 
 \subsubsection*{Model Rank Preservation}
@@ -116,11 +117,9 @@ The candidate row to downdate is the row with the largest weighted error, \emph{
 $dd = \arg\max_i |\varepsilon_i| \cdot \eta^{g(i)}$ and that does not reduce the rank of $R$.
 %Figure~\ref{phase_change} shows \pacora's model creation algorithm adapting to a video application changing phases.
 
-\subsubsection{Power Response Modeling}
+
+\subsubsection*{Power Response Modeling}
 Recall that we manage power and battery energy with an artificial application named Application 0 which receives all resources not allocated to other applications. Application 0's "response time" function is similar to the other applications' response time functions.  The function inputs are resource allocations just as with the other applications.  However, the function output is system power rather than response time.   To create the RTF, system power can be measured directly from on-chip energy counters in systems where they are available or from a power meter.  These models can be built in advance, during a training phase or online while the system runs, just as with the application RTFs.  Alternatively, the model could be part of the operating system's platform-specific information.
 
 Although system power may not be perfectly convex in reality, forcing it to be convex is reasonable because idling a resource should not increase power.  As a result, Application 0 still fills its purpose of keeping applications from using additional resources that have poor performance/power ratios.
-
-
-
 
