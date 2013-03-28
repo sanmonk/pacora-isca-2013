@@ -49,17 +49,23 @@ The two related systems AcOS\cite{AcOS} and Metronome\cite{Metronome} feature ha
 targets using adaptive reinforcement learning techniques.
 AcOS also senses thermal conditions and can exploit Dynamic Voltage and Frequency Scaling (DVFS).
 
-A survey of autonomic systems research appears in \cite{1380585}.
-
-\subsection{``Model-Based'' Scheduling and Allocation Frameworks for SLAs and Soft Real-Time Requirements}
-
-
-Soft real-time systems typically modify an existing operating system to improve responsiveness.
-Calandrino \emph{et al.}\cite{unc} use working set sizes to make co-scheduling decisions and enhance soft real-time behavior.
-
 %A resource allocation model for QoS management
 %\cite{828990}
 %
+
+
+A survey of autonomic systems research appears in \cite{1380585}.
+
+\subsection{Model-Based Scheduling and Allocation Frameworks for SLAs and Soft Real-Time Requirements}
+
+There is a growing amount of research in the cloud computing and realtime communities which uses application-specific performance ``models'' to try to schedule to meet deadlines or Service-Level Agreements (SLAs).
+
+A lot of research focuses measuring resource usage to make co-scheduling decisions.
+For example, Calandrino \emph{et al.}\cite{unc} use working set sizes to make co-scheduling decisions and enhance soft real-time behavior. Merkel and Bellosa\cite{merkel-eurosys08} propose \emph{Task Activity Vectors} that describe how much each application uses the various functional units; these vectors are used to balance usage across multiple cores.
+%and unbalance usage among hardware threads within each core.
+%The intended effect is to distribute chip temperature more evenly, but the idea may be more broadly applicable, \emph{e.g.,} for heterogeneous systems.
+
+
 Rajkumar \emph{et al.}\cite{828990} propose a system Q-RAM that maximizes the weighted sum of utility functions,
 each of which is a function of the resource allocation to the associated application.
 Unlike \pacora, there is no distinction between performance and utility, and
@@ -67,6 +73,8 @@ the utility functions are assumed as input rather than being discovered by the s
 They are always nondecreasing in every resource and sometimes are piecewise-linear and concave;
 in these cases the optimal allocation is easily found by a form of gradient ascent.
 When the utility functions are not concave, a suboptimal greedy algorithm is proposed.
+
+
 
 %Redline: First Class Support for Interactivity in Commodity OSs \cite{Redline}
 %Paper presented in OSDI'08.
@@ -103,6 +111,8 @@ Guo \emph{et al.}\cite{1331730} point out that much prior work is insufficient f
 %They argue that targets should be expressed in terms of capacity requirements rather than rates.
 The framework they present incorporates a scheduler that supports multiple execution modes.
 
+
+
 Nesbit \emph{et al.}\cite{1436097} introduce the \emph{Virtual Private Machines} (VPM), a framework for resource allocation and management in multicore systems. A VPM consists of a set of virtual hardware resources, both spatial (physical allocations) and temporal (scheduled time-slices).  They break down the framework components into policies and mechanisms which may be implemented in hardware or software. VPM {\em modeling} maps high-level application objectives into VPM configurations, and VPM {\em translation}, which uses VPM models to assign an acceptable VPM to the application while adhering to system-level policies. A VPM scheduler decides if the system can accommodate all applications. The VPM approach and terminology is similar to \pacora's design at the high-level.  However, Nesbit \emph{et al.} did not perform design, implementation or evaluations of the modeling, translation, or scheduling components suggested in their paper.
 
 %mesh well with our study, which can be seen as a specific implementation of several key aspects of the type of framework they describe (i.e. VPM modeling and translation). 
@@ -113,8 +123,7 @@ Nesbit \emph{et al.}\cite{1436097} introduce the \emph{Virtual Private Machines}
 
 
 
-Merkel and Bellosa\cite{merkel-eurosys08} propose \emph{Task Activity Vectors} that describe how much each application uses the various functional units; these vectors are used to balance usage across multiple cores and unbalance usage among hardware threads within each core.
-The intended effect is to distribute chip temperature more evenly, but the idea may be more broadly applicable, \emph{e.g.,} for heterogeneous systems.
+
 
 
 
