@@ -49,7 +49,13 @@ For example, Calandrino \emph{et al.}\cite{unc} uses working set sizes to make c
 
 Nesbit \emph{et al.}\cite{1436097} introduces \emph{Virtual Private Machines} (VPM), a framework for resource allocation and management in multicore systems. A VPM comprises a set of virtual hardware resources, both spatial (physical allocations) and temporal (scheduled time-slices).
 %They break down the framework components into policies and mechanisms which may be implemented in hardware or software.
-VPM \emph{modeling} maps high-level application objectives via \emph{translation}, which uses models to assign acceptable VPMs to applications while adhering to system-level policies. A \emph{scheduler} decides if the system can accommodate all applications. The VPM approach and terminology are similar to \pacora's at a high level.  However, Nesbit \emph{et al.} only provide a high-level architecture and do not perform any design or implementation of the modeling, translation, or scheduling components in their paper.
+VPM \emph{modeling} maps high-level application objectives via
+\emph{translation}, which uses models to assign acceptable VPMs to
+applications while adhering to system-level policies. A
+\emph{scheduler} decides if the system can accommodate all
+applications. The VPM approach and terminology are similar to
+\pacora's at a high level, but no design or implementation of the
+modeling, translation, or scheduling components is presented~\cite{1436097}.
 %mesh well with our study, which can be seen as a specific implementation of several key aspects of the type of framework they describe (i.e. VPM modeling and translation).
 %
 %Unlike traditional virtual machines that only virtualize resource functionality, VPMs virtualize a system's performance and power characteristics, meaning that a VPM has the same performance and power profile as a real machine with an equivalent set of hardware resources.
