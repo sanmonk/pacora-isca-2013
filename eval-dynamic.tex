@@ -45,7 +45,7 @@
 
 To evaluate \pacora's ability to make real-time decisions in a real operating system, we implemented it in an in-house research operating system, \tess. We chose to implement in \tess rather than Linux for three reasons:
  \begin{itemize}\itemsep0pt \parskip0pt \parsep5pt
-\item \tess is designed around two-level scheduling, meaning it more accurately reflects the system design \pacora assumes
+\item \tess separates resource allocation from scheduling so it more accurately reflects the system design \pacora assumes
 \item \tess allows resource revocation, enabling \pacora to dynamically reallocate resources
 \item \tess implements additional resource partitioning and QoS mechanisms, letting \pacora explore allocating more resource types
 \end{itemize}

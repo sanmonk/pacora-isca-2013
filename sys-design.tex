@@ -56,7 +56,7 @@ resource-allocation decisions (\emph{e.g.,} cores and memory pages) at
 the OS level, while the micro-management of these resources to run
 application tasks is left to user-level runtimes such as Intel
 Threaded Building Blocks~\cite{CoMa08} or Lithe~\cite{lithe}, and to
-user-level memory managers.  In a cloud environment, \pacora allocates
+user-level memory managers.  As a result, \pacora could be used to consolidate realtime systems.  Resources can be allocated to various realtime user-level schedulers such as Earliest-Deadline-First or Rate-Monotonic schedulers, eliminating the need in the case of many applications for a realtime OS designed around one of these schedulers.  In the cloud environment, \pacora allocates
 resources (\emph{e.g.,} nodes and storage) to jobs, and scheduling is
 left to other entities such as the MapReduce framework\cite{mapreduce}
 or the node OS.  \pacora can also be used in a hypervisor to allocate
