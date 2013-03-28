@@ -5,7 +5,7 @@
 %		i. boundary conditions clean up
 %	b.	Dealing with Fractional Results
 
-\pacora's penalty optimization algorithm dynamically decides resource allocations. The algorithm can be run periodically, when applications start or stop, when an application changes faces or when the system changes operating scenarios.  One of the advantages of convex optimization is that it enables fast, incremental solutions.  As a result the algorithm could terminate earlier to decrease overhead and still be moving towards an optimal solution as it runs.  However we found in our implementation that the algorithm was fast enough to run to completion every time. 
+\pacora's penalty optimization algorithm dynamically decides resource allocations. The algorithm can be run periodically, when applications start or stop, when an application changes phase or when the system changes operating scenarios.  One of the advantages of convex optimization is that it enables fast, incremental solutions.  As a result the algorithm could terminate earlier to decrease overhead and still be moving towards an optimal solution as it runs.  However we found in our implementation that the algorithm was fast enough to run to completion every time. 
 
 Convex optimization is simplest when it is unconstrained, and so we reformulated \pacora's construction to be unconstrained.
 Extending the response time model functions to all of $\Re^n$

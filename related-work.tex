@@ -1,15 +1,15 @@
 \section{Related Work}\label{related_work}
-\subsection*{Traditional Batch Scheduling}
+\subsection{Traditional Batch Scheduling}
 Batch scheduling systems\cite{Feit97,FRS04} tend to use queues and priorities to schedule jobs while trying to keep all resources busy.
 Resource allocations are always the user's responsibility to specify and pay for.
 Responsiveness can be improved by buying a higher priority.
 Few batch systems incorporate deadlines, but one such is \cite{AKKMS95}.
- 
-\subsection*{Application Performance Modeling}
+
+\subsection{Application Performance Modeling}
 
 \fix{add information here}
 
-\subsection*{Autonomic Systems}
+\subsection{Autonomic Systems}
 %Resource Allocation for Autonomic Data Centers using Analytic Performance Models
 %	\cite{1078472}
 %	
@@ -53,7 +53,7 @@ AcOS also senses thermal conditions and can exploit Dynamic Voltage and Frequenc
 
 A survey of autonomic systems research appears in \cite{1380585}.
 
-\subsection*{Soft Real-Time and SLAs}
+\subsection{Soft Real-Time and SLAs}
 Soft real-time systems typically modify an existing operating system to improve responsiveness.
 Calandrino \emph{et al.}\cite{unc} use working set sizes to make co-scheduling decisions and enhance soft real-time behavior.
 
@@ -97,7 +97,7 @@ The models are statistical, and bootstrapping is used to estimate performance va
 Major changes in the application model are detected and cause model exploration to resume.
 The models are not convex or concave in general, and all SLAs must be met with high probability.
 
-\subsection*{Partitioning Mechanisms}
+\subsection{Partitioning Mechanisms}
 \label{sec:rel:pm}
 
 %Utility-Based Cache Partitioning: A Low-Overhead, High-Performance, Runtime Mechanism to Partition Shared Caches
@@ -113,7 +113,7 @@ For example, Iyer\cite{1006246} suggests a priority-based cache QoS framework, C
 The priorities might be specified per core, per application, per memory type, or even per memory reference.
 Simultaneous achievement of performance targets is not addressed.
 
-\subsection*{Resource Allocation Frameworks}
+\subsection{Resource Allocation Frameworks}
 
 Guo \emph{et al.}\cite{1331730} point out that much prior work is insufficient for true QoS -- merely partitioning hardware is not enough, because there must also be a way to specify performance targets and an admission control policy for jobs.
 %They argue that targets should be expressed in terms of capacity requirements rather than rates.

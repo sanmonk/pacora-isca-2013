@@ -12,10 +12,10 @@
 
 In this section, we describe the design of \pacora's response time and penalty functions in more detail.
 
-\subsection*{Response Time Functions}
+\subsection{Response Time Functions}
 A response time function describes an application's performance given its resource assignments.  These functions capture information about the value of a particular resource to an application on the current hardware at a particular time. Without this information, it would be difficult for any resource allocation system to make informed decisions short of blindly trying a variety of allocations and picking the best one.
 
-\subsubsection*{Model Selection} While it might have been possible to model response times by recording past values and interpolating among them, this idea has serious shortcomings:
+\subsubsection{Model Selection} While it might have been possible to model response times by recording past values and interpolating among them, this idea has serious shortcomings:
 \begin{itemize}
 \item The multidimensional response time tables would be large;
 \item Interpolation in many dimensions is computationally expensive;
@@ -32,7 +32,7 @@ Such models are automatically convex in the allocations because $1/a$ is convex 
 Since $\tau$ is analytic, generic, and symbolically differentiable
 it is a simple matter to compute the gradient of $\tau$ once the model is defined.
 
-\subsubsection*{Convexity Assumption} Forcing our response time functions to be convex assumes that the actual response time are reasonably convex. We find this to be a plausible requirement as applications almost completely follow the proverbial ``Law of Diminishing Returns'' for resource allocations.
+\subsubsection{Convexity Assumption} Forcing our response time functions to be convex assumes that the actual response time are reasonably convex. We find this to be a plausible requirement as applications almost completely follow the proverbial ``Law of Diminishing Returns'' for resource allocations.
 
 However, there are examples of response time versus resource behavior that violate convexity.   For example, we have seen non-convex performance in applications when dealing with hyperthreads or memory pages.  For two of our applications 5 hyperthreads resulted in significantly worse performance than 4 or 6 hyperthreads.  When studying some other applications applications we found that particular numbers of memory pages, \emph{e.g.,} 2K, resulted in much better performance than the adjacent page allocations.  Avoiding or seeking these allocations adds significant cost to the optimization problem.
 
@@ -52,7 +52,7 @@ Another kind of convexity violation can occur in memory allocation, where ``plat
 
 Overall, we found that our simple convex models still resulted in high-quality resource allocations and thus chose not to implement any of these approaches.  Alternative approaches to handling non-convex behavior are described in Appendix~\ref{convex}. Additional challenges to response time modeling are discussed in Section~\ref{discuss}.
 
-%\subsubsection*{Dynamically Changing Applications}
+%\subsubsection{Dynamically Changing Applications}
 %
 %
 %\fix{changing apps}
@@ -64,7 +64,7 @@ Overall, we found that our simple convex models still resulted in high-quality r
 %\fix{Input Variability}
 
 
-\subsubsection*{Data Collection and Creation Time}
+\subsubsection{Data Collection and Creation Time}
 There are many ways to collect the response time data for applications. A user-level runtime scheduler that schedules work internal to the application may be a good source of data, or the operating system could measure progress using performance counters.  In our implementation, applications report their own measured values: however, this solution was chosen simply as a way to test the validity of the concept.  In a production operating system, it may not be the best approach because it requires trusting applications not to lie about their performance.  In a datacenter environment this may be less of a concern.
 
 There are also many different possible moments response time functions could be created.  RTFs could be created in advance and distributed with the application. In the case of app stores, this approach could make lot of sense since most app stores only cater to a limited number of platforms. Data could also be crowd sourced and the RTFs built in the cloud, which has the advantage making it easy to collect a diverse set of training points.  However, all of these approaches are missing personalization.  As a result, we have chosen to implement two solutions that collect data directly from the user's machine.  The first approach is to collect all of the training points at application install time and build the model then.  The more advanced approached collects data continuously as the application runs and adds that data to the model training set and rebuilds the model.  Although ultimately a hybrid approach may be the most effective: applications can begin with a provided generic model, and the system can improve the model over time. Section~\ref{model_creation} describes our model creation process in detail.

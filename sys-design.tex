@@ -160,7 +160,7 @@ where $d$ represents the deadline of the application and $s$ (slope)
 defines the rate the penalty increases as response time increases. For
 applications without response-time constraints the deadline can be set
 to $0$. Two representative graphs of this type appear in
-Figures~\ref{f:pen1} and~\ref{f:pen2}. 
+Figures~\ref{f:pen1} and~\ref{f:pen2}.
 Penalty functions will be described further in Section~\ref{app_func}.
 
 %In a client operating system, management of penalty function modifications
@@ -282,7 +282,7 @@ idle.  The penalty function $\pi_0$ can be used to keep total system
 power below the parameter $d_0$ to the extent the penalties of other
 applications cannot overcome its penalty slope $s_0$. Both $s_0$ and
 $d_0$ can be adjusted to reflect the current battery charge in mobile
-devices. For example as the battery depletes, $s_0$ could be increased
+devices. For example, as the battery depletes, $d_0$ could be decreased or $s_0$ increased
 to force other applications to slow or cease execution.
 
 %Additionally, application 0 functions as \emph{slack} variables in our optimization problem turning the resource bounds into equalities:
