@@ -665,5 +665,135 @@ complete understanding of scheduler performance with new hardware
 was only possible by using FAME.
 %FAME 111 enabled us to do a thorough evaluation of the approach
 
+\subsubsection*{Data from Perf Count}
+
+Although some applications will want to adapt to available resources
+as discussed in the previous section, we imagine most applications
+will simply want to run as well as possible given the current platform
+and the mix of other jobs running on the system.  This is the task of
+the operating system scheduler, which is responsible for allocating
+appropriate resources to each application.  Even if only one
+application is running, a new responsibility for the OS in the
+manycore era is to maximize performance and energy-efficiency of that
+sole app by only allocating the appropriate resources.  For example,
+allocating too many cores may cause the application to slow down, or
+consume additional power with no additional performance gain.  While
+an adaptive application could introspect on its own behavior, this
+requires additional application developer effort, and an application
+does not have the global view of what else has to run in the system.
+In this section, we discuss a scheduling framework that relies only on a small set of performance counters,  which can help
+operating systems allocate the appropriate resources for an
+application even when the application developer is oblivious to
+resource usage.
+
+%The operating system will increasingly be required to provide spatial scheduling of applications in addition to time-multiplexing to properly handle any of these plausible scenarios.
+
+The operating system scheduler sees a changing mix of concurrent
+applications with diverse resource requirements
+that might vary throughout execution. Naively dividing the machine
+using ``fair'' sharing may be a poor solution: some applications may not
+scale well enough to utilize a given resource while other applications
+may fail to meet user-driven deadlines given too few resources.  The
+scheduler's task is complicated by the fact that concurrently running
+applications might interfere with each other through shared resources,
+causing applications to experience unpredictable performance
+degradations.  For example, if two compute-bound threads are
+simultaneously scheduled on two different cores of a multicore
+processor, there may be no degradation versus running each in
+isolation.  However, if the two threads are memory-bandwidth
+constrained, simultaneous scheduling could dramatically impair
+performance.  Even more complex behaviors may occur if cores or
+hardware thread contexts share functional units, caches, or TLBs.
+
+Previous work has examined how runtime measurements of application
+behavior can help the operating system scheduler allocate resources.
+Shen et al. showed that using hardware measurement information for
+resource-aware scheduling resulted in a 15-70\% reduction in request
+latency over default Linux for RUBiS, TPC-C, and
+TPC-H~\cite{shen08counters}.  Another line of work investigated
+techniques to co-schedule applications with disjoint resource
+requirements to minimize interference, for example, executing a
+compute-bound and memory-bound application
+concurrently~\cite{thread_clustering,unc,shen08counters,hotos_perfcount}.
+%% This has
+%% also been done with reasonable success in~\cite{hotos_perfcount} with
+%% most applications receiving a 7--8\% boost in performance over
+%% traditional scheduling and a 58\% reduction in unfairness.  While 7\%
+%% seems modest, their approach uses a very simple algorithm and only few
+%% hardware measurement values yet still does quite well.  Few other
+%% hardware features could add 7\% to performance and particularly with
+%% such low overhead.
+
+To address the scheduling and resource allocation challenges, we have been exploring a framework that combines hardware partitioning mechanisms with application modeling to predict the optimal resource allocation for a set of applications.  The approach leverages partitioning mechanisms in hardware and the operating system, which create isolation between applications.  Isolation allows us to virtualize the performance of a machine so that given a subsection of the machine (\emph{e.g.,} 2 cores and 3 cache slices) the application will behave as if it was on a separate machine of that size.  The operating system collects sample points of the application running with different resource sets using measurement hardware and then uses them to build a predictive model of the application performance for a given set of resources.  
+
+The scheduling framework decides the best resource allocation for a set of applications by performing an optimization of an objective function involving all of the models.  The objective function represents a system--level goal such as minimize total energy or maximize throughput.  %Appendix~\ref{details} describes the different components of this scheduling framework in more detail.
+
+
+\begin{figure}[tb]
+  \begin{center}
+    \includegraphics[width=\linewidth]{scheduling_results_energy.pdf}
+  \end{center}
+  \caption{Comparison of the effectiveness of different scheduling
+    techniques normalized to our quadratic model-based approach.  The
+    metric (sum of cycles on all cores + 10$\times$ sum of off-chip
+    accesses) is a proxy for energy, so lower numbers are better.}
+  \label{fig:scheduling_results}
+\end{figure}
+
+
+We performed some of our own resource allocation experiments to
+confirm that runtime hardware measurements can help improve OS
+scheduling decisions.  Using an FPGA-based multiprocessor emulator RAMP Gold~\cite{rampgold09, rampgold10, fame10} and
+a simple research operating system ROS~\cite{ros, tess,tess_resource}, we ran experiments with the Parsec
+2.0 Benchmark Suite~\cite{parsec} and some handcrafted
+microbenchmarks on a 64-core target machine. The OS uses page coloring
+to allocate sections of the cache to an application, and the simulator
+implements a simple form of bandwidth partitioning by limiting the
+number of requests that can be sent to memory over a time
+interval. Our system executes each of the applications several times,
+each time varying the number of cores, and cache and bandwidth
+allocations.  We collect application runtime performance data using
+performance measurement hardware to create models of the performance
+for that application given a particular resource allocation.  We
+created a quadratic model and linear model with multivariate
+regression techniques, a GPRS model, and a KCCA model using 20\% of the possible allocations.  Using
+these models, our scheduler decides how best to run a mix of two
+applications by trying to optimize a given objective function.  For
+these results, we chose a simple proxy for total energy consumed, the
+total number of cycles run (the sum of the cycles on each core) +
+10$\times$ the total number of off-chip accesses, as our example
+objective function.
+
+Figure~\ref{fig:scheduling_results} shows the results of our
+scheduler's decisions based on the runtime performance data as
+compared with several alternatives: the optimal allocation, naively
+giving each application half of the machine, or time-multiplexing each
+application across the entire machine.  The time-multiplexing scheme
+first runs the first application to completion and then runs the
+second application to completion.  More fined-grained
+time-multiplexing could lead to longer runtimes due to cache
+interference effects and other context swap overheads.  
+
+We do no show results for the GPRS and KCCA as we found that they were extremely non-convex and as a result often produced very poor results when paired with our optimizer. The simple linear and quadratic models perform much better with only a small set of sample points and have significantly lower overhead.
+
+The results
+show that using runtime data to perform more intelligent scheduling
+can lead to a significant savings in time and energy.  Our approach
+beats naively dividing the machine by 65\% and time multiplexing by
+100\% on average. Furthermore, it is within a few percent of optimal
+every time.  The worst-case results show that the penalty for poor
+decision making can be quite large, with an energy cost 3.25$\times$
+greater than our allocation on average.
+
+As the number of cores and other shared resources grows on chip, this
+will increase the number of possible allocations, thereby widening the
+performance gap between good and bad schedules.  Additionally, we
+expect that much more code will be tuned for parallel execution, and
+exhibit a greater variety of behaviors.  As a result, there will more
+likely be disjoint resource requirements among applications available
+to co-schedule.  We believe hardware measurement-based scheduling will
+thus prove even more effective.
+
+
 
 
