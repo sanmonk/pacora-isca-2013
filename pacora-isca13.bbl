@@ -170,13 +170,6 @@ A.~D. Ferguson \emph{et~al.}, ``Jockey: guaranteed job latency in data parallel
   \url{http://doi.acm.org/10.1145/2168836.2168847}
 \BIBentrySTDinterwordspacing
 
-\bibitem{Archana}
-\BIBentryALTinterwordspacing
-A.~Ganapathi \emph{et~al.}, ``A case for machine learning to optimize multicore
-  performance,'' in \emph{HotPar09}, Berkeley, CA, 3/2009 2009. Available:
-  \url{http://www.usenix.org/event/hotpar09/tech/}
-\BIBentrySTDinterwordspacing
-
 \bibitem{mesos-DRF}
 \BIBentryALTinterwordspacing
 A.~Ghodsi \emph{et~al.}, ``Dominant resource fairness: fair allocation of
