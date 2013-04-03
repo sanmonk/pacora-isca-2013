@@ -19,9 +19,7 @@
 
 We use two different implementations of the \pacora framework for evaluation. Our static framework, described in this Section, collects data online using an x86 processor running Linux and uses that data to build models and make static resource allocation decisions.  Our dynamic framework implemented in a research-prototype manycore operating system, \tess, is presented in Section~\ref{eval-dynamic}.
 
-Our static framework was designed to test the effectiveness of \pacora's model-based convex optimization for allocating resources.  We used it to experiment with the accuracy of different types of models and test the quality of the resource allocation decisions.
-
-Data is collected online by running application benchmarks on a recent x86 processor running Linux-2.6.36.  The measured data is processed using Python and then fed to MATLAB~\cite{matlab} to build the RTFs.  MATLAB uses the RTFs to make resource allocation decisions.  We compare performance of the chosen resource allocations with the actual measured performance of all possible resource allocations to test quality of the resource allocation decisions. We use CVX~\cite{cvx} in MATLAB to perform the convex optimization for building RTFs and making resource allocation decisions.  We chose this static approach because it let us test many applications, 44 in total, and many resource allocations rapidly.
+Our static framework was designed to test the effectiveness of \pacora's model-based convex optimization for allocating resources.  We used it to experiment with the accuracy of different types of models and test the quality of the resource allocation decisions. Data is collected online by running application benchmarks on a recent x86 processor running Linux-2.6.36.  The measured data is processed using Python and then fed to MATLAB~\cite{matlab} to build the RTFs.  MATLAB uses the RTFs to make resource allocation decisions.  We compare performance of the chosen resource allocations with the actual measured performance of all possible resource allocations to test quality of the resource allocation decisions. We use CVX~\cite{cvx} in MATLAB to perform the convex optimization for building RTFs and making resource allocation decisions.  We chose this static approach because it let us test many applications, 44 in total, and many resource allocations rapidly.
 
 \subsection{Platform}
 
@@ -49,21 +47,21 @@ the 12 ways to a set of hyperthreads, thereby allowing only those hyperthreads t
 We use a customized BIOS that enables the cache partitioning
 mechanism, and run unmodified Linux-2.6.36 for all of our experiments.
 To allocate cores, we use the Linux {\tt taskset} command to pin applications to
-sets of hyperthreads. The standard Linux scheduler performs the scheduling for applications within these containers of hyperthreads. For our experiments we consider each hyperthread to be an independent core. To minimize the interference between hyperthreads, we first assign both hyperthreads available in one core before moving on to the next core. For example, allocations with 4 cores correspond to running on both hyperthreads of 2 cores.
+sets of hyperthreads. The standard Linux scheduler performs the scheduling for applications within these containers of hyperthreads. For our experiments we consider each hyperthread to be an independent core. To minimize inter-application interference, we first assign both hyperthreads available in one core before moving on to the next core. For example, a 4-core allocation from \pacora represents 4 hyperthreads on 2 cores on the machine.
 
 \subsection{Performance and Energy Measurement}
 
 To measure application performance, we use the \texttt{libpfm}
 library~\cite{Eranian:OLS06,Perfmon2}, built on top of the
-\texttt{perf\_events} infrastructure introduced in Linux 2.6.31, to
+\texttt{perf\_events} infrastructure in Linux, to
 access available performance counters~\cite{Intel:Manual2012}.
 
 To measure on-chip energy, we use the energy counters available on
 Sandy Bridge to measure the consumption of  the entire socket and also
 the total combined energy of cores, their private caches, and the
 LLC. We access these counters using the Running Average Power Limit
-(RAPL) interfaces~\cite{Intel:Manual2012}.  The counters measure power
-at a $1/2^{16}$ second granularity.
+(RAPL) interfaces~\cite{Intel:Manual2012}.  %The counters measure power
+%at a $1/2^{16}$ second granularity.
 
 %In addition, we use a FitPC external multimeter to measure at the wall socket the power
 %consumed by the entire system, at a
@@ -85,8 +83,8 @@ system features.
 The \textbf{SPEC CPU2006} benchmark suite~\cite{SPEC2006} is a
 CPU-intensive, single-threaded benchmark suite, designed to stress a
 system's processor, memory subsystem, and compiler.  Using the
-similarity analysis performed by Phansalkar et
-al.~\cite{Phansalkar:ISCA2007}, we subset the suite, selecting 4
+similarity analysis performed by Phansalkar \emph{et
+al.}~\cite{Phansalkar:ISCA2007}, we subset the suite, selecting 4
 integer benchmarks ({\tt astar}, {\tt libquantum}, {\tt mcf}, {\tt omnetpp}) and 4
 floating-point benchmarks (cactusADM, calculix, lbm, povray).  Based
 on the characterization study by Jaleel~\cite{Jaleel:TR2007}, we also
@@ -165,7 +163,7 @@ Figure~\ref{model_accuracy} shows the 1-norm of the relative error of the predic
 Using the RTFs built for the applications, we let \pacora make static resource allocations for all possible pairs of the cluster representative applications.  We then run an exhaustive study of all possible resource allocations for each pair on our Sandy Bridge-Linux platform, measure the performance, and compare it with the best performing, \emph{i.e.,} optimal, resource allocation.  We also compare this result to equally dividing the resources between the two applications and to sharing all of the resources using the standard Linux scheduler.
 
 %how \pacora's decisions compared with the optimal allocation, equally dividing the machine, and the Linux baseline for each pair of the cluster representative applications.
-Figure~\ref{decision_quality} shows these results for our 10 point RTFs. As we might expect, simple naive heuristics do not perform well and dividing the machine in half is around 20\% slower than either \pacora or standard Linux.
+Figure~\ref{decision_quality} shows these results for our 10 point RTFs. As we might expect, simple naive heuristics do not perform well, and dividing the machine in half is around 20\% slower than either \pacora or standard Linux.
  \pacora's resource allocations are 2\% from the optimal static allocation on average.  Using shared resources with the standard Linux scheduler performs similarly but with a higher standard deviation.  The shared resources comparison is interesting: while most of the time sharing resources can result in higher utilization, as the applications can dynamically take advantage of available resources, in some cases the interference between applications was so harmful to performance that on average optimal static partitioning performs slightly better.  As a result \pacora is able to provide performance comparable to Linux scheduling on shared resources with more predictable performance on average (lower worst cases).  Additionally, as the shown in the next Section, \pacora's resource allocation decisions do not need to be static, but can be made dynamically to adjust to the changing needs of the applications.
 
 

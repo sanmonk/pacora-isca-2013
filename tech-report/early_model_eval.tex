@@ -1,0 +1,799 @@
+\subsection{Initial Model Evaluation}
+\label{init_eval}
+
+\begin{table*}[t]
+\begin{tabular}{|l|c|c|c|l|}
+\hline
+ Name  & Processor  &  Cache &  Offchip BW & Description \\ \hline
+ p+c+b+ & benefits & benefits & benefits &  Copies data from many large blocks, with intra-block reuse (multithreaded)\\ \hline
+p--c+b+ & oblivious & benefits & benefits &  Copies data from many large blocks, with intra-block reuse (single threaded)\\ \hline
+p+c--b+ & benefits & oblivious & benefits &  Streaming copies with no reuse (multithreaded)\\ \hline
+p--c--b+ & oblivious & oblivious & benefits &  Streaming copy with no reuse (single threaded)\\ \hline
+p+c+b-- & benefits & benefits & oblivious &  Copies data repeatedly from single large blocks (multithreaded)\\ \hline
+p--c+b-- & oblivious & benefits & oblivious &  Copies data repeatedly from a single large block (single threaded)\\ \hline
+p+c--b-- & benefits & oblivious & oblivious &  Pointer chases through long lists (multithreaded)\\ \hline
+p--c--b-- & oblivious & oblivious & oblivious &  Pointer chases through a long list (single threaded)\\ \hline
+\end{tabular}
+\caption{Synthetic microbenchmark descriptions. Each benchmark captures a different combination of responses to resource allocations.  ``Benefits'' means that application performance improves as more of that resource is allocated to it (though sometimes only up to a point).  ``Oblivious'' means that the application performance barely improves or does not improve at all as more of that resource is allocated to it.}
+\label{table:benchmarks1}
+\end{table*}
+
+\begin{table*}[t]
+\footnotesize
+\begin{tabular}{|c|c|l|l|}
+\hline
+ Phase  & Name & Description & Behavior \\ \hline
+ 1 & Cluster  & Observation probability computation, step 1 &  Accumulate, up to 6 MB data read, 800KB written\\ \hline
+ 2 & Gaussian  & Observation probability computation, step 2 &  Calculate, up to 800KB read, 40KB written\\ \hline
+ 3 & Update & Non-epsilon arc transitions &40KB read, small blocks, dependent on graph connectivity\\ \hline
+ 4 & Pruning & Pruning states & Small blocks, dependent on graph connectivity\\ \hline
+ 5 & Epsilon & Epsilon arc transitions & Small blocks, dependent on graph connectivity\\ \hline
+\end{tabular}
+\caption{Description of phase behavior in LVSCR application.}
+\label{table:app}
+\end{table*}
+
+\subsubsection*{Model Inputs and Outputs}
+Our models use allocations of machine resources as independent variables (i.e. inputs) and some metric of application performance as the dependent variables (i.e. outputs).  The inputs we include in this study are number of cores, off-chip bandwidth allocation, L2 cache ways and L2 cache banks.  Since all input parameters are actually allocation sizes (i.e. integers), they are easily represented as terms in the regression analysis.
+
+We use cycles of execution time as a predicted output representative of application performance.  To help correlate application performance with resource utilization and not just resource allocation we also collect data from several performance counters that are usually strongly correlated with performance. These utilization metrics include L2 cache misses, L2 cache requests, and instructions retired. Any metric of interest that is measurable at runtime can be a potential output candidate. All of these models can be referenced by the spatial resource scheduling algorithm.
+
+%%A final model we create predicts the energy consumed by a resource allocation, whice is useful  for energy-aware scheduling decisions. We calculate the energy used by each allocation by creating a simple energy model which incorporates energy levels for allocated versus unallocated resources and uses performance counter data as a proxy for resource activity.  Such an energy model is clearly somewhat simplistic --- we include it to show that our scheduling framework can feasibly make decisions based on per allocation energy if that data is a given input.  We use a simplified version of some of the activity based energy models in previous work \cite{}.
+
+\subsubsection{Partitioning Mechanisms}
+To achieve performance isolation for each application and improve model accuracy, we implement hardware partitioning mechanisms on several of the most important shared on--chip  resources. Shared resources include discrete functional units (e.g. cores), containers with shared capacity (e.g. caches), or communication media with shared bandwidth (e.g. interconnects).  There may be many such resources on an individual chip and even more in an entire computer system. In this study, we provide partitioning mechanisms for cores, L2 cache capacity, and interconnect bandwidth to DRAM.
+ The following subsections describe these partitioning mechanisms in greater detail.
+
+ %Much prior work has been done to create hardware mechanisms in support of physical resource partitioning \cite{876484,967444,1194855,1086328,605420,1152161,1331730, 1241608,1382130,1250671,1194858,1275005,1088154,1318096,1399982,1399973, 1069998}.
+
+\subsubsection*{Core Pinning}
+To partition cores, our implementation uses the thread affinity feature built into the Linux 2.6 kernel.  We restrict the threads belonging to an application to run on the cores assigned to that application.  For now we assume a homogeneous collection of cores, and that only last level caches are shared among applications, which means that there is nothing to differentiate a core from any other when they are being allocated.
+%In the future we anticipate moving to a system with two-level scheduling where user-level code schedules the threads on the cores allocated in a partition like the system described in \cite{citation222}.
+
+\subsubsection*{Globally Synchronized Frames}
+To partition off-chip bandwidth, we use the Globally Synchronized Frames (GSF) approach presented in Lee et al. \cite{gsf}.  We choose this approach because it does not require complex hardware modifications, provides strict QoS guarantees for minimum bandwidth and the maximum delay of the network, and provides proportional sharing of excess bandwidth.  GSF controls the number of packets that a core can inject into the network per frame, and each core is guaranteed to get the number of packets allocated to it each frame.  GSF enables cores to inject packets into future frames if their current allocation is already exceeded.  This allows excess bandwidth to be shared among cores proportional to their packet allocation.  To simplify prediction by making performance more deterministic, our current implementation does not make any future frames available during training, meaning that applications get exactly their allocation each frame.
+
+\subsubsection*{Cache Partitioning}
+Many cache partitioning mechanisms previously studied have used some form of way-based partitioning \cite{1331730,1152161,605420,1250671,1194855,1086328,1399982}.  While way-based partitioning is relatively easy to implement in hardware, it is by necessity relatively coarse-grained since it is limited by the number of ways in the cache.  Partitioning among ways can cause significant performance degradation in many applications due to the decreased associativity available to each partition.
+
+Way-based partitioning keeps the cache access logic simple since data will still always reside in the same set, regardless of current partition.  However, in the case of manycore architectures, this access simplicity will be less important since large shared caches are likely to be distributed in multiple banks.  Accessing a non-local cache bank will require a request to be sent across an interconnect. We argue that this extra communication step introduces the potential for a level of indirection in the cache indexing policy, and the added flexibility can be used to allow different banks to be assigned to different applications. This approach can be particularly advantageous in a NUCA system so that applications can be assigned cache banks nearest to their cores. Rather than sending the request to the bank identified by the address index, we can instead use the mapping of banks to applications to determine which cache bank should be the target of the incoming request.
+
+The major overhead of this technique comes when a bank is allocated to a new application -- for the sake of the coherence policy, the system must copy back all dirty data in that bank before changing the routing used for cache requests.  We allow both bank-based and way-based partitioning of cache capacity in our implementation, though the experiments here use only bank-based partitioning to preserve cache associativity.
+
+
+
+\subsubsection*{Modeling Techniques}
+We use multivariate regression techniques to create explicit statistical models for predicting the performance of an application given a resource allocation of a particular size.  We create one regression model per performance metric per application phase.
+
+Linear least-squares regression techniques produce simple models that can be expressed concisely and are therefore more portable. Linear regression techniques can outperform nonlinear ones when training sets are small, the data has a low signal to noise ratio, or sparse sampling is used\cite{hastie}. These criteria apply in our case. These models are attractive due to their simplicity, but their restricted expressiveness may reduce their accuracy of the underlying system.
+
+Linear models may be realized in varying forms (i.e. it is the combination of terms that is linear, rather than the degree of each term).  The simplest models are linear additive models, which take the form:
+
+\begin {equation}
+y(x) = a_0 + \sum_{i=1}^{N}{a_ix_i}
+\end {equation}
+
+Multivariate linear additive models contain one term for each variable (i.e. an allocation, $x_i$) and an intercept term ($a_0$).  The regression tunes the coefficient associated with each term ($a_i$) to fit the sample data as accurately as possible.  Note that the linear additive model has no way to represent any possible interaction between the variables, implying that all variables are independent---which is expressly not true in our scheduling scenario.  We include them in our study as a straightforward baseline for comparison.
+%For example, a smaller cache size will result in increased cache misses and an increased demand for memory bandwidth, meaning that the effect of a change in bandwidth allocation is not independent from a change in cache size in terms of its effect on performance.
+
+More complex multivariate linear regression models often include terms for variable interaction and polynomial terms of degree 2 or more.  Such models are commonly termed {\em response surface models} and have the general form:
+
+\begin {equation}
+y(x) = a_0 + \sum_{i=1}^{N}{a_ix_i} + \sum_{i = 1}^{N}\sum_{j=i}^{N}{a_{ij}x_ix_j} + ...
+% \sum_{i=0}^{N}{a_{ii}x_i^2}
+\end {equation}
+
+These polynomial models capture more complex dependencies between the input variables.  However, we as modelers are still expressing beliefs about the nature of the relationship between input and output in the form we give the polynomial equation.
+
+Selecting the best possible equation form for the data automatically requires the use of nonlinear regression techniques such as local regression, cubic splines, neural networks, or genetic programming \cite{alvarez-thesis, bodik-acdc09, wasserman-book}.  The disadvantage of these techniques is that the models may create difficulties for analytic maximization algorithms.
+%LOESS models have been used in the past in situations where the models must be retrained online as more data points are collected from the running system \cite{bodik-acdc09}.
+
+Genetic programming is a technique, based on evolutionary biology, used to optimize a population of computer programs according to their ability to perform a computational task. In our case, the `program' is an analytic equation whose evaluation embodies a response surface model, and the `task' is to match sample data points obtained from full--scale simulations \cite{alvarez-thesis}. The output, termed a
+{\em genetically programmed response surface} (GPRS), are nonlinear models that create explicit equations describing the relationship between design variables and performance, and we incorporate them into our framework as an example of a nonlinear modeling alternative.
+A GPRS is generated automatically, meaning that the modeler does not have to specify the form of the response surface equation in advance. Instead, genetic programming \cite{koza} is used to create an equation and tune the coefficients.  For more information on GPRS creation, see \cite{alvarez-thesis} or \cite{cook-dac08}.
+
+Other statistical machine learning techniques such as clustering might also be used in our framework to make predictions about application behavior.  Any such technique must be able to correlate changes in resource allocations to changes in performance in an application--specific way.  Ganapathi et al. have had success using machine learning to model application performance and select the best performing configuration in \cite{Archana}. Investigating more complicated models is a subject of our future work.
+
+
+In this section we evaluate the accuracy of the different modeling techniques and their effectiveness as inputs to an algorithm that assigns spatial allocations to applications.
+
+\subsubsection*{Experimental Testbed}
+We use Virtutech Simics \cite{simics} to simulate a CMP system with a two level on-chip memory hierarchy to collect the data used create our performance models and to test the effectiveness of our resource scheduling framework.  Simics is a full system simulator capable of running a commodity OS and completing simulations consisting of billions of cycles. We modify the Simics cache and memory timing modules to reflect the capabilities of our hardware partitioning mechanisms.  Our target machine has 10 cores, private 64KB L1D and 32KB L1I caches for each core and a shared L2 (16 MB, 16-way set associative).  All caches have 128 B lines.   All banks in the L2 cache have uniform access time of 7 cycles.  Our target machine runs Fedora Core 5 Linux (kernel 2.6.15). We constrain the simulated system to a maximum allocation of 10 cores, 16 MB of L2 cache, and 4 cache lines/cycle of off-chip bandwidth, and a minimum allocation of 1 core, 16 KB of L2 cache, and 5 cache lines/thousand cycles of off-chip bandwidth.
+
+\subsubsection*{Benchmarks}
+We created a set of synthetic microbenchmarks specifically designed to evaluate our modeling techniques and spatial scheduling algorithm by creating clear contrasts between different allocation decisions.  Table \ref{table:benchmarks1} describes these benchmarks.  In general, each benchmark represents a generic category of behavior that we might expect to see in phases of real applications.  We classify the benchmarks based on whether they benefit from additional processor, cache or bandwidth resources, or whether they derive no benefit from running on a large allocation of a given resource.  We also limit the size of the benchmarks along these resource dimensions such that they will encounter performance cliffs on our simulated machine.  For example, a benchmark's performance might benefit from additional cores up to 4 cores but not from more than 4 cores.   Some benchmarks are parallelized with {\tt pthreads} \cite{pthreads}.  The benchmarks each execute an average of 1.9 billion cycles per sample point.
+
+We also evaluate a real multithreaded application with multiple phases of behavior, specifically
+a Hidden-Markov-Model (HMM) based inference algorithm that is part of a large-vocabulary continuous-speech-recognition (LVCSR) application \cite{chong-eama08, huang-speech}. This application case study demonstrates the varying ability of our models to capture real application behavior.
+
+LVCSR applications analyze a set of audio waveforms and attempt to distinguish and interpret the human utterances contained within them. The recognition network we use here models a vocabulary of over 60,000 words and consists of millions of states and arcs. The inference process is divided into a series of five phases, and the algorithm iterates through the sequence of phases repeatedly with one iteration for each input frame. Table~\ref{table:app} lists the characteristics of each phase of the application.  Each phase runs for an average of 24 billion cycles for each sample point.
+
+\begin{figure*}
+	\centering
+	\includegraphics[scale = 0.34] {ooo_trainpredplot.png}
+	\includegraphics[scale = 0.34] {oop_trainpredplot.png}
+	\includegraphics[scale = 0.34] {opo_trainpredplot.png}
+	\includegraphics[scale = 0.34] {opp_trainpredplot.png}
+	\includegraphics[scale = 0.34] {poo_trainpredplot.png}
+	\includegraphics[scale = 0.34] {pop_trainpredplot.png}
+	\includegraphics[scale = 0.34] {ppo_trainpredplot.png}
+	\includegraphics[scale = 0.34] {ppp_trainpredplot.png} \\
+	\includegraphics[scale = 0.5] {acc_comp_legend_horz.png}
+	\caption{ \small Comparison of model accuracy for the eight microbenchmarks when predicting runtime in cycles. Each point represents a prediction for a machine configuration, and points are ordered along the x-axis based on decreasing measured run time. Y-axis plots predicted or measured runtime in cycles; note the differing ranges. In most cases, the nonlinear GPRS--based model is so accurate that it precisely captures all sample points.}
+	\label{fig:acc}
+\end{figure*}
+
+%%\subsection{Partitioning Mechanism Efficacy}
+%%It is worth noting that conflicts between different applications will always be destructive to performance and predictability.  The only danger to performance presented by hardware partitioning is the possibility of resource fragmentation, in which an application is allocated more of a resource than it can actually use.  However, a conservative allocation policy combined with fair sharing of excess resources can significantly mitigate this problem.
+
+\subsubsection*{Evaluation of Model Accuracy}
+In this section we examine the accuracy afforded by both the different linear regression models and the nonlinear GPRS--based regression model.  We choose a sample of 55 points from the space of 19200 possible allocations (or 0.3\%), and we train the models using this sample set.  The sample points were chosen using an Audze-Eglais DOE.
+
+We evaluate the accuracy of the model relative to measured performance on a set of points disjoint from the sample set.  Due to the length of our simulations, we cannot exhaustively compare to all possible allocations and so limit our model error analysis to a testing set of 10 randomly selected points.  We perform this analysis for several performance metrics captured from simulation, including runtime in cycles, number of instructions committed, number of cache accesses, and number of off-chip memory accesses.
+
+ Figure~\ref{fig:acc} plots the predictions versus measured data of a single performance metric for the sample set. While linear and nonlinear models perform equally well for some benchmarks, the nonlinear model is significantly more accurate at predicting others. The linear models struggle to capture the performance cliffs inherent to some benchmarks, especially those which move between being cache size-limited and bandwidth-limited.  In particular benchmarks which encounter a cliff and then saturate (such as the working set fitting in cache) are not faithfully modeled by the linear models.  The nonlinear model has no such difficulty.  It is also worth noting that the amount of error introduced in the linear additive and quadratic model causes them to predict negative values for some benchmarks.
+
+\begin{table}
+\small
+\begin{tabular}{|l|c|c|c|}
+\hline
+Name & Additive & Quadratic & GPRS \\ \hline
+ p--c--b-- & 0.06\% (0.04) & 0.04\% (0.04) &0.02\% (0.02) \\ \hline
+ p--c--b+ &   234.07\% (287.44) & 139.21\% (167.10) &  0.23\% (0.40)   \\ \hline
+ p--c+b-- &  12.67\% (5.30) &  8.26\% (5.30) &  0.02\% (0.02) \\ \hline
+ p--c+b+ &  12.04\% (5.09) &  7.83\% (4.69) & 0.06\% (0.06)  \\ \hline
+ p+c--b-- &  0.07\% (0.05) &  0.05\% (0.06)  &  0.05\% (0.03)  \\ \hline
+ p+c--b+ &  271.05\% (377.53) & 164.23\% (226.23) & 0.51\% (1.08) \\ \hline
+ p+c+b--&  13.08\% (6.91) & 8.79\% (7.32) & 0.06\% (0.07) \\ \hline
+ p+c+b+&  12.07\% (4.86) &  8.05\% (5.49) & 0.08\% (0.06)  \\ \hline
+   \end{tabular}
+ \caption{Means (standard deviations) of percentage error in runtime cycles for each of the predictive models for each of the microbenchmarks.}
+\label{table:acc-cycles}
+\end{table}
+
+\begin{table}
+\small
+\begin{tabular}{|l|c|c|c|}
+\hline
+Name & Additive & Quadratic & GPRS \\ \hline
+ cluster &  4.27\% (3.66) & 6.90\% (5.67)  & 15.52\% (10.36)  \\ \hline
+ gaussian&  1.83\% (0.72) & 4.16\% (2.49) & 2.33\% (3.19)  \\ \hline
+ update&  4.98\% (3.04) & 7.94\% (7.12)  & 5.89\% (5.09)  \\ \hline
+ pruning&  2.27\% (1.08) & 10.70\% (10.29)  & 3.07\% (2.91)  \\ \hline
+ epsilon &  3.88\% (4.01) & 4.66\% (4.27)  & 2.69\% (1.09)  \\ \hline
+   \end{tabular}
+ \caption{Means (standard deviations) of percentage error in runtime cycles for each of the predictive models for each of the phases of the LVSRC application.}
+\label{table:acc-cycles-lvsrc}
+\end{table}
+
+\begin{table}
+\scriptsize
+\begin{tabular}{|l|c|c|c|}
+\hline
+Name & Additive & Quadratic & GPRS \\ \hline
+  p--c--b-- & 392.11\% (398.89) &  240.12\% (261.72) & 7.42\% (16.80)  \\ \hline
+ p--c--b+ &  138133\% (290142)&  105682\% (248332) &  253.46\% (418.27)  \\ \hline
+ p--c+b-- &   37225\% (65356) &  25797\% (47989) & 84.31\% (74.62)  \\ \hline
+ p--c+b+ &   45276\% (82816) &  21819\% (30963) &  87.84\% (209.33)  \\ \hline
+ p+c--b-- & 236.30\% (261.31) &  121.44\% (124.23) & 15.27\% (14.80)    \\ \hline
+ p+c--b+ &   101696\% (169812)  &  73241\% (117426) & 25.42\% (31.95) \\ \hline
+ p+c+b--&  16920\% (22871)&   12517\% (19362) & 7.47\% (8.25)  \\ \hline
+ p+c+b+&   9480\% (11542) &  6647\% (9164) &  22.12\% (26.14)  \\ \hline
+  \end{tabular}
+ \caption{Means (standard deviations) of percentage error in offchip accesses for each of the predictive models for each of the microbenchmarks.}
+\label{table:acc-offchip}
+\end{table}
+
+\begin{table}
+\small
+\begin{tabular}{|l|c|c|c|}
+\hline
+Name & Additive & Quadratic & GPRS \\ \hline
+ p--c--b-- & 0.03\% (0.04) & 0.03\% (0.05) & 0.28\% (0.36) \\ \hline
+ p--c--b+ & 241.91\% (262.05)  & 218.93\% (382.43) &  0.1\% (0.07) \\ \hline
+ p--c+b-- & 8.49\% (5.49) & 6.17\% (6.50) & 0.41\% (1.13) \\ \hline
+ p--c+b+ & 8.01\% (5.2)  & 5.79\% (6.11) & 0.07\% (0.06) \\ \hline
+ p+c--b-- & 7.28\% (10.50)  & 0.05\% (0.04) & 0.27\%(0.19) \\ \hline
+ p+c--b+ & 233.26\% (250.1) & 153.10\% (234.34) &  4.89\% (12.97)\\ \hline
+ p+c+b-- & 20.23\% (24.18)  & 5.10\% (4.26) &  0.30\% (0.28) \\ \hline
+ p+c+b+ & 13.30\% (10.23)  & 5.25\% (4.77)  & 0.05\% (0.03) \\ \hline
+  \end{tabular}
+ \caption{Means (standard deviations) of percentage error in cache transaction counts for each of the predictive models for each of the microbenchmarks.}
+\label{table:acc-cache}
+\end{table}
+
+%\begin{table}
+%\small
+%\begin{tabular}{|l|c|c|c|}
+%\hline
+%Name & Cycles &Offchip Accesses &Cache Accesses \\ \hline
+% p--c--b-- & 0.06\% (0.04) &  392.11\% (398.89) & 0.03\% (0.04) \\ \hline
+% p--c--b+ &   234.07\% (287.44) & 138133\% (290142) & 241.91\% (262.05)  \\ \hline
+% p--c+b-- &  12.67\% (5.30) & 37225\% (65356) & 8.49\% (5.49)  \\ \hline
+% p--c+b+ &  12.04\% (5.09) &  45276\% (82816) & 8.01\% (5.2)  \\ \hline
+% p+c--b-- &  0.07\% (0.05) &  236.30\% (261.31) & 7.28\% (10.50)  \\ \hline
+% p+c--b+ &  271.05\% (377.53) & 101696\% (169812) & 233.26\% (250.1)  \\ \hline
+% p+c+b--&  13.08\% (6.91) & 16920\% (22871) & 20.23\% (24.18)  \\ \hline
+% p+c+b+&  12.07\% (4.86) &  9480\% (11542) & 13.30\% (10.23)  \\ \hline \hline
+% cluster &  1 (1) & 1 (1)  & 1 (1)  \\ \hline
+% gaussian&  1 (1) & 1 (1) & 1 (1)  \\ \hline
+% update&  1 (1) & 1 (1)  & 1 (1)  \\ \hline
+% pruning&  1 (1) & 1 (1)  & 1 (1)  \\ \hline
+% epsilon &  1 (1) & 1 (1)  & 1 (1)  \\ \hline
+% \end{tabular}
+% \caption{Means (standard deviations) of percentage error for each of the performance measures for each of the benchmarks, as predicted by the linear response surface model.}
+%\label{table:acc-lin}
+%\end{table}
+%
+%\begin{table}
+%\small
+%\begin{tabular}{|l|c|c|c|}
+%\hline
+%Name & Cycles &Offchip Accesses &Cache Accesses \\ \hline
+% p--c--b-- & 0.04\% (0.04) &  240.12\% (261.72) & 0.03\% (0.05) \\ \hline
+% p--c--b+ &  139.21\% (167.10) &  105682\% (248332) & 218.93\% (382.43)  \\ \hline
+% p--c+b-- &  8.26\% (5.30) &  25797\% (47989) & 6.17\% (6.50)  \\ \hline
+% p--c+b+ &  7.83\% (4.69) &  21819\% (30963) & 5.79\% (6.11)  \\ \hline
+% p+c--b-- &  0.05\% (0.06) &  121.44\% (124.23) & 0.05\% (0.04)  \\ \hline
+% p+c--b+ &  164.23\% (226.23) &  73241\% (117426) & 153.10\% (234.34)  \\ \hline
+% p+c+b--&  8.79\% (7.32) &   12517\% (19362) & 5.10\% (4.26)   \\ \hline
+% p+c+b+&  8.05\% (5.49) &  6647\% (9164) & 5.25\% (4.77)  \\ \hline \hline
+% cluster &  1 (1) & 1 (1) & 1 (1)  \\ \hline
+% gaussian&  1 (1) & 1 (1) & 1 (1)  \\ \hline
+% update&  1 (1) & 1 (1) &  1 (1)  \\ \hline
+% pruning&  1 (1) & 1 (1) & 1 (1)  \\ \hline
+% epsilon &  1 (1) & 1 (1) &  1 (1)  \\ \hline
+% \end{tabular}
+% \caption{Means (standard deviations) of percentage error for each of the performance measures for each of the benchmarks, as predicted by the quadratic response surface model.}
+%\label{table:acc-quad}
+%\end{table}
+%
+%\begin{table}
+%\small
+%\begin{tabular}{|l|c|c|c|}
+%\hline
+%Name & Cycles &Offchip Accesses &Cache Accesses \\ \hline
+% p--c--b-- & 0.02\% (0.02) &   7.42\% (16.80) & 1 (1) \\ \hline
+% p--c--b+ &  0.23\% (0.40) &  253.46\% (418.27) & 1 (1)  \\ \hline
+% p--c+b-- &  0.02\% (0.02) &  84.31\% (74.62) & 1 (1)  \\ \hline
+% p--c+b+ &  0.06\% (0.06) &  87.84\% (209.33) & 1 (1)  \\ \hline
+% p+c--b-- &  0.05\% (0.03) &  15.27\% (14.80) & 1 (1)  \\ \hline
+% p+c--b+ &  0.51\% (1.08) &  25.42\% (31.95) & 1 (1)  \\ \hline
+% p+c+b--&  0.06\% (0.07) &  7.47\% (8.25)) & 1 (1)  \\ \hline
+% p+c+b+&  0.08\% (0.06) &  22.12\% (26.14) & 1 (1)  \\ \hline \hline
+% cluster &  1 (1) & 1 (1) &  1 (1)  \\ \hline
+% gaussian&  1 (1) & 1 (1) & 1 (1)  \\ \hline
+% update&  1 (1) & 1 (1)  & 1 (1)  \\ \hline
+% pruning&  1 (1) & 1 (1) & 1 (1)  \\ \hline
+% epsilon &  1 (1) & 1 (1) & 1 (1)  \\ \hline
+% \end{tabular}
+% \caption{Means (standard deviations) of percentage error for each of the performance measures for each of the benchmarks, as predicted by the GPRS model.}
+%\label{table:acc-nonlin}
+%\end{table}
+
+Table~\ref{table:acc-cycles} reports the mean and standard deviation of percentage error of each of the models in predicting runtime cycles versus the measured performance of the test set. Table~\ref{table:acc-offchip} does the same for the off-chip accesses metric and Table~\ref{table:acc-cache} for the L2 cache transactions metric.  Points in the test set are not in the training set.
+
+For some performance metrics the quadratic response surface models do a poor job of capturing the performance behavior of the points in the test set.  Linear additive model performance is even worse than the quadratic model, due mainly to the fact the the additive models lack interaction terms. However, the nonlinear models accurately capture the performance behavior of all metrics in most cases, with only a trouble areas, discussed below.
+
+For all benchmarks, the number of instructions was relatively easy to predict, while the off-chip bandwidth and number of cache accesses were much more difficult.  Performance (cycles) prediction accuracy fell in between.  The benchmarks with the worst standard deviations had several extreme outliers that reduced the mean accuracy. Since the accuracy reported in the aforementioned tables is {\em percentage} error, it is subject to inflation when some absolute values being predicted are small relative to others in the set, which is the case particularly for off-chip bandwidth measurements.  Therefore, our judgement of model quality is dependent on how much we value accurate prediction of these small values.  For example, the GPRS--based model of microbenchmark {\tt  p--c--b+}'s offchip accesses has a percentage error of 253.46\%, but this is caused by mispredictons of less than 5000 accesses (versus up to 2 million accesses incurred by the benchmark for certain resource allocations).
+
+Our target machine runs Linux, which can add some non-determistic performance to the experiments.  A system with two-level scheduling would mostly likely see improved model accuracy.
+
+While certain benchmarks are more challenging than others, there is no substantial difference in prediction accuracy between the synthetic benchmarks and real application. Table~\ref{table:acc-cycles-lvsrc} shows the accuracy of predictions of runtime (in cycles) per phase in terms of percentage error when measured against a test set.  The phases of the LVSRC application were actually more easily predicted than some of the microbenchmarks.  Due to the extreme length of the application (which was run to completion), the space of allocations we considered was limited to a maximum of two cores.  We reduced the size of the sample set correspondingly.  As a result, Table~\ref{table:acc-cycles-lvsrc} reflects models tuned on very small samples; with some adjustment of the genetic search parameters to prevent overfitting, all of the GPRS--based model percentage errors were reduced below 2\%.
+
+%%For all of the applications, we can see that the models captured the performance of 90\% of the test points with less than []\% error.  This result leads us to believe that the model is an adequate enough representation of application performance to be useful in predicting performance for the remainder of the allocation options.
+
+Clearly, the nonlinear models are extremely accurate and would make excellent input to our spatial resource allocation algorithm.  However, the GPRS--based models used here took between 0.5 and 6 hours each to build, so clearly they would have to be created offline and stored for use at runtime.  The linear models can be trained extremely rapidly, but are less accurate.  The true metric of whether or not a model is accurate ``enough'' depends on the quality of the decisions made based on it.
+%We investigate decisions based on both linear and nonlinear model in Section~\ref{sec:decisions}.
+
+\subsubsection*{Effect of Sample Size on Model Accuracy}
+\label{sec:eval:acc-sample}
+
+Figure ~\ref{fig:acc-sample} shows the impact that changing the sample set size has on model accuracy, using the example of execution time predictions for the microbenchmarks.  It is worth noting that while the accuracy of the quadratic and  nonlinear models improve rapidly with increasing sample size, the linear additive model sees no improvement on average.  This failure to improve when exposed to additional data indicates that it is the {\em form} of the model itself which is flawed (i.e. too simplistic).  Another important feature is that as sample size increases, the improvement seen by the other models slows, indicating a point of diminishing returns for increasing sample size.
+
+This sample size analysis informs our decision about whether we can afford to use online or offline, linear or nonlinear models.  On the one hand, GPRS--based nonlinear models are much more accurate even when given smaller sample sizes.  However, they take a long time to train, and cannot be rapidly adapted to account for new data points.  On the other hand, linear models of sufficient complexity require more points to succeed, but can be rapidly trained and retrained.  A hybrid approach, in which genetic programming is used to construct the form of the response surface model offline, and then the model's coefficients are retuned based on performance data collected online, may a viable way to get the best of both worlds.
+
+\begin{figure}
+	\centering
+	\includegraphics[scale = 0.5] {acc_sample.png}
+	\caption{ \small Comparison of model accuracy for different models as training sample size is increased.  Y-axis is average percentage error in predictions of runtime averaged across all benchmarks. X-axis is increasing sample size.  Some models are more robust to reduced sample size than others.}
+	\label{fig:acc-sample}
+\end{figure}
+
+
+\subsubsection*{RAMP Case Study}
+
+To demonstrate the capabilities of Multithreaded FAME, we experiment
+with the interaction between hardware partitioning mechanisms and
+operating system scheduling policy using RAMP Gold.  We chose this
+case study~\cite{bird,tess_resource} because we feel it contains many important
+components of modern architecture research:  We run a modern
+parallel benchmark suite, boot a research operating system, simulate
+manycore target architectures with multi-level memory hierarchy timing
+models, and add experimental hardware mechanisms to the target
+machine.
+
+The additional simulation capacity of RAMP Gold enables us to move
+beyond simple benchmarking, and instead experiment with different
+operating system policies to see if the OS can effectively utilize
+these added mechanisms.  We feel that our results illustrate the
+potential of FAME not only for parallel computer architecture research
+but also as an enabler of hardware and system software co-design.
+
+The speedup in simulation time from FAME allows for a far more robust
+analysis than would have been possible using SAME, and the conclusions
+reached using the additional simulation capacity are qualitatively
+different from those that would be obtained using the slower SAME
+simulation capability.
+
+
+\subsubsection*{Problem Statement}
+
+In the manycore era, operating systems face the \emph{spatial resource
+  allocation} problem of having to manage a growing number of on-chip
+resources shared by a growing number of concurrently running
+applications.
+%This is hard
+Spatial resource allocation is challenging because applications can
+have diverse resource requirements, and the range of possible
+schedules grows combinatorially with applications and resources.
+%What we are doing in this experiment
+Our proposal to help the scheduler make intelligent spatial
+scheduling decisions is to employ {\em predictive models} of
+application performance.  The OS scheduler uses the model of each
+application's performance to predict which schedule will have the best
+overall system behavior (i.e., best performance or lowest energy).
+%Model-based scheduling is only compelling if the decision space is
+%large enough to justify the overhead of the technique, which is true
+%for manycore machines with shared memory hierarchies.
+%Predictive model--based control of spatial resource allocation allows
+%the scheduler to evaluate potential reallocations without having to
+%actually perform the reallocations.
+To make the case for model-based control of spatial resource
+scheduling, we need to learn if the performance models we create are
+accurate, which metrics the scheduler should use, and how far from
+optimal are the resulting schedules. Evaluating each issue requires
+seconds of simulated target time and/or hundreds of experiments. We
+thus need a simulator that can run at OS timescales with reasonable
+turnaround.
+
+Furthermore, we believe architectural support for performance
+isolation can greatly improve the effectiveness of predictive modeling
+and scheduling, as well as improve application performance by reducing
+interference. To test this theory, we added hardware partitioning
+mechanisms to the target architecture.
+
+%Since we must run productively at OS time scales, we need a simulator
+%the simulator must provide a reasonable turnaround time. % to
+%interact with human for rapid model selection and cross-validation.
+%add hardware partitioning mechanisms in Midas.
+
+%The need for a manycore architecture with custom partitioning
+%mechanisms combined with the requirement of simulating OS time scales
+%means that this research can only be done on with multiprocessor
+%%simulation that is capable of running full operating systems such as
+%Midas.
+
+%\subsection{Implementation}
+
+%Our spatial scheduling framework is implemented within a prototype
+%research operating system (ROS) that runs on the target machine
+%simulated by Midas FAME~\cite{ROS}.
+
+\begin{table*}[ct]
+ \begin{center}
+\footnotesize
+\begin{tabular}{|c|l|}
+\hline
+ Attribute  & Setting \\ \hline \hline
+ CPUs & 64 single-issue in-order cores @ \wunits{1}{GHz} \\ \hline
+ L1 Instruction Cache & Private, \wunits{32}{KB}, 4-way set-associative, 128-byte lines \\ \hline
+ L1 Data Cache & Private, \wunits{32}{KB}, 4-way set-associative, 128-byte lines \\ \hline
+ L2 Unified Cache & Shared, \wunits{8}{MB}, 16-way set-associative, 128-byte lines, inclusive, 4 banks, \wunits{10}{ns} latency \\ \hline
+ Off-Chip DRAM & \wunits{2}{GB}, 4$\times$\wunits{3.2}{GB/sec} channels,
+ \wunits{70}{ns} latency \\ \hline
+ \end{tabular}
+\caption{Target machine parameters simulated by RAMP Gold.}
+\label{table:target}
+ \end{center}
+\end{table*}
+
+\begin{table*}[ct]
+ \begin{center}
+\footnotesize
+\begin{tabular}{|l|l|l|r|l|}
+\hline
+ Name  & Type & Parallelism & Working Set & Bandwidth Demand\\ \hline \hline
+Blackscholes & financial PDE solver & coarse data parallel & \wunits{2.0}{MB} & minimal \\ \hline
+Bodytrack & vision & medium data parallel & \wunits{8.0}{MB} & grows with cores\\ \hline
+Fluidanimate & animation & fine data parallel & \wunits{64.0}{MB} & grows with cores\\ \hline
+Streamcluster & data mining & medium data parallel & \wunits{16.0}{MB} & high \\ \hline
+Swaptions & financial simulation & coarse data parallel & \wunits{0.5}{MB} & grows with cores \\ \hline
+x264 & media encoder & pipeline & \wunits{16.0}{MB} & grows with cores \\ \hline \hline
+Tiny & synthetic &  one thread does all work & \wunits{1}{KB} & minimal \\ \hline
+Greedy & synthetic & data parallel & \wunits{16.0}{MB} & high \\ \hline
+\end{tabular}
+\caption{Benchmark description. PARSEC benchmarks use {\tt simlarge} input set sizes, except for x264 and fluidanimate, which use {\tt simmedium} due to limited physical memory capacity.  PARSEC characterizations are from \cite{parsec}.}
+\label{table:benchmarks}
+ \end{center}
+\end{table*}
+
+
+\subsubsection*{Partitioning Mechanisms}
+Our allocation framework includes the following resources: the cores
+and their private caches, the shared last-level cache, and shared
+memory bandwidth.  For each resource, we provide a mechanism to
+prevent applications from exceeding their allocated share. The OS
+assigns cores and their associated private resources to a specific
+application. For the shared last-level cache, we modify the OS
+page-coloring algorithm so that applications are never given a page
+from a different application's color allocation.
+
+To partition off-chip memory bandwidth, we use Globally-Synchronized
+Frames (GSF)\cite{gsf}. GSF provides strict Quality-of-Service
+guarantees for minimum bandwidth and the maximum delay of a
+point-to-point network---in our case the memory network---by
+controlling the number of packets that each core can inject per frame.
+We use a modified version of the original GSF design, which tracks
+allocations per application instead of per core, does not reclaim
+frames early, and does not allow applications use the excess
+bandwidth.  These changes make GSF more suited to our study since we
+want to strictly bound the maximum bandwidth per application.
+Implementing GSF required some modifications to the target machine's
+memory controller in RAMP Gold to synchronize the frames and track
+application packet injections.  Due to the functional/timing split in
+RAMP Gold, this modification was no more difficult than modifying a
+software simulator would have been.
+
+\subsubsection*{Modeling and Scheduling Framework}
+
+% The decisions made by our model-based spatial scheduler are strongly
+% tied to the predictions generated by the models.  For this reason,
+% it is important to find a model creation methodology that can
+% accurately capture the relationship between allocated resources and
+% the performance metrics of interest, preferably after collecting
+% only a limited sampling of observations. All our models use the
+% three units of spatial allocation as independent variables
+% (i.e. inputs), and metrics of performance as dependent outputs.  The
+% models are trained using observed outputs from a sample set of
+% possible allocations.
+
+%The accuracy of the models is dependent on the quality of the sample
+%that they are trained upon. Obviously larger sample sets are better,
+%but depending on the assumptions made about when models are created
+%or re--tuned, collecting a large sample is not always feasible. We
+%use a design of experiments (DoE) technique known as the Audze-Eglais
+%Uniform Latin Hypercube design of experiments \cite{bates-aes03} to
+%select the points included in the sample set.  Audze-Eglais selects
+%sample points which are as evenly distributed as possible through the
+%space of possible allocations.
+
+%Model accuracy depends on the type of model that is employed. As a
+%starting point, we use multivariate regression techniques to create
+%explicit statistical models.
+To explore the relationship between model accuracy and model type
+for our problem space, we evaluate linear additive models, quadratic
+response surface models, and non-linear models.
+%based on Kernel Canonical Correlation Analysis (KCCA) \cite{kcca}.
+The OS scheduler uses the models of each application to
+optimally allocate resources between a mix of concurrently running applications. The algorithm maximizes an objective function,
+which serves to convert model outputs into a measure of overall
+decision fitness.
+%The form of the objective function influences the
+%type of algorithm we can use to maximize fitness.
+We evaluate three objective functions. A robust evaluation of this framework
+requires full cross validation of possible alternate schedules,
+which is computationally demanding.
+
+%The simplest models we consider are linear additive models, which
+%contain one term for each variable (i.e. an allocation type) and one
+%coefficient associated which each term.  Linear additive models
+%ignore any possible interaction between the variables, an invalid
+%assumption in our scheduling scenario.  For this reason, we also
+%include more complex multivariate regression models, commonly termed
+%`response surface models', which include terms for variable
+%interaction and polynomial terms of degree 2 or more.  We also employ
+%Kernel Canonical Correlation Analysis (KCCA) \cite{} as a
+%representative example of even more complex nonlinear modeling
+%techniques. KCCA automatically detects correlations among the
+%variables and outputs included in the model, and uses this analysis
+%to make predictions.
+
+%The scheduler uses the models for each application to decide how best
+%to divide resources up between a mix of applications all running
+%concurrently.  Our initial prototype scheduler optimizes the
+%reassignment of spatial resource allocations without regard to the
+%current allocations and the resulting reallocation overhead.  Even
+%this simplified problem is combinatorial (and in fact is
+%NP-hard). The algorithm works by maximizing an objective function,
+%which serves to convert model outputs into a measure of overall
+%decision fitness.  The form of the objective function influences the
+%type of algorithm we can use to maximize fitness. We use Matlab's
+%\cite{matlab} implementation of the medium-scale active-set
+%algorithm, which is a sequential quadratic programming based solver
+%and so depends on the convexity of the function to guarantee
+%optimality.
+
+%Only some of our objective functions are convex, and the optimization
+%algorithm may choose local minima for ones which are not.  As a
+%result, even with perfect models the scheduler could pick non-optimal
+%solutions.  For this reason, it is important to experiment with
+%different model types, sample sizes, objective functions, and
+%maximization algorithms to find the right balance between system
+%complexity and accuracy of scheduling decisions.
+
+
+\subsubsection*{Experimental Setup}
+
+Our experimental platform for this case study consists of five Xilinx
+XUP FPGA boards. Each board is programmed to simulate one instance of
+our target architecture.  Table~\ref{table:target} lists the target
+machine parameters. We run six applications from the PARSEC benchmark
+suite \cite{parsec}, as well as two synthetic microbenchmarks.
+Table~\ref{table:benchmarks} summarizes the benchmarks. The
+performance models are built based on applications running alone on a
+partition of the machine but are tested against data collected from
+multiprogrammed scheduling scenarios.  We simulated all possible
+allocations for each benchmark running alone, and then all possible
+schedules of allocations for 3 pairs of benchmarks running
+simultaneously, for a combined total of 68.5 trillion target
+core-cycles.  (A core-cycle is 1 clock cycle of execution on 1 core;
+simulating a 64-core CMP for 1,000,000 cycles would be 64,000,000
+core-cycles.)
+
+% The Research Operating System (ROS) is a prototype operating system
+% build to investigate OS design principles in the manycore era
+% \cite{Tessellation}.  We ported ROS to boot on Midas FAME, and
+% modified its functionality to support our scheduling framework
+% (including paging management and threading libraries).
+
+\subsubsection*{Case Study Results}
+
+\begin{figure*}[htb]
+%        \center{\includegraphics[width=1.1\textwidth]
+	\noindent\makebox[\textwidth]{%
+        \includegraphics[width=1.0\textwidth]
+        {case_study_outcome.pdf}}
+        \caption{\label{fig:case_study_outcome}  (a) The performance
+          of various scheduling methodologies and objective functions
+          for one scheduling problem, normalized to the globally
+          optimal schedule's performance.  The scheduler tries to
+          minimize each objective function.  (b) The effect of
+          benchmark size on the difficulty of the scheduling problem.
+          The average chosen schedule performance, global worst case
+          and naive scheduling case are normalized to the globally
+          optimal schedule's performance for each dataset. The
+          scheduling decision is Blackscholes vs. Streamcluster, the
+          objective function is to minimize runtime.
+ }
+\end{figure*}
+
+We found that predictive modeling has potential to successfully manage
+some applications, depending on the scheduler's objective function.
+For example, if the objective is to minimize energy, the approach
+works quite well.  However, if the objective is to minimize the time
+it takes to complete both applications, the naive baselines, such as
+splitting the machine in half or time-multiplexing, often performed as
+well or significantly better than model-based
+allocation. Figure~\ref{fig:case_study_outcome}(a) presents an example
+of these results. More importantly, our conclusions about the value of
+model-based scheduling would have been different had we \emph{not}
+simulated the entire execution of benchmarks, with large input sets,
+for all possible allocations.
+
+\emph{Effect of Benchmark Input Set Size.}
+We quantified the effect of benchmark configuration size by rerunning
+our experiments using either the PARSEC {\tt simsmall} size input sets
+or only synthetic benchmarks. While we would expect different inputs
+or simpler benchmarks to produce slightly different results,
+Figure~\ref{fig:case_study_outcome}b reveals that these modifications
+significantly change the conclusion.  For this particular scheduling
+problem, with both the small input set and synthetic benchmarks our
+scheduling technique is very close to optimal performance.  However,
+for the larger input set the prediction-based schedule is 50\% worse
+than optimal, and naively dividing the machine in half is always
+better. The reduced benchmarks improve the worst case while also
+easing the process of making good decisions, giving us an unwarranted
+confidence in the scheduler's abilities.
+
+%Reducing the quality of the input data results in scheduling spaces that are easy to optimize, as many of the worst cases are removed. Thus, we would come to different conclusions if we only did the limited experiments that we could perform on SIMICS+GEMSs.
+
+%For the smallest sample sizes, all models are equally inaccurate. With large samples, the more complex models do much better as they are better able to capture performance cliffs.
+%Different fitness functions and decision algorithms produce schedules of varying quality, some of which are close or equal to the best possible schedule.  These results provide significant motivation for further work in this area.
+
+
+%However, we find that gaining a complete understanding of scheduler performance in order to further improve it has only been made possible by FAME 111.
+
+%We quantified the effect of dataset quality on our perceptions of scheduling efficacy by rerunning our experiments using either the Simics {\tt simsmall} size input sets or only synthetic benchmarks.
+
+%Furthermore, in the case where we only examine synthetic benchmarks or the small input set, the skew in difficulty causes us to select combinations of algorithms and models for some decisions which are actually suboptimal according to the full validation analysis. Figure~\ref{fig:quality} illustrates this effect, as for the synthetic benchmarks the model-based allocation approach always works better than naively splitting the machine in half. However, in reality this is a case where full-size applications are not scheduled better than the naive case. We could not have discovered the problem cases for our scheduling framework had we done a study with only reduced benchmarks in SIMICS+GEMS.
+
+\emph{Effect of Testing All Possible Allocations.} Full
+cross-validation of our scheduler requires collecting data on all
+possible schedules. We would otherwise have no idea what the optimal
+or pessimal scheduling decisions are, and thus no way to tell how well
+the scheduler is doing in comparison.  The space of scheduling
+performance is complicated and discontinuous, so we are not guaranteed
+to capture true global optima if we validate by only testing against a
+sample of possible schedules.
+
+\begin{figure*}[htb]
+%        \center{\includegraphics[width=1.1\textwidth]
+	\noindent\makebox[\textwidth]{%
+        \includegraphics[width=1.0\textwidth]
+        {case_study_valid.pdf}}
+        \caption{\label{fig:case_study_valid}  (a) The percentage
+          difference in runtime between the average chosen schedule
+          and the globally optimal schedule, for three scheduling
+          problems. (b) The percentage error between the perceived
+          optimal schedule for a given validation sample size and the
+          true globally optimal schedule. Note that error in
+          perception increases as sample size decreases, and can be a
+          significant fraction of the percentage difference in runtime
+          from (a).  }
+\end{figure*}
+
+Figure~\ref{fig:case_study_valid} illustrates how limited validation
+approaches may skew our interpretation of experimental
+results. Figure~\ref{fig:case_study_valid}a plots the percentage
+difference in runtime between the average chosen schedule and the
+globally optimal schedule, for three scheduling problems.  This
+difference illustrates how far our scheduler really is from finding
+the best schedule, but it can only be determined by evaluating the
+performance of all possible schedules.
+
+In Figure~\ref{fig:case_study_valid}b, we vary the number of schedules
+examined during validation, covering different subsets of the total
+possible schedules. For each validation sample set size, we take many
+different samples and report the percentage error in the average
+observed optima. The observed error varies because samples that are
+not inclusive of all possible schedules may miss optimal points, and
+smaller samples are more likely to exclude these important
+points. Note that the errors in Figure~\ref{fig:case_study_valid}b can
+be a significant fraction of the true performance in
+Figure~\ref{fig:case_study_valid}a for the smaller validation samples.
+
+This data indicates that using reduced validation methods would have
+caused us to {\em overestimate} the quality of our scheduling
+solutions.  As the perceived optimum degrades, our scheduler falsely
+appears to perform better. Only examining all possible schedules gave
+us an unbiased view of algorithmic and modeling quality.
+In conclusion, we could not have discovered the problem cases for our
+scheduling framework had we done a study with only reduced benchmarks
+or using only a small set of validation points. Gaining a more
+complete understanding of scheduler performance with new hardware
+was only possible by using FAME.
+%FAME 111 enabled us to do a thorough evaluation of the approach
+
+\subsubsection*{Data from Perf Count}
+
+Although some applications will want to adapt to available resources
+as discussed in the previous section, we imagine most applications
+will simply want to run as well as possible given the current platform
+and the mix of other jobs running on the system.  This is the task of
+the operating system scheduler, which is responsible for allocating
+appropriate resources to each application.  Even if only one
+application is running, a new responsibility for the OS in the
+manycore era is to maximize performance and energy-efficiency of that
+sole app by only allocating the appropriate resources.  For example,
+allocating too many cores may cause the application to slow down, or
+consume additional power with no additional performance gain.  While
+an adaptive application could introspect on its own behavior, this
+requires additional application developer effort, and an application
+does not have the global view of what else has to run in the system.
+In this section, we discuss a scheduling framework that relies only on a small set of performance counters,  which can help
+operating systems allocate the appropriate resources for an
+application even when the application developer is oblivious to
+resource usage.
+
+%The operating system will increasingly be required to provide spatial scheduling of applications in addition to time-multiplexing to properly handle any of these plausible scenarios.
+
+The operating system scheduler sees a changing mix of concurrent
+applications with diverse resource requirements
+that might vary throughout execution. Naively dividing the machine
+using ``fair'' sharing may be a poor solution: some applications may not
+scale well enough to utilize a given resource while other applications
+may fail to meet user-driven deadlines given too few resources.  The
+scheduler's task is complicated by the fact that concurrently running
+applications might interfere with each other through shared resources,
+causing applications to experience unpredictable performance
+degradations.  For example, if two compute-bound threads are
+simultaneously scheduled on two different cores of a multicore
+processor, there may be no degradation versus running each in
+isolation.  However, if the two threads are memory-bandwidth
+constrained, simultaneous scheduling could dramatically impair
+performance.  Even more complex behaviors may occur if cores or
+hardware thread contexts share functional units, caches, or TLBs.
+
+Previous work has examined how runtime measurements of application
+behavior can help the operating system scheduler allocate resources.
+Shen et al. showed that using hardware measurement information for
+resource-aware scheduling resulted in a 15-70\% reduction in request
+latency over default Linux for RUBiS, TPC-C, and
+TPC-H~\cite{shen08counters}.  Another line of work investigated
+techniques to co-schedule applications with disjoint resource
+requirements to minimize interference, for example, executing a
+compute-bound and memory-bound application
+concurrently~\cite{thread_clustering,unc,shen08counters,hotos_perfcount}.
+%% This has
+%% also been done with reasonable success in~\cite{hotos_perfcount} with
+%% most applications receiving a 7--8\% boost in performance over
+%% traditional scheduling and a 58\% reduction in unfairness.  While 7\%
+%% seems modest, their approach uses a very simple algorithm and only few
+%% hardware measurement values yet still does quite well.  Few other
+%% hardware features could add 7\% to performance and particularly with
+%% such low overhead.
+
+To address the scheduling and resource allocation challenges, we have been exploring a framework that combines hardware partitioning mechanisms with application modeling to predict the optimal resource allocation for a set of applications.  The approach leverages partitioning mechanisms in hardware and the operating system, which create isolation between applications.  Isolation allows us to virtualize the performance of a machine so that given a subsection of the machine (\emph{e.g.,} 2 cores and 3 cache slices) the application will behave as if it was on a separate machine of that size.  The operating system collects sample points of the application running with different resource sets using measurement hardware and then uses them to build a predictive model of the application performance for a given set of resources.
+
+The scheduling framework decides the best resource allocation for a set of applications by performing an optimization of an objective function involving all of the models.  The objective function represents a system--level goal such as minimize total energy or maximize throughput.  %Appendix\~\ref{details} describes the different components of this scheduling framework in more detail.
+
+
+\begin{figure}[tb]
+  \begin{center}
+    \includegraphics[width=\linewidth]{scheduling_results_energy.pdf}
+  \end{center}
+  \caption{Comparison of the effectiveness of different scheduling
+    techniques normalized to our quadratic model-based approach.  The
+    metric (sum of cycles on all cores + 10$\times$ sum of off-chip
+    accesses) is a proxy for energy, so lower numbers are better.}
+  \label{fig:scheduling_results}
+\end{figure}
+
+
+We performed some of our own resource allocation experiments to
+confirm that runtime hardware measurements can help improve OS
+scheduling decisions.  Using an FPGA-based multiprocessor emulator RAMP Gold~\cite{rampgold09, rampgold10, fame10} and
+a simple research operating system ROS~\cite{ros, tess,tess_resource}, we ran experiments with the Parsec
+2.0 Benchmark Suite~\cite{parsec} and some handcrafted
+microbenchmarks on a 64-core target machine. The OS uses page coloring
+to allocate sections of the cache to an application, and the simulator
+implements a simple form of bandwidth partitioning by limiting the
+number of requests that can be sent to memory over a time
+interval. Our system executes each of the applications several times,
+each time varying the number of cores, and cache and bandwidth
+allocations.  We collect application runtime performance data using
+performance measurement hardware to create models of the performance
+for that application given a particular resource allocation.  We
+created a quadratic model and linear model with multivariate
+regression techniques, a GPRS model, and a KCCA model using 20\% of the possible allocations.  Using
+these models, our scheduler decides how best to run a mix of two
+applications by trying to optimize a given objective function.  For
+these results, we chose a simple proxy for total energy consumed, the
+total number of cycles run (the sum of the cycles on each core) +
+10$\times$ the total number of off-chip accesses, as our example
+objective function.
+
+Figure~\ref{fig:scheduling_results} shows the results of our
+scheduler's decisions based on the runtime performance data as
+compared with several alternatives: the optimal allocation, naively
+giving each application half of the machine, or time-multiplexing each
+application across the entire machine.  The time-multiplexing scheme
+first runs the first application to completion and then runs the
+second application to completion.  More fined-grained
+time-multiplexing could lead to longer runtimes due to cache
+interference effects and other context swap overheads.
+
+We do no show results for the GPRS and KCCA as we found that they were extremely non-convex and as a result often produced very poor results when paired with our optimizer. The simple linear and quadratic models perform much better with only a small set of sample points and have significantly lower overhead.
+
+The results
+show that using runtime data to perform more intelligent scheduling
+can lead to a significant savings in time and energy.  Our approach
+beats naively dividing the machine by 65\% and time multiplexing by
+100\% on average. Furthermore, it is within a few percent of optimal
+every time.  The worst-case results show that the penalty for poor
+decision making can be quite large, with an energy cost 3.25$\times$
+greater than our allocation on average.
+
+As the number of cores and other shared resources grows on chip, this
+will increase the number of possible allocations, thereby widening the
+performance gap between good and bad schedules.  Additionally, we
+expect that much more code will be tuned for parallel execution, and
+exhibit a greater variety of behaviors.  As a result, there will more
+likely be disjoint resource requirements among applications available
+to co-schedule.  We believe hardware measurement-based scheduling will
+thus prove even more effective.
+
+
+
+

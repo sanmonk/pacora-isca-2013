@@ -1,0 +1,99 @@
+\section{Application Functions}\label{app_func}
+%III.	Application Functions
+%	a.	Resource Value Functions
+%		i.	Structure
+%		ii.	Model Building Approach
+%			1.	Who measures the data?
+%	b.	Penalty Functions
+%		i.	Where do the deadlines come from?
+%		ii.	How do we set the slopes?
+%	c.	Power Model
+
+
+In this section, we describe the design of each of \pacora's application-specific functions in more detail.
+
+\subsection*{Response Time Functions}
+
+We choose application responsiveness is highly nonlinear for an increasing variety of applications like streaming media or gaming; 
+
+Unlike penalty functions, which describe user preference, a response time function describes process performance based on its resource assignments.
+Response time will commonly vary with time as a process changes phase and makes better or worse use of its resources.
+To guarantee the objective function is convex, the response time must be also;
+this is a plausible requirement akin to the proverbial ``Law of Diminishing Returns''.
+
+Besides the value of the response time function, its gradient or an approximation to it is useful to estimate the relative response time improvement from each type of resource.  A user-level runtime scheduler that schedules work internal to the process may be a good source of data.
+Additionally, the resource manager can allocate a modest amount of a resource and measure the change in response time.
+Instead of these, \pacora maintains a parameterized analytic response time model with the partial derivatives evaluated from the model \emph{a priori}.
+
+There are examples of response time versus resource behavior that violate convexity.  One such example sometimes occurs in memory allocation, where “plateaus” can sometimes be seen as in Figure~\ref{f:plat}.
+\begin{figure}[b]
+\parbox{1.6in}{
+\includegraphics*{Plateau1.eps}
+\caption{\label{f:plat}Response time function with some resource ``plateaus''.}
+}
+\hspace{\fill}
+\parbox{1.6in}{
+\includegraphics*{Plateau2.eps}
+\caption{\label{f:plateffect}Net effect of the resource plateaus on the process penalty.}
+}
+\end{figure}
+Such plateaus are typically caused by algorithm adaptations within the process to accommodate variable resource availability.  The response time is really the \emph{minimum} of several convex functions depending on allocation and the point-wise minimum that the process implements fails to preserve convexity.  The effect of the plateaus will be a non-convex penalty as shown in Figure~\ref{f:plateffect} and multiple extrema in the optimization problem will be a likely result.
+
+There are several ways to avoid this problem.  One is based on the observation that such response time functions
+will at least be \emph{quasiconvex}.  A function $f$ is quasiconvex if all of its \emph{sublevel sets}
+$S_\ell = \{x | f(x) \leq \ell\}$ are convex sets.
+Alternatively, $f$ is quasiconvex if its domain is convex and
+\begin{displaymath}
+f(\theta x + (1-\theta)y) \leq \max(f(x),f(y)), 0 \leq \theta \leq 1
+\end{displaymath}
+
+Quasiconvex optimization can be performed by selecting a threshold $\ell$ and replacing the objective function
+with a convex constraint function whose sublevel set $S_\ell$ is the same as that of $f$.
+Next, one determines whether there is a feasible solution for that particular threshold $\ell$.
+Repeated application with a binary search on $\ell$ will reduce the level of feasibility
+until the solution is approximated well enough.
+
+Another idea is to use additional constraints to explore convex sub-domains of $\tau$.
+For example,the affine constraint $a_{p,r} - \mu \leq 0$ excludes process $p$ from any assignment of resource $r$ exceeding $\mu$.  Similarly, $\mu - a_{p,r} \leq 0$ exludes the opposite possibility.
+A binary (or even linear)search of such sub-domains could be used to find the optimal value.
+
+\pacora adopts a simpler idea, modeling response times by functions that are convex by construction
+and do not distort response time behavior too much.  This approach is developed more fully below.
+
+\fix{why we picked out model format}
+\fix{downsides of convexity}
+\fix{model creation ptr}
+
+\subsection*{Penalty Functions}
+
+In tradition systems, responsiveness has been described by a single value (usually called a \emph{priority}) associated with a thread of computation and adjusted within the operating system by a variety of ad-hoc mechanisms.   Priority approaches have no mechanism to understand deadlines or the resources required to meet a deadline and as such must run the highest priority applications as fast as possible on all the resources requested. 
+
+for these real-time applications, performance is measured as sufficient if the deadline is met and insufficient otherwise.
+
+Penalty functions  are generically defined as members of a family of such functions
+so that user preferences for a process $p$ (elided in the discussion below)
+can be implemented by assigning values to a few well-understood parameters.
+As a process grows or diminishes in importance, its penalty function can be modified accordingly.
+In a client operating system,the instantaneous management of penalty function modifications
+should be highly automated by the system to avoid unduly burdening the user.
+
+
+
+To guarantee it is convex and non-decreasing, $s$ must be non-negative.
+The response time $\tau$  is of course non-negative,
+and it may be sensible (if not strictly necessary) to convene that $d$ is also.
+A response time constrained process has a marked change in slope, namely from 0 to $s$, at the point $\tau= d$.
+In the most extreme case $s = \infty$ (implying infinite penalty for the system as a whole when $\tau > d$).  ``Softer'' requirements will doubtless be the rule.
+For processes without response time constraints one can set $d = 0$.
+This defines linear behavior with $s$ as the rate of penalty increase with response time.
+
+The gradient of process penalty with respect to its resource allocations is useful in controlling the optimization algorithm.
+By the chain rule, $\partial\pi/\partial a_r = \partial\pi/\partial\tau\cdot\partial\tau/\partial a_r$.
+The first term is well-defined but discontinuous at $\tau = d$ with
+$\partial\pi/\partial\tau = \mbox{ if } (\tau - d) \leq 0 \mbox{ then } 0 \mbox{ else } s$.
+The problem of estimating the partial derivatives $\partial\tau/\partial a_r$ is dealt with below.
+
+\fix{details on how to set these}
+
+
+\subsection*{Power and Battery Energy}

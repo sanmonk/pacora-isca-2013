@@ -10,8 +10,8 @@
 %	c.	Power Model
 
 
-In this section, we describe the design of \pacora's response time functions in more detail.
-A response time function describes an application's performance given its resource assignments.  These functions capture information about the performance impact of a particular resource to an application on the current hardware at a particular time. Without this information, it would be difficult for any resource allocation system to make informed decisions short of blindly trying a variety of allocations and picking the best one.
+In this section, we describe the design of \pacora's RTFs in more detail.
+RTFs describe an application's performance given its resource assignments.  These functions capture information about the performance impact of a particular resource to an application on the current hardware at a particular time. Without this information, it would be difficult for any resource allocation system to make informed decisions short of blindly trying a variety of allocations and picking the best one.
 
 \subsubsection*{Modeling versus Interpolating} While it might have been possible to model response times by recording past values and interpolating among them, this idea has serious shortcomings:
 \begin{itemize}
@@ -29,8 +29,8 @@ The specific function chosen for \pacora is shown in Equation~\ref{rtf_eq} above
 In this equation, the response time is modeled as a weighted sum of component terms,
 roughly one per resource, where a term $w_i/a_i$ is the amount of work $w_i \geq 0$
 divided by $a_i$, the allocation of the $i$th resource~\cite{Snav}.
-For example, one term might model the number of instructions executed divided by total processor MIPS;
-another might model network accesses divided by network bandwidth, and so forth.
+For example, one term might model instructions executed divided by total processor MIPS;
+another might model network accesses divided by bandwidth, and so forth.
 %Asynchrony and latency tolerance may make response time components overlap partly or fully; and thus we added additional terms to represent the interactions between resources.
 
 Such models are automatically convex in the allocations because $1/a$ is convex for positive $a$ and because a positively-weighted sum of convex functions is convex.  The models are also linear in the weights.
@@ -41,11 +41,19 @@ Such models are automatically convex in the allocations because $1/a$ is convex 
 %it is a simple matter to compute the gradient of $\tau$ once the model is defined.
 
 \subsubsection*{Non-Convexity}
-Forcing our response time functions to be convex assumes that the actual response time are close to convex. We find this to be a plausible requirement as applications almost completely follow the proverbial ``Law of Diminishing Returns'' for resource allocations.
+Forcing RTFs to be convex assumes that the actual response times are
+close to convex. We find this to be a plausible requirement as
+applications usually follow the ``Law of Diminishing Returns'' for
+resource allocations.
 
-However, there are examples of response time versus resource behavior that violate convexity.   For example, we have seen non-convex performance in applications when dealing with hyperthreads or memory pages.  For two of our applications, 5 hyperthreads resulted in significantly worse performance than either 4 or 6.  When studying some other applications, we found that particular numbers of memory pages, (\emph{e.g.,} 2K), resulted in much better performance than the adjacent page allocations.  Avoiding (or seeking out) these allocations would add significant cost to the optimization problem.
+However, there are examples of response time versus resource behavior that violate convexity.   For example, we have seen non-convex performance in applications when dealing with hyperthreads or memory pages.  For two of our applications, 5 hyperthreads resulted in significantly worse performance than either 4 or 6.  When studying some other applications, we found that particular numbers of memory pages, (\emph{e.g.,} 2K), resulted in much better performance than the adjacent page allocations.  Outliers and additional challenges to response time modeling are discussed in Section~\ref{discuss}.
+%Avoiding (or seeking out) these allocations would add significant cost to the optimization problem.
 
-Another kind of convexity violation can occur in memory allocation, where ``plateaus'' can sometimes be seen as in Figure~\ref{f:plat}. Such plateaus are typically caused by algorithm adaptations within the application to accommodate variable resource availability.  The response time is really the \emph{minimum} of several convex functions depending on allocation, and the point-wise minimum that the application implements fails to preserve convexity.  The effect of the plateaus will be a non-convex penalty as shown in Figure~\ref{f:plateffect} and multiple extrema in the optimization problem will be a likely result. There are several ways to avoid this problem.  One is based on the observation that such response time functions will at least be \emph{quasiconvex}.  Another idea is to use additional constraints to explore convex sub-domains of $\tau$. Either approach adds significant computational cost.
+Another kind of convexity violation can occur in memory allocation, where ``plateaus'' can sometimes occur as in Figure~\ref{f:plat}. Such plateaus are typically caused by adaptations within the application (\emph{e.g.,} adjusting the algorithm or output quality).
+%to accommodate variable resource availability.
+The response time is really the \emph{minimum} of several convex functions depending on allocation, and the point-wise minimum that the application implements fails to preserve convexity.  The effect of the plateaus will be a non-convex penalty as shown in Figure~\ref{f:plateffect} and multiple extrema in the optimization problem will be a likely result. 
+
+
 
 \begin{figure}[hb]
 \parbox{1.6in}{
@@ -58,8 +66,8 @@ Another kind of convexity violation can occur in memory allocation, where ``plat
 \caption{\label{f:plateffect}Net effect of the resource plateaus on the application penalty.}
 }
 \end{figure}
-
-Overall, we found that our simple convex models still resulted in high-quality resource allocations and thus chose not to implement any of these approaches.  Alternative approaches to handling non-convex behavior are described in~\cite{pacora_tr}. Additional challenges to response time modeling are discussed in Section~\ref{discuss}.
+There are several ways to avoid this problem.  One is based on the observation that such response time functions will at least be \emph{quasiconvex}.  Another idea is to use additional constraints to explore convex sub-domains of $\tau$. Either approach adds significant computational cost, and we found that our simple convex models still resulted in high-quality resource allocations. Thus we chose not to implement any of these approaches.  Alternative approaches to handling non-convex behavior are described in Appendix~\ref{convex}.
+%~\cite{pacora_tr}.
 
 %\subsubsection*{Dynamically Changing Applications}
 %
@@ -74,13 +82,26 @@ Overall, we found that our simple convex models still resulted in high-quality r
 
 
 \subsubsection*{Data Collection and Model Creation Time}
-There are many ways to collect the response time data for applications. The user-level runtime scheduler is one possible source, or the operating system could measure progress using performance counters.  In our implementation, applications report their own measured values; however, this solution was chosen simply as a way to test the validity of the concept.  In a production operating system it may not be a good idea because applications could lie about their performance.  In a datacenter environment this might be less of a concern.
+There are many ways to collect the response time data for
+applications. The user-level runtime scheduler is one possible source,
+or the operating system could measure progress using performance
+counters.  In our implementation, applications report their own
+measured values; however, this solution was chosen simply as a way to
+test the validity of the concept.  In a production operating system it
+may not be a good idea because applications could lie about their
+performance.  In a single-operator datacenter environment this might be less of a concern.
 
 There are also many different possible moments to create response time functions.  RTFs could be created in advance and distributed with the application. This approach could make lots of sense for app stores since most of them cater to just a few platforms. RTFs could also be crowd-sourced and built in the cloud, which has the advantage making it easy to collect a diverse set of training points.  However, all of these approaches lack adaptability.  As a result, we have chosen to implement two solutions that collect data directly from the user's machine.  The first approach is to adapt to the system by collecting all of the training points at application install time and building the model then.  The most highly adaptive approach collects data continuously as the application runs, uses the data to modify the model training set, and rebuilds the model.  A hybrid approach may be the most effective: applications can begin with a generic model and improve it over time. The remainder of this Section describes our model creation process in detail.
 \subsection{Response Time Model Creation}
-To create RTF models either at install time or online we use a convex least squares approach described below.  For the install time approach we use a genetic algorithm, Audze-Eglasis Design of Experiments\cite{bates-aes03}, to select the resource vectors to use for training.  These vectors and their response times are fed into the convex least squares algorithm. In the online approach the information comes from the application's response time history.
+To create RTF models either at install time or online we use a convex
+least-squares approach described below.  At install time, we use a
+genetic algorithm, Audze-Eglasis Design of
+Experiments\cite{bates-aes03}, to select the resource vectors to use
+for training.  These vectors and their response times are fed into the
+convex least-squares algorithm. Online model building uses data
+from the application's response time history.
 
-\subsubsection*{Least Squares Minimization}
+\subsubsection*{Least-Squares Minimization}
 After enough measurements, discovery of the model parameters $w$ that define the function $\tau$
 can be based on a solution to the over-determined linear system $t=Dw$,
 where $t$ is a column vector of actual response times measured for the application
@@ -110,7 +131,7 @@ As resource allocation continues, more measurements will become available to aug
 Moreover, older data may poorly represent the current behavior of the application.
 \pacora uses an incremental approach described below to replace old data and efficiently update RTFs.
 
-\subsubsection*{Incremental Least Squares}
+\subsubsection*{Incremental Least-Squares}
 What is needed is a factorization $\tilde{Q}\tilde{R}$ of a new matrix $\tilde{D}$
 derived from $D$ by dropping a row, perhaps from the bottom,
 and adding a row, perhaps at the top.
@@ -139,12 +160,8 @@ guaranteeing that the most recent $n$ updates are always part of the model.
 
 To guarantee convexity of the RTF, the solution $w$ to $t \approx QRw$ must have no negative components.
 Intuitively, when a resource is associated with more than a single $w_j$
-or when the measured response time increases with allocation then negative $w_j$ may occur.
-
-A requirement for non-negative solutions to least-squares linear algebra problems is common,
-so much so that it has a name: \emph{Non Negative Least Squares}, or NNLS.
-There are several well-known techniques\cite{ChPl},
-but since \pacora's online model maintenance calls for
+or when the measured response time increases with allocation then negative $w_j$ may occur. \emph{Non-negative Least-Squares} problems (NNLS) are common linear algebra, and there are several well-known techniques\cite{ChPl}.
+However since \pacora's online model maintenance calls for
 incremental downdates and updates to rows of $Q^T$, $Q^Tt$ and $R$,
 the NNLS problem is handled with a scheme
 based on the \emph{active-set} method\cite{LaHa} that
@@ -158,7 +175,7 @@ skipping over them in maintaining and using the QR factorization.
 
 The memory used in maintaining a model with $n$ weights is modest, $24n^2 + 21n + \textrm{O}(1)$ bytes.
 For $n = 8$ this is under 2 KB, fitting nicely in L1 cache.
-Our NNLS implementation runs in around \fix{x $\micro$s}.
+Our NNLS implementation takes 4 $\micro$s per update-downdate pair in \tess.
 %Figure~\ref{model_build_perf} shows the performance of \pacora's NNLS algorithm.
 
 \subsubsection*{Model Rank Preservation}
