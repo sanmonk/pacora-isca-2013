@@ -89,36 +89,7 @@ Conversely, if a column already in \textbf{Z} happens to acquire a negative grad
 allowing it to further reduce the value of the objective function.
 
 After initial acquisition of data and $QR$ factorization, each step of \pacora's NNLS algorithm
-combines incremental row and column downdates and updates as follows:
-
-\begin{pseudocode}{IncrementalNNLS}{t_0,d_0}
-\LOCAL{R,Q^T,Q^Tt,w,v,idx,d,u,done}                              \\
-R,Q^T,Q^Tt \GETS \textsc{DndtRow}(R,Q^T,Q^Tt,idx)           \\
-R,Q^T,Q^Tt \GETS \textsc{UpdtRow}(t_0,d_0,R,Q^T,Q^Tt,idx)     \\
-w \GETS \textsc{BackSolve}(R,Q^Tt,idx)                          \\
-v \GETS \textsc{Gradient}(R,Q^Tt,idx)                    \\
-\REPEAT
-  done \GETS \TRUE                                              \\
-  d \GETS \arg\min(w)                                          \\
-  \IF w_d < 0 \THEN                                            \\
-  \BEGIN
-    done \GETS \FALSE                                         \\
-    R,Q^T,Q^Tt,idx \GETS \textsc{DndtCol}(R,Q^T,Q^Tt,idx,d)   \\
-    w \GETS \textsc{BackSolve}(R,Q^Tt,idx)                    \\
-    v \GETS \textsc{Gradient}(R,Q^Tt,idx)              \\
-  \END                                                        \\
-  u \GETS \arg\min(v)                                         \\
-  \IF v_u < 0 \THEN                                           \\
-  \BEGIN
-    done \GETS \FALSE                                         \\
-    R,Q^T,Q^Tt,idx \GETS \textsc{UpdtCol}(R,Q^T,Q^Tt,idx,u)     \\
-    w \GETS \textsc{BackSolve}(R,Q^Tt,idx)                    \\
-    v \GETS \textsc{Gradient}(R,Q^Tt,idx)              \\
-  \END                                                        \\
-\UNTIL done                                                   \\
-\RETURN{w,v}                                                  \\
-\end{pseudocode}
-
+combines incremental row and column downdates and updates as shown in Algorithm~\ref{UpDn}
 The set \textbf{Z} and its complement \textbf{P} are implemented as an index $idx$
 containing a vector of the column subscripts comprising \textbf{P} in increasing order
 followed by the column subscripts of \textbf{Z} in increasing order;
@@ -156,3 +127,33 @@ These rotations conveniently extend the columns to the right of $m$ in $R^p$ by 
 thus restoring $R^p$ to upper triangular form. Once again, the rotations are also applied to $Q^T$ and $Q^Tt$.
 
 A new gradient computation and new back-solve for $w$ are clearly necessary after either downdates or updates to columns of $R$.
+
+\begin{pseudocode}{IncrementalNNLS}{t_0,d_0}
+\label{UpDn}
+\LOCAL{R,Q^T,Q^Tt,w,v,idx,d,u,done}                              \\
+R,Q^T,Q^Tt \GETS \textsc{DndtRow}(R,Q^T,Q^Tt,idx)           \\
+R,Q^T,Q^Tt \GETS \textsc{UpdtRow}(t_0,d_0,R,Q^T,Q^Tt,idx)     \\
+w \GETS \textsc{BackSolve}(R,Q^Tt,idx)                          \\
+v \GETS \textsc{Gradient}(R,Q^Tt,idx)                    \\
+\REPEAT
+  done \GETS \TRUE                                              \\
+  d \GETS \arg\min(w)                                          \\
+  \IF w_d < 0 \THEN                                            \\
+  \BEGIN
+    done \GETS \FALSE                                         \\
+    R,Q^T,Q^Tt,idx \GETS \textsc{DndtCol}(R,Q^T,Q^Tt,idx,d)   \\
+    w \GETS \textsc{BackSolve}(R,Q^Tt,idx)                    \\
+    v \GETS \textsc{Gradient}(R,Q^Tt,idx)              \\
+  \END                                                        \\
+  u \GETS \arg\min(v)                                         \\
+  \IF v_u < 0 \THEN                                           \\
+  \BEGIN
+    done \GETS \FALSE                                         \\
+    R,Q^T,Q^Tt,idx \GETS \textsc{UpdtCol}(R,Q^T,Q^Tt,idx,u)     \\
+    w \GETS \textsc{BackSolve}(R,Q^Tt,idx)                    \\
+    v \GETS \textsc{Gradient}(R,Q^Tt,idx)              \\
+  \END                                                        \\
+\UNTIL done                                                   \\
+\RETURN{w,v}                                                  \\
+\end{pseudocode}
+
