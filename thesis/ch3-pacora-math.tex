@@ -1,26 +1,6 @@
 \chapter{PACORA Framework}
 
-\section{\pacora Architecture}\label{sys_design}
-
-%II.	System Architecture
-%		i.	Application Specific
-%		ii.	Resources Matter
-%		iii.	Measurement
-%		iv.	Optimization
-%	a.	Convex by construction
-%		i.	Fairly representative of the actual system
-%			1.	(Systems should be more convex)
-%		ii.	Low Overhead
-%	b.	Explanation of resources
-%	c.	Performance Models Built Online
-%		i.	Explanation of performance
-%		ii.	When does it run?
-%	d.	Penalty functions
-%	e.	Dynamic Optimization
-%		i.	When does it run?
-
-
-%\pacora, which stands for Performance-Aware Convex Optimization for Resource Allocation, is a framework designed to determine the proper amount of each resource type to assign to each application.  For our purposes an application is the entity to which the operating system allocates resources: it can viewed as a complete application (\emph{e.g.,} a video player) or a component of an application (\emph{e.g.,} a music synthesizer) or a process (\emph{e.g.,} indexing).
+\section{Introduction}
 
 \pacora is a framework designed to determine the proper amount of each
 resource type to give each application.  For example, consider a video
@@ -40,31 +20,7 @@ across multiple applications to guarantee responsiveness without
 over-provisioning and to adapt allocations as the application mix
 changes.
 
-For our purposes an application is an entity to which the system
-allocates resources: these can be a complete application (\emph{e.g.,}
-a video player), a component of an application (\emph{e.g.,} a music
-synthesizer), a background OS process (\emph{e.g.,} indexing), a job
-in warehouse-scale computing, or a distributed application in a
-distributed embedded system.
-
-\pacora is designed for systems where resource allocation is separated
-from scheduling.  This split enables the use of application-specific
-scheduling policies, which have the potential to be easier to design
-and more efficient than general-purpose schedulers that have to work
-for everything.  This approach leaves the system to focus on the
-problem of \emph{how much} of each resource type to assign to each
-application.  In client machines, \pacora is used to make coarse-grain
-resource-allocation decisions (\emph{e.g.,} cores and memory pages) at
-the OS level, while the micro-management of these resources to run
-application tasks is left to user-level runtimes such as Intel
-Threaded Building Blocks~\cite{CoMa08} or Lithe~\cite{lithe}, and to
-user-level memory managers.
-%As a result, \pacora could be used to consolidate realtime systems.  Resources can be allocated to various realtime user-level schedulers such as Earliest-Deadline-First or Rate-Monotonic schedulers, eliminating the need in the case of many applications for a realtime OS designed around one of these schedulers.
-In the cloud environment, \pacora allocates
-resources (\emph{e.g.,} nodes and storage) to jobs, and scheduling is
-left to other entities such as the MapReduce framework\cite{mapreduce}
-or the node OS.  \pacora can also be used in a hypervisor to allocate
-resources among guest OSes.
+\section{\pacora Architecture}\label{sys_design}
 
 \pacora formulates resource allocation as an optimization problem
 built from two types of application-specific functions: a
@@ -76,19 +32,6 @@ function represents the user-level goals for the application
 determine the ideal resource allocation across all active
 applications.  The following subsections briefly introduce the primary
 components of \pacora and the optimization formulation.
-
-\subsection{Resources}
-
-In our client system, resources are anything that the system can
-``partition'' in hardware or software: specifically we use cores,
-network bandwidth, cache ways, and memory pages in our system.
-However, other resources could be easily added assuming they have QoS
-enforcement mechanisms.  The other scenarios would have resources that
-perform similar functions (compute, network, capacity), but at a
-different scale. For warehouse-scale computing, resources are more
-likely to be different types of nodes, network bandwidth, and
-storage. For distributed embedded systems, resources would include
-compute devices, link bandwidths, and memories.
 
 \subsection{Response-Time Functions}
 
@@ -172,11 +115,11 @@ applications without response-time constraints the deadline can be set
 to $0$. Two representative graphs of this type appear in
 Figures~\ref{f:pen1} and~\ref{f:pen2}.
 
-%In a client operating system, management of penalty function modifications
-%should be highly automated by the system to avoid unduly burdening the user.
-%As an application grows or diminishes in importance, its penalty function can be modified accordingly.
-%Adjustment is also likely to occur in transitions between operating scenarios.
-%For example, when unplugging a device all of the background activities could have their slopes significantly reduced to save battery life.
+In a client operating system, management of penalty function modifications
+should be highly automated by the system to avoid unduly burdening the user.
+As an application grows or diminishes in importance, its penalty function can be modified accordingly.
+Adjustment is also likely to occur in transitions between operating scenarios.
+For example, when unplugging a device all of the background activities could have their slopes significantly reduced to save battery life.
 
 \begin{figure}[hb]
 \parbox{1.6in}{
@@ -220,7 +163,33 @@ $\tau_p$ is its response time function,
 $a_{p,r}$ is the allocation of resource $r$ to application $p$,
 and $A_r$ is the total amount of resource $r$ available.  Optimization details are described in Section~\ref{dyn_opt}.
 
-\subsection{Convex Optimization}
+\subsection{Power and Energy}
+In \pacora, we create an artificial application to represent the
+interest in reducing system power and energy.  Application 0 is
+designated the idle application and receives allocations of all
+resources that are left idle, \emph{i.e.,} not allocated to other
+applications.  The idle resources can be powered off or put to sleep
+if possible to save power.
+
+The ``response time'' for application 0, $\tau_0$, is artificially
+defined to be the total system power consumption.
+This response function is affine and monotone nonincreasing in its arguments $a_{0,r}$.
+The penalty function $\pi_0$ establishes a system tradeoff between
+power and performance that will determine which resources are
+allocated to applications to improve performance and which are left
+idle.  The penalty function $\pi_0$ can be used to keep total system
+power below the parameter $d_0$ to the extent the penalties of other
+applications cannot overcome its penalty slope $s_0$. Both $s_0$ and
+$d_0$ can be adjusted to reflect the current battery charge in mobile
+devices. For example, as the battery depletes, $d_0$ could be decreased or $s_0$ increased
+to force other applications to slow or cease execution.
+
+Additionally, application 0 functions as \emph{slack} variables in our optimization problem turning the resource bounds into equalities:
+\begin{equation}
+\sum_{p\in P} a_{p,r} - A_r = 0, r = 1,\dots n.
+\end{equation}
+
+\section{Convex Optimization}
 
 If the penalty functions, response time functions, and resource
 constraints were arbitrary, little could be done to optimize the total
@@ -238,10 +207,10 @@ for all $\theta$ between 0 and 1.
 A set is convex if for any two points $x$ and $y$ in the set, the point
 $\theta x + (1-\theta)y$
 is also in the set for all $\theta$ between 0 and 1.
-%If $f$ is differentiable, it is convex if its domain is an open convex set and
-%$f(y) \geq f(x) + \nabla f^T\cdot(y-x)$ where $\nabla f$ is the gradient of $f$.
-%Put another way, $f$ is convex if its first-order Taylor approximations
-%are always global underestimates of its true value.
+If $f$ is differentiable, it is convex if its domain is an open convex set and
+$f(y) \geq f(x) + \nabla f^T\cdot(y-x)$ where $\nabla f$ is the gradient of $f$.
+Put another way, $f$ is convex if its first-order Taylor approximations
+are always global underestimates of its true value.
 
 A convex optimization problem is one that can be expressed in this form:
 \begin{eqnarray*}
@@ -275,43 +244,101 @@ size of the system.
 \pacora also formulates RTF \emph{creation} as a convex optimization
 problem, as explained in Section~\ref{RTFs}.
 
-\subsection{Power and Energy}
-In \pacora, we create an artificial application to represent the
-interest in reducing system power and energy.  Application 0 is
-designated the idle application and receives allocations of all
-resources that are left idle, \emph{i.e.,} not allocated to other
-applications.  The idle resources can be powered off or put to sleep
-if possible to save power.
+\subsection*{Penalty Function Convexity}
+A few facts about convex functions will be useful in what follows.
+First, a \emph{concave} function is one whose negative is convex.
+Maximization of a concave function is equivalent to minimization of its convex negative.
+An affine function, one whose graph is a straight line in two dimensions or a hyperplane in n dimensions,
+is both convex and concave.  A non-negative weighted sum or point-wise maximum (minimum) of convex (concave) functions is convex (concave), as is either kind of function composed with an affine function.  The composition of a convex non-decreasing (concave non-increasing) scalar function with a convex function remains convex (concave).
 
-The ``response time'' for application 0, $\tau_0$, is artificially
-defined to be the total system power consumption.
-%This response function is affine and monotone nonincreasing in its arguments $a_{0,r}$.
-The penalty function $\pi_0$ establishes a system tradeoff between
-power and performance that will determine which resources are
-allocated to applications to improve performance and which are left
-idle.  The penalty function $\pi_0$ can be used to keep total system
-power below the parameter $d_0$ to the extent the penalties of other
-applications cannot overcome its penalty slope $s_0$. Both $s_0$ and
-$d_0$ can be adjusted to reflect the current battery charge in mobile
-devices. For example, as the battery depletes, $d_0$ could be decreased or $s_0$ increased
-to force other applications to slow or cease execution.
+Each penalty function $\pi$ is the pointwise maximum of two affine functions and is therefore convex.
+Moreover, since each penalty function is scalar and nondecreasing,
+its composition with a convex response time function will also be convex.
 
-%Additionally, application 0 functions as \emph{slack} variables in our optimization problem turning the resource bounds into equalities:
-%\begin{equation}
-%\sum_{p\in P} a_{p,r} - A_r = 0, r = 1,\dots n.
-%\end{equation}
+\subsection*{Response Time Convexity}
+We now show that response time functions $\tau$ including the various bandwidth amplification functions are convex
+in both the bandwidth and memory resources $b_r$ and $m_r$ given any of the possibilities we have considered.
+Since norms preserve convexity, this reduces the question to proving each term in the norm is convex.
+Since all quantities are positive and both maximum and scaling by a positive constant preserve convexity,
+\begin{eqnarray*}
+\lefteqn{w/(b\cdot\min(c_1\alpha_1(m),c_2\alpha_2(m)))}   \\
+&=& \max(w/(b\cdot c_1\alpha_1(m)),w/(b\cdot c_2\alpha_2(m))).
+\end{eqnarray*}
+It therefore only remains to show that both $1/\sqrt{b\cdot m}$ and $1/(b\cdot\alpha(m))$ are convex in $b$ and $m$.
+
+A function is defined to be \emph{log-convex} if its logarithm is convex.
+A log-convex function is itself convex because exponentiation preserves convexity,
+and the product of log-convex functions is convex because the log of the product is the sum of the logs,
+each of which is convex by hypothesis.
+Now $1/b$ is log-convex for $b > 0$ because $-\log b$ is convex on that domain.
+In a similar way, $\log(1/\sqrt{b\cdot m}) = -(\log b + \log m)/2$
+and $\log m^{-1/d} = -(\log m)/d$ are convex.
+Finally, $\log (1/\log m)$ is convex because its second derivative is positive for $m > 1$:
+\begin{eqnarray*}
+\frac{d^2}{dm^2}\log (1/\log m) &=& \frac{d^2}{dm^2}(-\log\log m)  \\
+                                  &=& \frac{d}{dm}\left(\frac{-1}{m\log m}\right) \\
+                                  &=& \frac{1 + \log m}{(m\log m)^2}.
+\end{eqnarray*}
+
+Summing up, a response time function for a application might be modeled by the convex function
+\begin{eqnarray*}
+\tau(w,b,\alpha,m) &=& \sqrt[p]{\sum_j \left(\frac{w_j}{b_j\cdot\alpha_j(m_j)}\right)^p}  \\
+                   &=& \|\mbox{diag} wd^T \|_p
+\end{eqnarray*}
+where the $w_j$ are the parameters of the model (the quantities of work) to be learned,
+the components of $d$ satisfy $d_j = 1/(b_j\cdot\alpha_j(m_j))$,
+the $b_j$  are the allocations of the bandwidth resources,
+the $\alpha_j$ are the bandwidth amplification functions (also to be learned),
+the $m_j$ are the allocations of the memory or cache resources that are responsible for the amplifications.
+This formulation allows the application response time $\tau$ to be modeled as the $p$-norm of
+the component-wise product of a vector $d$ that is computed from the resource allocation
+and a learned vector of work quantities $w$.
+
+
+
+\section{Application and Assumptions}
+
+For our purposes an application is an entity to which the system
+allocates resources: these can be a complete application (\emph{e.g.,}
+a video player), a component of an application (\emph{e.g.,} a music
+synthesizer), a background OS process (\emph{e.g.,} indexing), a job
+in warehouse-scale computing, or a distributed application in a
+distributed embedded system.
+
+\pacora is designed for systems where resource allocation is separated
+from scheduling.  This split enables the use of application-specific
+scheduling policies, which have the potential to be easier to design
+and more efficient than general-purpose schedulers that have to work
+for everything.  This approach leaves the system to focus on the
+problem of \emph{how much} of each resource type to assign to each
+application.  In client machines, \pacora is used to make coarse-grain
+resource-allocation decisions (\emph{e.g.,} cores and memory pages) at
+the OS level, while the micro-management of these resources to run
+application tasks is left to user-level runtimes such as Intel
+Threaded Building Blocks~\cite{CoMa08} or Lithe~\cite{lithe}, and to
+user-level memory managers.
+As a result, \pacora could be used to consolidate realtime systems.  Resources can be allocated to various realtime user-level schedulers such as Earliest-Deadline-First or Rate-Monotonic schedulers, eliminating the need in the case of many applications for a realtime OS designed around one of these schedulers.
+In the cloud environment, \pacora allocates
+resources (\emph{e.g.,} nodes and storage) to jobs, and scheduling is
+left to other entities such as the MapReduce framework\cite{mapreduce}
+or the node OS.  \pacora can also be used in a hypervisor to allocate
+resources among guest OSes.
+
+
+\subsection{Resources}
+
+In our client system, resources are anything that the system can
+``partition'' in hardware or software: specifically we use cores,
+network bandwidth, cache ways, and memory pages in our system.
+However, other resources could be easily added assuming they have QoS
+enforcement mechanisms.  The other scenarios would have resources that
+perform similar functions (compute, network, capacity), but at a
+different scale. For warehouse-scale computing, resources are more
+likely to be different types of nodes, network bandwidth, and
+storage. For distributed embedded systems, resources would include
+compute devices, link bandwidths, and memories.
 
 \section{Response Time Functions}\label{RTFs}
-%III.	Application Functions
-%	a.	Resource Value Functions
-%		i.	Structure
-%		ii.	Model Building Approach
-%			1.	Who measures the data?
-%	b.	Penalty Functions
-%		i.	Where do the deadlines come from?
-%		ii.	How do we set the slopes?
-%	c.	Power Model
-
 
 In this section, we describe the design of \pacora's RTFs in more detail.
 RTFs describe an application's performance given its resource assignments.  These functions capture information about the performance impact of a particular resource to an application on the current hardware at a particular time. Without this information, it would be difficult for any resource allocation system to make informed decisions short of blindly trying a variety of allocations and picking the best one.
@@ -334,42 +361,16 @@ roughly one per resource, where a term $w_i/a_i$ is the amount of work $w_i \geq
 divided by $a_i$, the allocation of the $i$th resource~\cite{Snav}.
 For example, one term might model instructions executed divided by total processor MIPS;
 another might model network accesses divided by bandwidth, and so forth.
-%Asynchrony and latency tolerance may make response time components overlap partly or fully; and thus we added additional terms to represent the interactions between resources.
+Asynchrony and latency tolerance may make response time components overlap partly or fully; and thus we added additional terms to represent the interactions between resources.
 
 Such models are automatically convex in the allocations because $1/a$ is convex for positive $a$ and because a positively-weighted sum of convex functions is convex.  The models are also linear in the weights.
 
-%It is obviously important to guarantee the positivity of the resource allocations. This guarantee can be enforced as the %allocations are selected during penalty optimization, or the response time model can be made to return $\infty$ if any allocation %is less than or equal to zero. This latter idea preserves the convexity of the model and extends its domain to all of $\Re^n$ and %consequently we used this approach in our implementation.
-%The gradient $\nabla\tau$ is needed by the penalty optimization algorithm.
-%Since $\tau$ is analytic, generic, and symbolically differentiable
-%it is a simple matter to compute the gradient of $\tau$ once the model is defined.
-
-\subsubsection*{Non-Convexity}
-Forcing RTFs to be convex assumes that the actual response times are
-close to convex. We find this to be a plausible requirement as
-applications usually follow the ``Law of Diminishing Returns'' for
-resource allocations.
-
-However, there are examples of response time versus resource behavior that violate convexity.   For example, we have seen non-convex performance in applications when dealing with hyperthreads or memory pages.  For two of our applications, 5 hyperthreads resulted in significantly worse performance than either 4 or 6.  When studying some other applications, we found that particular numbers of memory pages, (\emph{e.g.,} 2K), resulted in much better performance than the adjacent page allocations.  Outliers and additional challenges to response time modeling are discussed in Section~\ref{discuss}.
-%Avoiding (or seeking out) these allocations would add significant cost to the optimization problem.
-
-Another kind of convexity violation can occur in memory allocation, where ``plateaus'' can sometimes occur as in Figure~\ref{f:plat}. Such plateaus are typically caused by adaptations within the application (\emph{e.g.,} adjusting the algorithm or output quality).
-%to accommodate variable resource availability.  
-The response time is really the \emph{minimum} of several convex functions depending on allocation, and the point-wise minimum that the application implements fails to preserve convexity.  The effect of the plateaus will be a non-convex penalty as shown in Figure~\ref{f:plateffect} and multiple extrema in the optimization problem will be a likely result. 
+It is obviously important to guarantee the positivity of the resource allocations. This guarantee can be enforced as the allocations are selected during penalty optimization, or the response time model can be made to return $\infty$ if any allocation is less than or equal to zero. This latter idea preserves the convexity of the model and extends its domain to all of $\Re^n$ and consequently we used this approach in our implementation.
+The gradient $\nabla\tau$ is needed by the penalty optimization algorithm.
+Since $\tau$ is analytic, generic, and symbolically differentiable
+it is a simple matter to compute the gradient of $\tau$ once the model is defined.
 
 
-
-\begin{figure}[hb]
-\parbox{1.6in}{
-\includegraphics*{Figures/Plateau1.eps}
-\caption{\label{f:plat}Response time function with some resource ``plateaus''.}
-}
-\hspace{\fill}
-\parbox{1.6in}{
-\includegraphics*{Figures/Plateau2.eps}
-\caption{\label{f:plateffect}Net effect of the resource plateaus on the application penalty.}
-}
-\end{figure}
-There are several ways to avoid this problem.  One is based on the observation that such response time functions will at least be \emph{quasiconvex}.  Another idea is to use additional constraints to explore convex sub-domains of $\tau$. Either approach adds significant computational cost, and we found that our simple convex models still resulted in high-quality resource allocations. Thus we chose not to implement any of these approaches.  Alternative approaches to handling non-convex behavior are described in~\cite{pacora_tr}. 
 
 %\subsubsection*{Dynamically Changing Applications}
 %
@@ -382,19 +383,6 @@ There are several ways to avoid this problem.  One is based on the observation t
 %
 %\fix{Input Variability}
 
-
-\subsubsection*{Data Collection and Model Creation Time}
-There are many ways to collect the response time data for
-applications. The user-level runtime scheduler is one possible source,
-or the operating system could measure progress using performance
-counters.  In our implementation, applications report their own
-measured values; however, this solution was chosen simply as a way to
-test the validity of the concept.  In a production operating system it
-may not be a good idea because applications could lie about their
-performance.  In a single-operator datacenter environment this might be less of a concern.
-
-There are also many different possible moments to create response time functions.  RTFs could be created in advance and distributed with the application. This approach could make lots of sense for app stores since most of them cater to just a few platforms. RTFs could also be crowd-sourced and built in the cloud, which has the advantage making it easy to collect a diverse set of training points.  However, all of these approaches lack adaptability.  As a result, we have chosen to implement two solutions that collect data directly from the user's machine.  The first approach is to adapt to the system by collecting all of the training points at application install time and building the model then.  The most highly adaptive approach collects data continuously as the application runs, uses the data to modify the model training set, and rebuilds the model.  A hybrid approach may be the most effective: applications can begin with a generic model and improve it over time. The remainder of this Section describes our model creation process in detail.
-\section{Response Time Model Design}\label{rtf_choice}
 
 \subsection*{Alternative Resource Representations}
 Asynchrony and latency tolerance may make response time components overlap partly or fully;
@@ -454,60 +442,37 @@ to let the model fitting process decide among them.
 
 \subsection*{Initial Model Evaluation}
 
+\subsection*{Non-Convexity}
+Forcing RTFs to be convex assumes that the actual response times are
+close to convex. We find this to be a plausible requirement as
+applications usually follow the ``Law of Diminishing Returns'' for
+resource allocations.
 
-\section{Problem Convexity}\label{convex}
+However, there are examples of response time versus resource behavior that violate convexity.   For example, we have seen non-convex performance in applications when dealing with hyperthreads or memory pages.  For two of our applications, 5 hyperthreads resulted in significantly worse performance than either 4 or 6.  When studying some other applications, we found that particular numbers of memory pages, (\emph{e.g.,} 2K), resulted in much better performance than the adjacent page allocations.  Outliers and additional challenges to response time modeling are discussed in Section~\ref{discuss}.
+%Avoiding (or seeking out) these allocations would add significant cost to the optimization problem.
 
-\subsection*{Penalty Function Convexity}
-A few facts about convex functions will be useful in what follows.
-First, a \emph{concave} function is one whose negative is convex.
-Maximization of a concave function is equivalent to minimization of its convex negative.
-An affine function, one whose graph is a straight line in two dimensions or a hyperplane in n dimensions,
-is both convex and concave.  A non-negative weighted sum or point-wise maximum (minimum) of convex (concave) functions is convex (concave), as is either kind of function composed with an affine function.  The composition of a convex non-decreasing (concave non-increasing) scalar function with a convex function remains convex (concave).
+Another kind of convexity violation can occur in memory allocation, where ``plateaus'' can sometimes occur as in Figure~\ref{f:plat}. Such plateaus are typically caused by adaptations within the application (\emph{e.g.,} adjusting the algorithm or output quality).
+%to accommodate variable resource availability.  
+The response time is really the \emph{minimum} of several convex functions depending on allocation, and the point-wise minimum that the application implements fails to preserve convexity.  The effect of the plateaus will be a non-convex penalty as shown in Figure~\ref{f:plateffect} and multiple extrema in the optimization problem will be a likely result. 
 
-Each penalty function $\pi$ is the pointwise maximum of two affine functions and is therefore convex.
-Moreover, since each penalty function is scalar and nondecreasing,
-its composition with a convex response time function will also be convex.
 
-\subsection*{Response Time Convexity}
-We now show that response time functions $\tau$ including the various bandwidth amplification functions are convex
-in both the bandwidth and memory resources $b_r$ and $m_r$ given any of the possibilities we have considered.
-Since norms preserve convexity, this reduces the question to proving each term in the norm is convex.
-Since all quantities are positive and both maximum and scaling by a positive constant preserve convexity,
-\begin{eqnarray*}
-\lefteqn{w/(b\cdot\min(c_1\alpha_1(m),c_2\alpha_2(m)))}   \\
-&=& \max(w/(b\cdot c_1\alpha_1(m)),w/(b\cdot c_2\alpha_2(m))).
-\end{eqnarray*}
-It therefore only remains to show that both $1/\sqrt{b\cdot m}$ and $1/(b\cdot\alpha(m))$ are convex in $b$ and $m$.
 
-A function is defined to be \emph{log-convex} if its logarithm is convex.
-A log-convex function is itself convex because exponentiation preserves convexity,
-and the product of log-convex functions is convex because the log of the product is the sum of the logs,
-each of which is convex by hypothesis.
-Now $1/b$ is log-convex for $b > 0$ because $-\log b$ is convex on that domain.
-In a similar way, $\log(1/\sqrt{b\cdot m}) = -(\log b + \log m)/2$
-and $\log m^{-1/d} = -(\log m)/d$ are convex.
-Finally, $\log (1/\log m)$ is convex because its second derivative is positive for $m > 1$:
-\begin{eqnarray*}
-\frac{d^2}{dm^2}\log (1/\log m) &=& \frac{d^2}{dm^2}(-\log\log m)  \\
-                                  &=& \frac{d}{dm}\left(\frac{-1}{m\log m}\right) \\
-                                  &=& \frac{1 + \log m}{(m\log m)^2}.
-\end{eqnarray*}
+\begin{figure}[hb]
+\parbox{1.6in}{
+\includegraphics*{Figures/Plateau1.eps}
+\caption{\label{f:plat}Response time function with some resource ``plateaus''.}
+}
+\hspace{\fill}
+\parbox{1.6in}{
+\includegraphics*{Figures/Plateau2.eps}
+\caption{\label{f:plateffect}Net effect of the resource plateaus on the application penalty.}
+}
+\end{figure}
+There are several ways to avoid this problem.  One is based on the observation that such response time functions will at least be \emph{quasiconvex}.  Another idea is to use additional constraints to explore convex sub-domains of $\tau$. Either approach adds significant computational cost, and we found that our simple convex models still resulted in high-quality resource allocations. Thus we chose not to implement any of these approaches.  Alternative approaches to handling non-convex behavior are described in~\cite{pacora_tr}. 
 
-Summing up, a response time function for a application might be modeled by the convex function
-\begin{eqnarray*}
-\tau(w,b,\alpha,m) &=& \sqrt[p]{\sum_j \left(\frac{w_j}{b_j\cdot\alpha_j(m_j)}\right)^p}  \\
-                   &=& \|\mbox{diag} wd^T \|_p
-\end{eqnarray*}
-where the $w_j$ are the parameters of the model (the quantities of work) to be learned,
-the components of $d$ satisfy $d_j = 1/(b_j\cdot\alpha_j(m_j))$,
-the $b_j$  are the allocations of the bandwidth resources,
-the $\alpha_j$ are the bandwidth amplification functions (also to be learned),
-the $m_j$ are the allocations of the memory or cache resources that are responsible for the amplifications.
-This formulation allows the application response time $\tau$ to be modeled as the $p$-norm of
-the component-wise product of a vector $d$ that is computed from the resource allocation
-and a learned vector of work quantities $w$.
 
-\subsection*{Handling Quasiconvex Response Time Functions}
+
+\subsubsection*{Handling Quasiconvex Response Time Functions}
 
 There are examples of response time versus resource behavior that violate convexity.  One such example sometimes occurs in memory allocation, where ``plateaus'' can sometimes be seen as in Figure~\ref{f:plat}.
 
