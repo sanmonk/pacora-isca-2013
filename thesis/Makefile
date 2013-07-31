@@ -10,7 +10,7 @@ all: $(PAPER).pdf
 open: all
 	open $(PAPER).pdf
 
-$(PAPER).pdf: $(TEX) $(BIB) $(FIGS) jpaper.cls
+$(PAPER).pdf: $(TEX) $(BIB) $(FIGS) ucbthesis.cls
 	echo $(FIGS)
 	pdflatex $(PAPER)
 	bibtex $(PAPER)
