@@ -1,13 +1,11 @@
 \chapter{Related Work}
-
-\section{Related Work}\label{related_work}
-\subsection{Batch Scheduling and Cluster Management}
+\section{Batch Scheduling and Cluster Management}
 Classic resource management systems were designed for batch scheduling~\cite{Feit97,FRS04}. Like \pacora, batch scheduling systems can allocate multiple resource types and rely on a gang-scheduling model~\cite{FeRu92}.  However, they tend to use queues and priorities to schedule jobs while trying to keep all resources busy. Resource allocations are always the user's responsibility to specify and pay for. Responsiveness can be improved by buying a higher priority. Few batch systems incorporate deadlines, but one such is \cite{AKKMS95}.
 
 Modern cluster resource management has a similar flavor.  In systems such as
 Amazon EC2~\cite{EC2}, Eucalyptus~\cite{eucalyptus}, and Condor~\cite{Condor}, users must specify their resource requirements.  Other systems such as Hadoop ~\cite{hadoop_fair, hadoop_cap, hadoop_matei} and Quincy~\cite{Quincy} use a fairness policy to assign resources. Mesos~\cite{mesos} uses two-level scheduling to manage resources in a cluster. Mesos decides how many resources to offer to its applications; they decide which resources to accept and how to schedule them. Mesos does not provide a particular resource allocation policy, but is a framework that can support multiple policies. Dominant Resource Fairness~\cite{mesos-DRF}, a generalization of max-min fairness to multiple resources types, has been implemented in Mesos.
 
-\subsection{Model-Based Scheduling and Allocation Frameworks for SLAs and Soft Real-Time Requirements}
+\section{Model-Based Scheduling and Allocation Frameworks for SLAs and Soft Real-Time Requirements}
 
 Research is growing in the cloud computing and realtime communities, which use application-specific performance ``models'' to try to schedule to meet deadlines or SLAs.
 
@@ -62,7 +60,7 @@ modeling, translation, or scheduling components is presented~\cite{1436097}.
 %
 %Unlike traditional virtual machines that only virtualize resource functionality, VPMs virtualize a system's performance and power characteristics, meaning that a VPM has the same performance and power profile as a real machine with an equivalent set of hardware resources.
 
-\subsection{Resource Partitioning and QoS}
+\section{Resource Partitioning and QoS}
 \label{sec:rel:pm}
 
 \pacora relies on resource partitioning and Quality-of-Service mechanisms when available to enforce its resource allocation decisions.  Resource partitioning and QoS research is active for on-chip, cluster, and networking resources.  However, the vast majority of research focuses on allocating a single resource type with a fixed policy, typically \emph{fairness}.
@@ -71,6 +69,26 @@ Some have researched network bandwidth fairness~\cite{Blanquer, Kleinberg99fairn
 Hardware partitioning research, which has largely focused on caches, provides mechanisms based on policies baked into the hardware, not the flexible allocations \pacora requires \cite{876484, 967444,1194855,1275005,1194858,1318096,1088154,1399973,1069998,1399982}.  Early work focused on providing adaptive, fair policies that ensure equal performance degradation \cite{605420,1086328}, not guarantees of responsiveness. More recent proposals have incorporated more sophisticated policy management \cite{1241608,1331730,1152161,1254886}. Iyer\cite{1006246} suggests a priority-based cache QoS framework, CQoS, for shared cache way-partitioning.
 %The priorities might be specified per core, per application, per memory type, or even per memory reference.
 However, simultaneous achievement of performance targets as in \pacora is not addressed.
+
+
+Previous work has examined how runtime measurements of application
+behavior can help the operating system scheduler allocate resources.
+Shen et al. showed that using hardware measurement information for
+resource-aware scheduling resulted in a 15-70\% reduction in request
+latency over default Linux for RUBiS, TPC-C, and
+TPC-H~\cite{shen08counters}.  Another line of work investigated
+techniques to co-schedule applications with disjoint resource
+requirements to minimize interference, for example, executing a
+compute-bound and memory-bound application
+concurrently~\cite{thread_clustering,unc,shen08counters,hotos_perfcount}.
+ This has
+ also been done with reasonable success in~\cite{hotos_perfcount} with
+ most applications receiving a 7--8\% boost in performance over
+ traditional scheduling and a 58\% reduction in unfairness.  While 7\%
+ seems modest, their approach uses a very simple algorithm and only few
+ hardware measurement values yet still does quite well.  Few other
+ hardware features could add 7\% to performance and particularly with
+ such low overhead.
 
 
 %In general, these papers focus on designing and proving the effectiveness of particular mechanisms for particular goalswithout a concrete notion of a general-purpose resource allocation or scheduling framework.

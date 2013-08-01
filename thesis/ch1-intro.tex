@@ -218,3 +218,46 @@ applications, \pacora alleviates the developer from having to
 understand hardware resources and requires only a few hundred bytes of
 additional storage per application.  We have found that the impact of model accuracy on the quality of resource decisions is not significant; models with errors above 20\% still produce near optimal allocations.  This effect enables modeling to be feasible in real systems with noisy applications.
 
+
+Although some applications will want to adapt to available resources
+as discussed in the previous section, we imagine most applications
+will simply want to run as well as possible given the current platform
+and the mix of other jobs running on the system.  This is the task of
+the operating system scheduler, which is responsible for allocating
+appropriate resources to each application.  Even if only one
+application is running, a new responsibility for the OS in the
+manycore era is to maximize performance and energy-efficiency of that
+sole app by only allocating the appropriate resources.  For example,
+allocating too many cores may cause the application to slow down, or
+consume additional power with no additional performance gain.  While
+an adaptive application could introspect on its own behavior, this
+requires additional application developer effort, and an application
+does not have the global view of what else has to run in the system.
+In this section, we discuss a scheduling framework that relies only on a small set of performance counters,  which can help
+operating systems allocate the appropriate resources for an
+application even when the application developer is oblivious to
+resource usage.
+
+%The operating system will increasingly be required to provide spatial scheduling of applications in addition to time-multiplexing to properly handle any of these plausible scenarios.
+
+The operating system scheduler sees a changing mix of concurrent
+applications with diverse resource requirements
+that might vary throughout execution. Naively dividing the machine
+using ``fair'' sharing may be a poor solution: some applications may not
+scale well enough to utilize a given resource while other applications
+may fail to meet user-driven deadlines given too few resources.  The
+scheduler's task is complicated by the fact that concurrently running
+applications might interfere with each other through shared resources,
+causing applications to experience unpredictable performance
+degradations.  For example, if two compute-bound threads are
+simultaneously scheduled on two different cores of a multicore
+processor, there may be no degradation versus running each in
+isolation.  However, if the two threads are memory-bandwidth
+constrained, simultaneous scheduling could dramatically impair
+performance.  Even more complex behaviors may occur if cores or
+hardware thread contexts share functional units, caches, or TLBs.
+
+To address the scheduling and resource allocation challenges, we have been exploring a framework that combines hardware partitioning mechanisms with application modeling to predict the optimal resource allocation for a set of applications.  The approach leverages partitioning mechanisms in hardware and the operating system, which create isolation between applications.  Isolation allows us to virtualize the performance of a machine so that given a subsection of the machine (\emph{e.g.,} 2 cores and 3 cache slices) the application will behave as if it was on a separate machine of that size.  The operating system collects sample points of the application running with different resource sets using measurement hardware and then uses them to build a predictive model of the application performance for a given set of resources.
+
+The scheduling framework decides the best resource allocation for a set of applications by performing an optimization of an objective function involving all of the models.  The objective function represents a system--level goal such as minimize total energy or maximize throughput.  %Appendix\~\ref{details} describes the different components of this scheduling framework in more detail.
+
