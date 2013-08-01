@@ -1,5 +1,137 @@
 \chapter{Introduction}
 
+Since the introduction of the IBM PC in 1981, client operating system kernels have been built on a 
+minicomputer foundation.  The major advances since then in performance, human-computer interfaces 
+and graphics, as dramatic as these have been, have left the architecture of the operating system 
+relatively untouched. The list of standard OS concepts: interrupts, device drivers, priority thread 
+scheduling, demand paging, and the like would be familiar to OS kernel developers of the 1980’s
+Over these past thirty years, developers were able to avoid rethinking the operating system kerel 
+chiefly because the hardware platform it ran on didn’t change in any fundamental way.  There was a 
+CPU that ran at top speed almost all the time and was responsible for all of the instruction execution, 
+and the hardware was replaced every few years by a newer edition that ran much faster. The main 
+concern for the operating system kernel was what should run next on the CPU.  Memory was timemultiplexed too, to a much lesser extent, but the other resources like network and storage bandwidths 
+were left unmanaged. Only the presence of specialized real-time operating systems provided a hint that 
+modern, general-purpose OSes were not up to all of the tasks a developer might demand of them.
+The revolution in client processor hardware that motivated the Berkeley ParLab changed the 
+assumptions on which operating systems had based their modus operandi. Now, a core probably 
+shouldn’t run at top speed, or all the time either, lest it waste power and run down the batter. This 
+consideration applies all the more strongly when many cores are available. Worse yet, hardware 
+platforms are starting to have cores of dissimilar types: big and little, CPU and GPU, smart I/O 
+devices, and specialized accelerators. These heterogeneous cores can simultaneously improve system 
+responsiveness and power consumption
+are such decisions to be made?  
+As growing on-chip hardware parallelism delivers increasing processing capabilities in personal 
+computing devices, their users’ expectations grow as well. Today’s users expect snappy operation 
+from high-quality multimedia and interactive applications that call for responsive user interfaces 
+and stringent real-time guarantees. Moreover, the need for data security and accessibility leads to a 
+number of compute-intensive applications, such as anti-virus scanners or file indexers, being executed 
+in the background and possibly interfering with interactive and multimedia applications. A major 
+open research challenge that ParLab sought to address with its operating system work is how an OS 
+should best support this dynamically changing and complex mix of simultaneously running applications. 
+Addressing this challenge means being able to satisfy quality-of-service requirements while making 
+efficient use of computing resources – a complex optimization problem at best.
+Both research projects in this chapter, Tessellation and PACORA, explore an idea we call Adaptive 
+Resource Centric Computing (ARCC). ARCC treats resources as first-class citizens that are apportioned 
+to applications to guarantee predictable performance and responsiveness. Resources are isolated
+so that an application cannot degrade the performance of another by stealing resources from it. An 
+ARCC system automatically adjusts resource allocations to satisfy responsiveness requirements as the 
+ if they are used in the right places at the right times, but how 
+environment changes, thereby reducing the burden on the user. 
+The first paper, Tessellation: Refactoring the OS around Explicit Resource Containers with Continuous 
+Adaptation, describes Tessellation OS, a research operating system developed at ParLab that adaptively 
+partitions the resources of the system in space and time.    The Tessellation research project sought to 
+answer many open research questions resulting from the transition to multicore hardware and the shift 
+in user expectations such as: How should the OS provide QoS guarantees to applications without the 
+need to overprovision?  How should non-traditional cores and resources be managed?  How do these 
+assorted cores communicate with each other or with operating system services? Should applications be 
+prevented from using too many system resources, thus preventing “denial-of-service” attacks against 
+other applications?  If so, how should this goal be accomplished?
+In Tessellation, software components run in containers called cells that strongly isolate the resources 
+they have been allocated from the allocations and activities of the other cells. Cells are connected 
+to one another via message passing channels.  The implementation of cells on a typical multicore 
+platform resembles the implementation of a hypervisor with the explicit focus on resource guarantees. 
+Applications are built from a series of cells, each of which may have its own QoS needs. 
+In keeping with the model of ARCC, the system allocates resource quantities, partitions the physical 
+resources among cells, and maps cells to hardware via a bin-packing process that attempts to utilize 
+resources as efficiently as possible. Events like initiation, termination, or resource changes for 
+performance reasons entail re-allocation, re-partitioning, and re-packing. The resource allocation 
+process is aided through observation and modeling of software components running in cells, a process 
+enabled by the stable computing environment of the cell.
+In each cell, a user-mode scheduler determines how the cell’s allocated resources are used by the rest 
+of the software in that cell.  These user-mode schedulers are crafted in an application-specific fashion 
+on top of scheduler-frameworks exported by the Tessellation kernel. This idea has been popular in 
+parallel computing for a long time but is new to mainstream client systems.  Tessellation calls it twolevel scheduling, but the number of levels can clearly be extended beyond two by recursively allocating, 
+partitioning, and bin-packing to create a resource allocation hierarchy. The design requires adaptive 
+resource allocation and revocation; thus all levels of the Tessellation system are designed to handle 
+changing resource allocations. 
+Rather than incorporating drivers directly into the OS, Tessellation wraps devices in services that also 
+run in cells and communicate with their clients over channels. With the incorporation of a custom, QoSaware scheduler, these services may provide guaranteed service to other cells.  Further, Tessellation 
+services may be constructed hierarchically from other services and export a variety of new functionality 
+with resource guarantees. These services become allocatable resources that may be acccessed by other 
+cells; consequently, the resource allocator must be capable of assigning appropriate service contracts 
+to cells that implement or use services in addition to handling more primitive resources such as the 
+number of cores or amount of memory.
+To summarize, in the Tessellation model of computation, traditional applications are replaced by graphs 
+of interconnected services, each with its own QoS requirements and guarantees. During the course of 
+the project, we explored a number of different services including a Graphical User Interface (GUI) and 
+a Network Service. We also build a number of applications that used these services, as described in the 
+first paper. The ARCC model can easily extend to both mobile and cloud environments.
+The second paper, PACORA: Optimizing Resource Allocations for Dynamic Interactive Applications, 
+describes the primary resource allocation algorithm used in Tessellation.  The PACORA project sought to 
+answer questions such as: How should varying needs for processing power, memory capacity, network 
+bandwidth, etc. be determined and traded off among concurrently executing applications? If more 
+resources would make an application run faster, exactly how fast should it run? 
+PACORA is a generic resource allocation algorithm that specifically focuses on the problem of how 
+much of each resource type to assign to each application. PACORA can be applied in many settings in 
+addition to client operating systems such as Tessellation: it could adaptively and continuously right-size 
+the multiple virtual machines in a corporate server, deliver real-time responsiveness in an embedded 
+system, or adjust resources to meet SLAs in an implementation of a cloud service.
+Unlike resource allocators that attempt to maximize a system’s aggregate performance or its hardware 
+utilization, PACORA mathematically optimizes a single objective function designed to accurately reflect 
+the value of the system to its customer(s).  This point of view is often cast in the literature as the 
+problem of defining and maximizing utility; PACORA minimizes a negative utility - the penalty - instead.  
+PACORA takes a different approach to resource allocation than traditional systems, relying heavily 
+on application-specific functions built through measurement and convex optimization. Using convex 
+optimization lets PACORA perform real-time resource allocation inexpensively, letting PACORA 
+dynamically allocate resources to adjust to the changing state of the system. The optimization problems 
+involved are tiny by contemporary standards, and solutions are quite fast.  Moreover, the adaptive, 
+closed-loop nature of the allocation process means that a solution need not be optimal to be beneficial; 
+PACORA is incessantly working to reduce total penalty.
+By building application-specific functions online and formulating resource allocation as an optimization 
+problem, PACORA is able to accomplish multi-dimensional resource allocation on a general set of 
+resources, thereby handling heterogeneity and the growing diversity of modern hardware while 
+protecting application developers from needing to understand resources. PACORA explicitly represents 
+application deadlines rather than simply priorities. Knowing the deadlines lets the system make 
+optimizations that are difficult in today’s systems, such as running just fast enough to make the 
+deadline.  Additionally, PACORA explicitly represents system power as a competing “application”, so 
+resources that can do little to reduce the total penalty are automatically powered down. 
+The combination of Tessellation and PACORA creates a system that is able to understand application 
+deadlines and the resources needed to meet them, quickly adapting to meet deadlines as the system 
+changes. In developing our ideas, we constructed the Tessellation and PACORA prototypes from the 
+ground up, providing a “clean-room” view of the embodied ideas. There is obviously more research 
+and development needed to accommodate the new world of multicore hardware, but the path 
+forward in operating systems is much clearer than it was when the ParLab began.  For example, we 
+will be exploring hierarchical resource allocation that extends beyond one physical platform and into 
+distributed environments. Statistical variations in measured performance, whether due to internal 
+changes in the application or insufficient isolation of resources, can be modeled to yield confidence 
+limits on response times.  Just as user runtimes allow separation of core allocation from scheduling, 
+user-level memory management can ultimately do the same for memory. Interconnection networks, 
+whether spanning the chip or the internet, should be engineered to allow QoS guarantees in both 
+bandwidth and latency. The rational basis that ARCC provides can lead operating systems from a murky 
+past based on ad hoc practices into a more well-founded and promising future. 
+
+1. A. S. Tannenbaum. Operating Systems Design and Implementation.  Prentice-Hall, Englewood 
+
+Cliffs, NJ (1987).
+
+2. J. A. Winter, D. H. Albones and C. A. Shoemaker, “Scalable thread scheduling and global power 
+
+management for heterogeneous many-core architectures”, Proc PACT ’10 (2010), Vienna.
+
+3. W. E. Walsh, G. Tesauro, J. O. Kephart, and R. Das, “Utility functions in autonomic systems”, 
+
+Proc. International Conference on autonomic computing (2004), pp. 70-77.
+
 Providing responsiveness is a growing need for all types of systems,
 ranging from webservers and databases running on cloud systems,
 through interactive multimedia applications on mobile clients, to

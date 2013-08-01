@@ -1,7 +1,7 @@
 \chapter{PACORA Framework}
-
+%------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 \section{Introduction}
-
+%------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 \pacora is a framework designed to determine the proper amount of each
 resource type to give each application.  For example, consider a video
 conference scenario where each participant requires a separate,
@@ -19,9 +19,9 @@ consumption. The purpose of \pacora is to dynamically assign resources
 across multiple applications to guarantee responsiveness without
 over-provisioning and to adapt allocations as the application mix
 changes.
-
+%------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 \section{\pacora Architecture}\label{sys_design}
-
+%------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 \pacora formulates resource allocation as an optimization problem
 built from two types of application-specific functions: a
 response-time function and a penalty function. The response-time
@@ -188,9 +188,9 @@ Additionally, application 0 functions as \emph{slack} variables in our optimizat
 \begin{equation}
 \sum_{p\in P} a_{p,r} - A_r = 0, r = 1,\dots n.
 \end{equation}
-
+%------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 \section{Convex Optimization}
-
+%------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 If the penalty functions, response time functions, and resource
 constraints were arbitrary, little could be done to optimize the total
 penalty beyond searching at random for the best allocation.  However,
@@ -295,9 +295,9 @@ the component-wise product of a vector $d$ that is computed from the resource al
 and a learned vector of work quantities $w$.
 
 
-
+%------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 \section{Application and Assumptions}
-
+%------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 For our purposes an application is an entity to which the system
 allocates resources: these can be a complete application (\emph{e.g.,}
 a video player), a component of an application (\emph{e.g.,} a music
@@ -337,9 +337,9 @@ different scale. For warehouse-scale computing, resources are more
 likely to be different types of nodes, network bandwidth, and
 storage. For distributed embedded systems, resources would include
 compute devices, link bandwidths, and memories.
-
-\section{Response Time Functions}\label{RTFs}
-
+%------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+\section{RTF Design Considerations}\label{RTFs}
+%------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 In this section, we describe the design of \pacora's RTFs in more detail.
 RTFs describe an application's performance given its resource assignments.  These functions capture information about the performance impact of a particular resource to an application on the current hardware at a particular time. Without this information, it would be difficult for any resource allocation system to make informed decisions short of blindly trying a variety of allocations and picking the best one.
 
@@ -399,11 +399,13 @@ The response time is really the \emph{minimum} of several convex functions depen
 \end{figure}
 There are several ways to avoid this problem.  One is based on the observation that such response time functions will at least be \emph{quasiconvex}.  Another idea is to use additional constraints to explore convex sub-domains of $\tau$. Either approach adds significant computational cost, and we found that our simple convex models still resulted in high-quality resource allocations. Thus we chose not to implement any of these approaches.  Alternative approaches to handling non-convex behavior are described in~\cite{pacora_tr}. 
 
-\subsubsection{Comparing Different Models}
+%------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+\section{RTF Exploration and Feasibility Study}\label{init_eval}
+%------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-\subsection{Initial Model Evaluation}
-\label{init_eval}
+We perform 3 studies to explore potential RTF designs and then to test the potential of PACORA for resource allocation.
 
+\subsection{RTF Model Exploration using Synthetic Benchmarks}
 \begin{table*}[t]
 \begin{tabular}{|l|c|c|c|l|}
 \hline
@@ -436,27 +438,26 @@ p--c--b-- & oblivious & oblivious & oblivious &  Pointer chases through a long l
 \label{table:app}
 \end{table*}
 
-\subsubsection*{Model Inputs and Outputs}
 Our models use allocations of machine resources as independent variables (i.e. inputs) and some metric of application performance as the dependent variables (i.e. outputs).  The inputs we include in this study are number of cores, off-chip bandwidth allocation, L2 cache ways and L2 cache banks.  Since all input parameters are actually allocation sizes (i.e. integers), they are easily represented as terms in the regression analysis.
 
 We use cycles of execution time as a predicted output representative of application performance.  To help correlate application performance with resource utilization and not just resource allocation we also collect data from several performance counters that are usually strongly correlated with performance. These utilization metrics include L2 cache misses, L2 cache requests, and instructions retired. Any metric of interest that is measurable at runtime can be a potential output candidate. All of these models can be referenced by the spatial resource scheduling algorithm.
 
-%%A final model we create predicts the energy consumed by a resource allocation, whice is useful  for energy-aware scheduling decisions. We calculate the energy used by each allocation by creating a simple energy model which incorporates energy levels for allocated versus unallocated resources and uses performance counter data as a proxy for resource activity.  Such an energy model is clearly somewhat simplistic --- we include it to show that our scheduling framework can feasibly make decisions based on per allocation energy if that data is a given input.  We use a simplified version of some of the activity based energy models in previous work \cite{}.
+A final model we create predicts the energy consumed by a resource allocation, whice is useful  for energy-aware scheduling decisions. We calculate the energy used by each allocation by creating a simple energy model which incorporates energy levels for allocated versus unallocated resources and uses performance counter data as a proxy for resource activity.  Such an energy model is clearly somewhat simplistic --- we include it to show that our scheduling framework can feasibly make decisions based on per allocation energy if that data is a given input.  We use a simplified version of some of the activity based energy models in previous work \cite{}.
 
 \subsubsection{Partitioning Mechanisms}
 To achieve performance isolation for each application and improve model accuracy, we implement hardware partitioning mechanisms on several of the most important shared on--chip  resources. Shared resources include discrete functional units (e.g. cores), containers with shared capacity (e.g. caches), or communication media with shared bandwidth (e.g. interconnects).  There may be many such resources on an individual chip and even more in an entire computer system. In this study, we provide partitioning mechanisms for cores, L2 cache capacity, and interconnect bandwidth to DRAM.
  The following subsections describe these partitioning mechanisms in greater detail.
 
- %Much prior work has been done to create hardware mechanisms in support of physical resource partitioning \cite{876484,967444,1194855,1086328,605420,1152161,1331730, 1241608,1382130,1250671,1194858,1275005,1088154,1318096,1399982,1399973, 1069998}.
+ Much prior work has been done to create hardware mechanisms in support of physical resource partitioning \cite{876484,967444,1194855,1086328,605420,1152161,1331730, 1241608,gsf,1250671,1194858,1275005,1088154,1318096,1399982,1399973, 1069998}.
 
-\subsubsection*{Core Pinning}
+\paragraph{Core Pinning}
 To partition cores, our implementation uses the thread affinity feature built into the Linux 2.6 kernel.  We restrict the threads belonging to an application to run on the cores assigned to that application.  For now we assume a homogeneous collection of cores, and that only last level caches are shared among applications, which means that there is nothing to differentiate a core from any other when they are being allocated.
-%In the future we anticipate moving to a system with two-level scheduling where user-level code schedules the threads on the cores allocated in a partition like the system described in \cite{citation222}.
+In the future we anticipate moving to a system with two-level scheduling where user-level code schedules the threads on the cores allocated in a partition like the system described in \cite{lithe}.
 
-\subsubsection*{Globally Synchronized Frames}
+\paragraph{Globally Synchronized Frames}
 To partition off-chip bandwidth, we use the Globally Synchronized Frames (GSF) approach presented in Lee et al. \cite{gsf}.  We choose this approach because it does not require complex hardware modifications, provides strict QoS guarantees for minimum bandwidth and the maximum delay of the network, and provides proportional sharing of excess bandwidth.  GSF controls the number of packets that a core can inject into the network per frame, and each core is guaranteed to get the number of packets allocated to it each frame.  GSF enables cores to inject packets into future frames if their current allocation is already exceeded.  This allows excess bandwidth to be shared among cores proportional to their packet allocation.  To simplify prediction by making performance more deterministic, our current implementation does not make any future frames available during training, meaning that applications get exactly their allocation each frame.
 
-\subsubsection*{Cache Partitioning}
+\paragraph{Cache Partitioning}
 Many cache partitioning mechanisms previously studied have used some form of way-based partitioning \cite{1331730,1152161,605420,1250671,1194855,1086328,1399982}.  While way-based partitioning is relatively easy to implement in hardware, it is by necessity relatively coarse-grained since it is limited by the number of ways in the cache.  Partitioning among ways can cause significant performance degradation in many applications due to the decreased associativity available to each partition.
 
 Way-based partitioning keeps the cache access logic simple since data will still always reside in the same set, regardless of current partition.  However, in the case of manycore architectures, this access simplicity will be less important since large shared caches are likely to be distributed in multiple banks.  Accessing a non-local cache bank will require a request to be sent across an interconnect. We argue that this extra communication step introduces the potential for a level of indirection in the cache indexing policy, and the added flexibility can be used to allow different banks to be assigned to different applications. This approach can be particularly advantageous in a NUCA system so that applications can be assigned cache banks nearest to their cores. Rather than sending the request to the bank identified by the address index, we can instead use the mapping of banks to applications to determine which cache bank should be the target of the incoming request.
@@ -704,84 +705,40 @@ This sample size analysis informs our decision about whether we can afford to us
 \end{figure}
 
 
-\subsubsection*{RAMP Case Study}
+\subsection{RTF Exploration and System Potential using an FPGA-based System Simulator}
+~\cite{bird,tess_resource}
 
-To demonstrate the capabilities of Multithreaded FAME, we experiment
-with the interaction between hardware partitioning mechanisms and
-operating system scheduling policy using RAMP Gold.  We chose this
-case study~\cite{bird,tess_resource} because we feel it contains many important
-components of modern architecture research:  We run a modern
-parallel benchmark suite, boot a research operating system, simulate
-manycore target architectures with multi-level memory hierarchy timing
-models, and add experimental hardware mechanisms to the target
-machine.
+\subsubsection*{Experimental Setup}
 
-The additional simulation capacity of RAMP Gold enables us to move
-beyond simple benchmarking, and instead experiment with different
-operating system policies to see if the OS can effectively utilize
-these added mechanisms.  We feel that our results illustrate the
-potential of FAME not only for parallel computer architecture research
-but also as an enabler of hardware and system software co-design.
+Add ramp gold description and citation
 
-The speedup in simulation time from FAME allows for a far more robust
-analysis than would have been possible using SAME, and the conclusions
-reached using the additional simulation capacity are qualitatively
-different from those that would be obtained using the slower SAME
-simulation capability.
+Our experimental platform for this case study consists of five Xilinx
+XUP FPGA boards. Each board is programmed to simulate one instance of
+our target architecture.  Table~\ref{table:target} lists the target
+machine parameters. We run six applications from the PARSEC benchmark
+suite \cite{parsec}, as well as two synthetic microbenchmarks.
+Table~\ref{table:benchmarks} summarizes the benchmarks. The
+performance models are built based on applications running alone on a
+partition of the machine but are tested against data collected from
+multiprogrammed scheduling scenarios.  We simulated all possible
+allocations for each benchmark running alone, and then all possible
+schedules of allocations for 3 pairs of benchmarks running
+simultaneously, for a combined total of 68.5 trillion target
+core-cycles.  (A core-cycle is 1 clock cycle of execution on 1 core;
+simulating a 64-core CMP for 1,000,000 cycles would be 64,000,000
+core-cycles.)
+
+ The Research Operating System (ROS) is a prototype operating system
+ build to investigate OS design principles in the manycore era
+ \cite{tess, tess_resource, tess_dac}.  We ported ROS to boot on Midas FAME, and
+ modified its functionality to support our scheduling framework
+ (including paging management and threading libraries).
 
 
-\subsubsection*{Problem Statement}
+Our spatial scheduling framework is implemented within a prototype
+research operating system (ROS) that runs on the target machine
+simulated by Midas FAME~\cite{ros}.
 
-In the manycore era, operating systems face the \emph{spatial resource
-  allocation} problem of having to manage a growing number of on-chip
-resources shared by a growing number of concurrently running
-applications.
-%This is hard
-Spatial resource allocation is challenging because applications can
-have diverse resource requirements, and the range of possible
-schedules grows combinatorially with applications and resources.
-%What we are doing in this experiment
-Our proposal to help the scheduler make intelligent spatial
-scheduling decisions is to employ {\em predictive models} of
-application performance.  The OS scheduler uses the model of each
-application's performance to predict which schedule will have the best
-overall system behavior (i.e., best performance or lowest energy).
-%Model-based scheduling is only compelling if the decision space is
-%large enough to justify the overhead of the technique, which is true
-%for manycore machines with shared memory hierarchies.
-%Predictive model--based control of spatial resource allocation allows
-%the scheduler to evaluate potential reallocations without having to
-%actually perform the reallocations.
-To make the case for model-based control of spatial resource
-scheduling, we need to learn if the performance models we create are
-accurate, which metrics the scheduler should use, and how far from
-optimal are the resulting schedules. Evaluating each issue requires
-seconds of simulated target time and/or hundreds of experiments. We
-thus need a simulator that can run at OS timescales with reasonable
-turnaround.
-
-Furthermore, we believe architectural support for performance
-isolation can greatly improve the effectiveness of predictive modeling
-and scheduling, as well as improve application performance by reducing
-interference. To test this theory, we added hardware partitioning
-mechanisms to the target architecture.
-
-%Since we must run productively at OS time scales, we need a simulator
-%the simulator must provide a reasonable turnaround time. % to
-%interact with human for rapid model selection and cross-validation.
-%add hardware partitioning mechanisms in Midas.
-
-%The need for a manycore architecture with custom partitioning
-%mechanisms combined with the requirement of simulating OS time scales
-%means that this research can only be done on with multiprocessor
-%%simulation that is capable of running full operating systems such as
-%Midas.
-
-%\subsection{Implementation}
-
-%Our spatial scheduling framework is implemented within a prototype
-%research operating system (ROS) that runs on the target machine
-%simulated by Midas FAME~\cite{ROS}.
 
 \begin{table*}[ct]
  \begin{center}
@@ -822,7 +779,7 @@ Greedy & synthetic & data parallel & \wunits{16.0}{MB} & high \\ \hline
 \end{table*}
 
 
-\subsubsection*{Partitioning Mechanisms}
+\paragraph*{Partitioning Mechanisms}
 Our allocation framework includes the following resources: the cores
 and their private caches, the shared last-level cache, and shared
 memory bandwidth.  For each resource, we provide a mechanism to
@@ -876,8 +833,7 @@ software simulator would have been.
 %explicit statistical models.
 To explore the relationship between model accuracy and model type
 for our problem space, we evaluate linear additive models, quadratic
-response surface models, and non-linear models.
-%based on Kernel Canonical Correlation Analysis (KCCA) \cite{kcca}.
+response surface models, and non-linear models based on Kernel Canonical Correlation Analysis (KCCA) \cite{kcca}.
 The OS scheduler uses the models of each application to
 optimally allocate resources between a mix of concurrently running applications. The algorithm maximizes an objective function,
 which serves to convert model outputs into a measure of overall
@@ -888,67 +844,45 @@ We evaluate three objective functions. A robust evaluation of this framework
 requires full cross validation of possible alternate schedules,
 which is computationally demanding.
 
-%The simplest models we consider are linear additive models, which
-%contain one term for each variable (i.e. an allocation type) and one
-%coefficient associated which each term.  Linear additive models
-%ignore any possible interaction between the variables, an invalid
-%assumption in our scheduling scenario.  For this reason, we also
-%include more complex multivariate regression models, commonly termed
-%`response surface models', which include terms for variable
-%interaction and polynomial terms of degree 2 or more.  We also employ
-%Kernel Canonical Correlation Analysis (KCCA) \cite{} as a
-%representative example of even more complex nonlinear modeling
-%techniques. KCCA automatically detects correlations among the
-%variables and outputs included in the model, and uses this analysis
-%to make predictions.
+The simplest models we consider are linear additive models, which
+contain one term for each variable (i.e. an allocation type) and one
+coefficient associated which each term.  Linear additive models
+ignore any possible interaction between the variables, an invalid
+assumption in our scheduling scenario.  For this reason, we also
+include more complex multivariate regression models, commonly termed
+`response surface models', which include terms for variable
+interaction and polynomial terms of degree 2 or more.  We also employ
+Kernel Canonical Correlation Analysis (KCCA) \cite{} as a
+representative example of even more complex nonlinear modeling
+techniques. KCCA automatically detects correlations among the
+variables and outputs included in the model, and uses this analysis
+to make predictions.
 
-%The scheduler uses the models for each application to decide how best
-%to divide resources up between a mix of applications all running
-%concurrently.  Our initial prototype scheduler optimizes the
-%reassignment of spatial resource allocations without regard to the
-%current allocations and the resulting reallocation overhead.  Even
-%this simplified problem is combinatorial (and in fact is
-%NP-hard). The algorithm works by maximizing an objective function,
-%which serves to convert model outputs into a measure of overall
-%decision fitness.  The form of the objective function influences the
-%type of algorithm we can use to maximize fitness. We use Matlab's
-%\cite{matlab} implementation of the medium-scale active-set
-%algorithm, which is a sequential quadratic programming based solver
-%and so depends on the convexity of the function to guarantee
-%optimality.
+The scheduler uses the models for each application to decide how best
+to divide resources up between a mix of applications all running
+concurrently.  Our initial prototype scheduler optimizes the
+reassignment of spatial resource allocations without regard to the
+current allocations and the resulting reallocation overhead.  Even
+this simplified problem is combinatorial (and in fact is
+NP-hard). The algorithm works by maximizing an objective function,
+which serves to convert model outputs into a measure of overall
+decision fitness.  The form of the objective function influences the
+type of algorithm we can use to maximize fitness. We use Matlab's
+\cite{matlab} implementation of the medium-scale active-set
+algorithm, which is a sequential quadratic programming based solver
+and so depends on the convexity of the function to guarantee
+optimality.
 
-%Only some of our objective functions are convex, and the optimization
-%algorithm may choose local minima for ones which are not.  As a
-%result, even with perfect models the scheduler could pick non-optimal
-%solutions.  For this reason, it is important to experiment with
-%different model types, sample sizes, objective functions, and
-%maximization algorithms to find the right balance between system
-%complexity and accuracy of scheduling decisions.
+Only some of our objective functions are convex, and the optimization
+algorithm may choose local minima for ones which are not.  As a
+result, even with perfect models the scheduler could pick non-optimal
+solutions.  For this reason, it is important to experiment with
+different model types, sample sizes, objective functions, and
+maximization algorithms to find the right balance between system
+complexity and accuracy of scheduling decisions.
 
 
-\subsubsection*{Experimental Setup}
 
-Our experimental platform for this case study consists of five Xilinx
-XUP FPGA boards. Each board is programmed to simulate one instance of
-our target architecture.  Table~\ref{table:target} lists the target
-machine parameters. We run six applications from the PARSEC benchmark
-suite \cite{parsec}, as well as two synthetic microbenchmarks.
-Table~\ref{table:benchmarks} summarizes the benchmarks. The
-performance models are built based on applications running alone on a
-partition of the machine but are tested against data collected from
-multiprogrammed scheduling scenarios.  We simulated all possible
-allocations for each benchmark running alone, and then all possible
-schedules of allocations for 3 pairs of benchmarks running
-simultaneously, for a combined total of 68.5 trillion target
-core-cycles.  (A core-cycle is 1 clock cycle of execution on 1 core;
-simulating a 64-core CMP for 1,000,000 cycles would be 64,000,000
-core-cycles.)
-
-% The Research Operating System (ROS) is a prototype operating system
-% build to investigate OS design principles in the manycore era
-% \cite{Tessellation}.  We ported ROS to boot on Midas FAME, and
-% modified its functionality to support our scheduling framework
-% (including paging management and threading libraries).
 
 \subsubsection*{Case Study Results}
 
@@ -1198,7 +1132,7 @@ to co-schedule.  We believe hardware measurement-based scheduling will
 thus prove even more effective.
 
 
-\subsection{Model Evaluation}
+\subsection{\pacora Feasibility in a Real System}
 Our static framework was designed to test the effectiveness of \pacora's model-based convex optimization for allocating resources.  We used it to experiment with the accuracy of different types of models and test the quality of the resource allocation decisions. Data is collected online by running application benchmarks on a recent x86 processor running Linux-2.6.36.  The measured data is processed using Python and then fed to MATLAB~\cite{matlab} to build the RTFs.  MATLAB uses the RTFs to make resource allocation decisions.  We compare performance of the chosen resource allocations with the actual measured performance of all possible resource allocations to test quality of the resource allocation decisions. We use CVX~\cite{cvx} in MATLAB to perform the convex optimization for building RTFs and making resource allocation decisions.  We chose this static approach because it let us test many applications, 44 in total, and many resource allocations rapidly.
 
 \subsubsection{Platform}
@@ -1329,8 +1263,28 @@ To test the effectiveness of our RTFs in capturing real application behavior, we
 
 Figure~\ref{model_accuracy} shows the 1-norm of the relative error of the predicted response times per resource allocation for an RTF built with 10 training points and one built with 20.  The average error per point is 16\% for an RTF built with 10 training points and 9\% for an RTF built with 20 training points.  We also calculated the percentage variability (average standard deviation) for each resource allocation in the application between the 3 trials (shown as ``App'' in Figure~\ref{model_accuracy}).  The average variability is 9\%, so we can see that \pacora's RTFs are not much more inaccurate than the natural variation in response time in the application.  It is not for possible an RTF to be more accurate than the application variability, and we can also see that applications with higher variability result in RTFs with larger relative errors, (\emph{e.g.,} \texttt{stencilprobe}, \texttt{ tradebeans}).  Section~\ref{discuss} discusses application variability in more detail.
 
-\subsection{Possible Model Extensions}
-\subsubsection{Alternative Resource Representations}
+\subsection{Resource Allocation Experiments}
+\begin{figure}[!t]
+	\begin{center}	
+		\includegraphics[bb=0 0 288 144,width=\columnwidth]{Figures/decision_quality.pdf}
+		\caption{Resource allocation decisions for each pair of the cluster representative applications compared equally dividing the machine and a shared resources Linux baseline. Quality is measured is allocation performance divided by performance of the best possible allocation.}
+		\label{decision_quality}
+	\end{center}
+\end{figure}
+
+
+Using the RTFs built for the applications, we let \pacora make static resource allocations for all possible pairs of the cluster representative applications.  We then run an exhaustive study of all possible resource allocations for each pair on our Sandy Bridge-Linux platform, measure the performance, and compare it with the best performing, \emph{i.e.,} optimal, resource allocation.  We also compare this result to equally dividing the resources between the two applications and to sharing all of the resources using the standard Linux scheduler.
+
+%how \pacora's decisions compared with the optimal allocation, equally dividing the machine, and the Linux baseline for each pair of the cluster representative applications.
+Figure~\ref{decision_quality} shows these results for our 10 point RTFs. As we might expect, simple naive heuristics do not perform well, and dividing the machine in half is around 20\% slower than either \pacora or standard Linux.
+ \pacora's resource allocations are 2\% from the optimal static allocation on average.  Using shared resources with the standard Linux scheduler performs similarly but with a higher standard deviation.  The shared resources comparison is interesting: while most of the time sharing resources can result in higher utilization, as the applications can dynamically take advantage of available resources, in some cases the interference between applications was so harmful to performance that on average optimal static partitioning performs slightly better.  As a result \pacora is able to provide performance comparable to Linux scheduling on shared resources with more predictable performance on average (lower worst cases).  Additionally, as the shown in the next Section, \pacora's resource allocation decisions do not need to be static, but can be made dynamically to adjust to the changing needs of the applications.
+
+
+%These results indicate the \pacora is able to get a near optimal resource allocation and match the performance of the traditional Linux scheduler with more predictability.
+%------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+\section{Possible RTF Extensions}
+%------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+\subsection{Alternative Resource Representations}
 Asynchrony and latency tolerance may make response time components overlap partly or fully;
 if the latter, then the maximum of the terms might be more appropriate than their sum.
 The result will still be convex, though, as will any other norm including the 2-norm,
@@ -1384,13 +1338,13 @@ by observing the effect of varying the associated memory resource while keeping 
 Alternatively, redundant components, similar except for amplification function, could be included in the model
 to let the model fitting process decide among them.
 
-\subsubsection{Stochastic Models}
+\subsection{Stochastic Models}
 
 
 
 
 
-\subsubsection{Handling Quasiconvex Response Time Functions}
+\subsection{Handling Quasiconvex Response Time Functions}
 
 There are examples of response time versus resource behavior that violate convexity.  One such example sometimes occurs in memory allocation, where ``plateaus'' can sometimes be seen as in Figure~\ref{f:plat}.
 
