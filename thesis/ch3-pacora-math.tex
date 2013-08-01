@@ -59,13 +59,19 @@ effectively an application uses a particular type of
 core. Figure~\ref{sample_rtf} shows two example RTFs we have created
 from applications we studied.
 
-\begin{figure}[hb]
+\begin{figure*}[hb]
+\subfloat{
 \includegraphics*[bb=0 0 360 360,width=.49\columnwidth]{Figures/bfs-fig.pdf}
+\label{bfs-fig}
+}
+\subfloat{
 \includegraphics*[bb=0 0 360
   360,width=.49\columnwidth]{Figures/streamcluster-fig.pdf}
+\label{streamcluster-fig}
+}  
 \caption{\label{sample_rtf} Response Time Functions for a
-  breadth-first search algorithm and streamcluster from PARSEC. We show two resource dimensions: cores and cache slices.}
-\end{figure}
+  breadth-first search algorithm and streamcluster from PARSEC. We show two resource dimensions: cores and cache slices.\ref{bfs-fig}}
+\end{figure*}
 
 Equation~\ref{rtf_eq} below shows the RTF we use in \pacora.
 
@@ -122,13 +128,13 @@ Adjustment is also likely to occur in transitions between operating scenarios.
 For example, when unplugging a device all of the background activities could have their slopes significantly reduced to save battery life.
 
 \begin{figure}[hb]
-\parbox{1.6in}{
-\includegraphics*{Figures/Penalty1.eps}
+\parbox{3in}{
+\includegraphics*[width=.45\columnwidth]{Figures/Penalty1.eps}
 \caption{\label{f:pen1}A penalty function with a response time constraint.}
 }
 \hspace{\fill}
-\parbox{1.6in}{
-\includegraphics*{Figures/Penalty2.eps}
+\parbox{3in}{
+\includegraphics*[width=.45\columnwidth]{Figures/Penalty2.eps}
 \caption{\label{f:pen2}A penalty function with no response time constraint.}
 }
 \end{figure}
@@ -387,13 +393,13 @@ The response time is really the \emph{minimum} of several convex functions depen
 
 
 \begin{figure}[hb]
-\parbox{1.6in}{
-\includegraphics*{Figures/Plateau1.eps}
+\parbox{3in}{
+\includegraphics*[width=.45\columnwidth]{Figures/Plateau1.eps}
 \caption{\label{f:plat}Response time function with some resource ``plateaus''.}
 }
 \hspace{\fill}
-\parbox{1.6in}{
-\includegraphics*{Figures/Plateau2.eps}
+\parbox{3in}{
+\includegraphics*[width=.45\columnwidth]{Figures/Plateau2.eps}
 \caption{\label{f:plateffect}Net effect of the resource plateaus on the application penalty.}
 }
 \end{figure}
@@ -406,16 +412,19 @@ There are several ways to avoid this problem.  One is based on the observation t
 We perform 3 studies to explore potential RTF designs and then to test the potential of PACORA for resource allocation.
 
 \subsection{RTF Model Exploration using Synthetic Benchmarks}
+
 \begin{table*}[t]
+\centering
+\scriptsize
 \begin{tabular}{|l|c|c|c|l|}
 \hline
  Name  & Processor  &  Cache &  Offchip BW & Description \\ \hline
- p+c+b+ & benefits & benefits & benefits &  Copies data from many large blocks, with intra-block reuse (multithreaded)\\ \hline
-p--c+b+ & oblivious & benefits & benefits &  Copies data from many large blocks, with intra-block reuse (single threaded)\\ \hline
+ p+c+b+ & benefits & benefits & benefits &  Copies data from large blocks, with reuse (multithreaded)\\ \hline
+p--c+b+ & oblivious & benefits & benefits &  Copies data from large blocks, with reuse (single threaded)\\ \hline
 p+c--b+ & benefits & oblivious & benefits &  Streaming copies with no reuse (multithreaded)\\ \hline
 p--c--b+ & oblivious & oblivious & benefits &  Streaming copy with no reuse (single threaded)\\ \hline
-p+c+b-- & benefits & benefits & oblivious &  Copies data repeatedly from single large blocks (multithreaded)\\ \hline
-p--c+b-- & oblivious & benefits & oblivious &  Copies data repeatedly from a single large block (single threaded)\\ \hline
+p+c+b-- & benefits & benefits & oblivious &  Copies data repeatedly from large blocks (multithreaded)\\ \hline
+p--c+b-- & oblivious & benefits & oblivious &  Copies data repeatedly from a large block (single threaded)\\ \hline
 p+c--b-- & benefits & oblivious & oblivious &  Pointer chases through long lists (multithreaded)\\ \hline
 p--c--b-- & oblivious & oblivious & oblivious &  Pointer chases through a long list (single threaded)\\ \hline
 \end{tabular}
@@ -424,12 +433,13 @@ p--c--b-- & oblivious & oblivious & oblivious &  Pointer chases through a long l
 \end{table*}
 
 \begin{table*}[t]
-\footnotesize
+\centering
+\scriptsize
 \begin{tabular}{|c|c|l|l|}
 \hline
  Phase  & Name & Description & Behavior \\ \hline
- 1 & Cluster  & Observation probability computation, step 1 &  Accumulate, up to 6 MB data read, 800KB written\\ \hline
- 2 & Gaussian  & Observation probability computation, step 2 &  Calculate, up to 800KB read, 40KB written\\ \hline
+ 1 & Cluster  & Compute probability, step 1 &  Accumulate, up to 6 MB data read, 800KB written\\ \hline
+ 2 & Gaussian  & Compute probability, step 2 &  Calculate, up to 800KB read, 40KB written\\ \hline
  3 & Update & Non-epsilon arc transitions &40KB read, small blocks, dependent on graph connectivity\\ \hline
  4 & Pruning & Pruning states & Small blocks, dependent on graph connectivity\\ \hline
  5 & Epsilon & Epsilon arc transitions & Small blocks, dependent on graph connectivity\\ \hline

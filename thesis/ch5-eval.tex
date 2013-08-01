@@ -170,3 +170,116 @@ less than 70 kbits/s, and the remaining resources are left idle.
 
 
 
+\subsection{Adapting Multiple Resources}
+\label{sec:exppacora}
+
+Now we demonstrate how PACORA
+can be used to efficiently allocate resources for different parts of the video
+conference scenario.
+ This Section demonstrates using \pacora as the overall resource
+brokerage system, dividing resources between the incoming video streams, a file
+indexer, and outgoing network data.
+
+Our test platform is an Intel server containing two 2.66-GHz Xeon X5550
+quad-core processors with hyper-threading enabled and a 1-Gbps Intel Pro/1000
+Ethernet network adapter. 
+
+\begin{figure*}
+\centering
+\begin{tabular}{cc}
+\subfloat(a)Network allocations for 9 incoming videos{
+    \includegraphics[width=0.45\textwidth]{Figures/NetworkAlloc}
+    \label{figures:NetworkAlloc}
+   } 
+& \subfloat[Network allocations for file indexer and bandwidth hog ]{
+    \includegraphics[width=0.45\textwidth]{Figures/HogAlloc}
+    \label{figures:HogAlloc}
+}\\
+\subfloat[Frame rate for 9 incoming videos]{
+   \includegraphics[width=0.45\textwidth]{Figures/Framerate}
+    \label{figures:Framerate}
+}
+& \subfloat[Core allocations for incoming video, file indexer, and bandwidth hog]{
+    %\rule{4cm}{3cm}
+   \includegraphics[width=0.45\textwidth]{Figures/CoreAlloc}
+    \label{figures:CoreAlloc}
+}\\
+\end{tabular}
+\caption{Allocations and frame rate when running 9 video-player threads, a file
+indexer, and a bandwidth hog together.  Periodically, one of the videos becomes large
+causing the allocations to change.  The two red lines on
+\ref{figures:NetworkAlloc} represent the required network bandwidth for a large
+and small video.  The red line on \ref{figures:Framerate} represents the
+desired frame rate of 30 fps for the video-player threads.}\label{fig:afexample}
+\label{fig:pacora_res}
+\end{figure*}
+
+This experiment demonstrates using \pacora to allocate cores and network
+bandwidth to 3 applications (video player, file indexer, network hog)
+in our video conference scenario and shows our complete adaptive loop in \tess.
+
+Our streaming video application is a multi-threaded, network-intensive workload
+intended to simulate video chat applications like Skype and Facetime.
+We have 9 incoming video streams each handled by a thread in our video cell,
+which uses Pulse EDF scheduler\cite{tess_dac}. 
+Each thread receives frames from the network service, decodes them using
+libffmpeg, and sends them to the GUI service for display.
+Videos are encoded offline in H.264 format using libx264, transported across
+the network via a TCP connection from a Linux Xeon E5-based server. 
+We use Big Buck Bunny~\cite{bigbuckbunny} for each video. 
+Videos can be small or large (although only one may be large at a time)
+and are resized by a keyboard command.  
+Small videos require roughly 90 kbit/s while large require 275 kbit/s of network
+bandwidth.  
+\tess provides each video stream a separate network bandwidth allocation, and
+the videos share their core allocations using the EDF scheduler.
+
+%% psearchy and the bandwidth hog
+Our file indexer application is psearchy, a pthread-based parallel application
+from the MOSBENCH benchmark suite~\cite{mosbench}. 
+%Psearchy was designed to index and query Web pages, but instead we use the
+%Linux 2.4.0 source code.
+It runs on top of a pthread-compatible runtime system implemented in Pulse. 
+The TCP bandwidth hog is a simple, single-threaded application that transmits
+data at the fastest possible rate, similar to Dropbox or an FTP server.
+
+
+
+Figure~\ref{fig:pacora_res} shows the allocations of the applications and video
+frame rates as \tess runs and adapts to the video resizes.  The first adaptation
+event occurs at t= \SI{2}{\second}, when \pacora changes the allocations from their initial
+settings to application-specific allocations.  All network allocations were
+initially set to 120 kbits/s, and as shown in Figures~\ref{figures:NetworkAlloc}
+and \ref{figures:HogAlloc}, \pacora changes all of the video threads to 96
+kbits/s, just above the required network bandwidth for small videos.  \pacora removes
+all bandwidth from the file indexer since it does not use network bandwidth and
+gives the remaining bandwidth in the system to the network hog\footnote{We have
+artificially limited the available cores to 8 and the available network
+bandwidth to 1500 kbits/s to make the resources more constrained.}.  We also see
+in Figure~\ref{figures:CoreAlloc} that \tess removes cores from the video cell
+and gives them to the file indexer, utilizing the mechanisms described in \cite{tess_dac} to do so. 
+
+
+Additional resizing events occur at 25, 35, 52, 58 and 65 seconds, when videos
+1, 2, 3, and 4 change size.  As shown in Figures~\ref{figures:NetworkAlloc} and
+\ref{figures:HogAlloc}, \pacora reduces the network hog's allocation in order to
+give sufficient bandwidth to the large video.  However, when all the videos are
+small the bandwidth is returned to the network hog.  
+Figure~\ref{figures:CoreAlloc} shows that larger videos do not need enough additional
+processing power to require an increase in cores, so the core allocations do not
+change after the initial adaptation. Figure~\ref{figures:Framerate} shows that
+the videos do not drop below the required frame rate except when
+resizing\footnote{Glitches while resizing are an artifact of the application
+implementation.}. 
+
+All of the runtime functions used in this experiment were built automatically
+from measured values using The Resource Broker's heartbeat interface. These results
+demonstrate that using \tess's kernel, Pulse, and the Resource Broker, we are able
+to implement a resource-allocation approach that can efficiently assign
+resources to applications and adapt the resource allocations as the system
+changes state.  As a result using an ARCC style system, we do not need to
+sacrifice utilization in order to provide performance guarantees. 
+
+
+
+
