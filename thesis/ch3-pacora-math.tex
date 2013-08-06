@@ -3,8 +3,10 @@
 \section{Introduction}
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 \pacora is a framework designed to determine the proper amount of each
-resource type to give each application.  For example, consider a video
-conference scenario where each participant requires a separate,
+resource type to give each application.  The purpose of \pacora is to dynamically assign resources
+across multiple applications to guarantee responsiveness without
+over-provisioning and to adapt allocations as the application mix
+changes. For example, consider a video conference scenario where each participant requires a separate,
 performance-guaranteed video stream.  New participants may join the
 conference and others may leave, increasing or decreasing the number
 of streams running at any given time.  Simultaneously, participants
@@ -15,10 +17,8 @@ Although it may be relatively straightforward to provide
 responsiveness guarantees for individual applications such as video
 streams, the real challenge is to do so without reserving excessive
 resources, which will compromise system utilization or power
-consumption. The purpose of \pacora is to dynamically assign resources
-across multiple applications to guarantee responsiveness without
-over-provisioning and to adapt allocations as the application mix
-changes.
+consumption.  In this chapter, we describe the mathematical formulation of the \pacora framework, prove the convexity, and present our initial evaluations of the potential of using \pacora for resource allocation in a real system.
+
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 \section{\pacora Architecture}\label{sys_design}
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -26,7 +26,7 @@ changes.
 built from two types of application-specific functions: a
 response-time function and a penalty function. The response-time
 function represents the performance of the application with different
-resources, and is built with runtime measurements.  The penalty
+resources and is built with runtime measurements.  The penalty
 function represents the user-level goals for the application
 (\emph{i.e.,} the deadline and how important it is to meet). \pacora uses convex optimization\cite{BoVa} to
 determine the ideal resource allocation across all active
@@ -49,7 +49,7 @@ of an application might be:
     \end{itemize}
 
 The RTFs are built to be convex functions.  All applications have a
-function of the same form but the application-specific weights are set
+function of the same form, but the application-specific weights are set
 using the performance history of the application.  RTFs are designed
 to capture information such as how well an application scales with a
 particular resource. As a result, RTFs naturally support
@@ -69,11 +69,11 @@ from applications we studied.
   360,width=.49\columnwidth]{Figures/streamcluster-fig.pdf}
 \label{streamcluster-fig}
 }  
-\caption{\label{sample_rtf} Response Time Functions for a
-  breadth-first search algorithm and streamcluster from PARSEC. We show two resource dimensions: cores and cache slices.\ref{bfs-fig}}
+\caption{\label{sample_rtf} Response-Time Functions for a
+  breadth-first search algorithm and \texttt{streamcluster} from the PARSEC benchmark suite~\cite{parsec}. We show two resource dimensions: cores and cache ways.}
 \end{figure*}
 
-Equation~\ref{rtf_eq} below shows the RTF we use in \pacora.
+Equation~\ref{rtf_eq} below shows the RTF we selected for \pacora.  
 
 \begin{equation}\label{rtf_eq}
 \tau(w,a) = \tau_0 + \sum_{i\in n,j\in n}{\frac{w_{i,j}}{\sqrt{a_i * a_j}}}
@@ -84,25 +84,12 @@ resource types, $n$ is the total number of resource types,
 $a_{i}$ and $a_{j}$ are the allocations of resource types $i$
 and $j$, and $w_{i,j}$ is the application-specific weight for
 the term representing resources $i$ and $j$.
-We choose this specific function because it is convex in the resources and in initial application studies
-we found it models response time behavior accurately enough to allow the optimization to make good decisions.
-In our experience the cross term weights (those with $i\neq j$) are almost always negligible and can be omitted.
-The dimensionality of the function increases roughly linearly with the number of resource types.
-The RTFs will be described further in Section~\ref{RTFs}.
-Alternative models and the initial model evaluations are described in
-\cite{pacora_tr}.
-%Appendix~\ref{rtf_choice}.
 
+In our experience the cross term weights (those with $i\neq j$) are almost always negligible and can be omitted if desired.
+This omission allows the dimensionality of the function, and thus the storage space required, to increase roughly linearly with the number of resource types.
 
-\pacora assumes some amount of performance isolation between
-applications.  In order for the RTFs to accurately reflect the
-expected response times of the applications, it is important that the
-response time does not change much as a function of the other
-applications currently running on the machine.  However, the
-performance isolation need not be completely perfect: all of our
-evaluation was run on current x86 hardware with some shared resources,
-and \pacora is still effective. Section~\ref{discuss} discusses
-handling shared resources in more detail.
+We chose this specific function because it is convex in the resources and in initial application studies
+we found it models response time behavior accurately enough to allow the optimization to make good decisions. Section~\ref{RTFs} describes the design considerations for the RTFs in more detail. Section~\ref{init_eval} shows these evaluation results and discusses alternative models that were considered and evaluated during the design process.
 
 \subsection{Penalty Functions}
 Penalty functions are designed to represent the user-level goals of
@@ -329,7 +316,16 @@ resources (\emph{e.g.,} nodes and storage) to jobs, and scheduling is
 left to other entities such as the MapReduce framework\cite{mapreduce}
 or the node OS.  \pacora can also be used in a hypervisor to allocate
 resources among guest OSes.
-
+\subsection{Performance Isolation}
+\pacora assumes some amount of performance isolation between
+applications.  In order for the RTFs to accurately reflect the
+expected response times of the applications, it is important that the
+response time does not change much as a function of the other
+applications currently running on the machine.  However, the
+performance isolation need not be completely perfect: all of our
+evaluation was run on current x86 hardware with some shared resources,
+and \pacora is still effective. Section~\ref{discuss} discusses
+handling shared resources in more detail.
 
 \subsection{Resources}
 
@@ -343,6 +339,8 @@ different scale. For warehouse-scale computing, resources are more
 likely to be different types of nodes, network bandwidth, and
 storage. For distributed embedded systems, resources would include
 compute devices, link bandwidths, and memories.
+
+\subsubsection{Heterogeneity}
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 \section{RTF Design Considerations}\label{RTFs}
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1134,95 +1132,3 @@ Figure~\ref{decision_quality} shows these results for our 10 point RTFs. As we m
 
 There are two main sources of challenges for \pacora's design: performance non-convexity and performance variability. 
 The main concern with performance non-convexity and variability is their effects on the accuracy of the response time functions.  However, an important result we have found while evaluating \pacora is that model accuracy has less impact on the quality of resource allocation decisions than we anticipated.  When experimenting with possible models for the RTFs, we found that while some models were always a little too inaccurate and did degrade the performance of the resource allocation decisions, once a model crossed a certain threshold of accuracy then better models provided insignificant improvement in resource allocation decisions. Figure~\ref{accuracy_quality} shows the effect of model accuracy on the quality of the resource allocation decisions made using the RTF model in Equation~\ref{rtf_eq}.  Although there is a slight correlation between model accuracy and decision quality, many decisions with inaccurate models still result in near optimal allocations.  This effect enables \pacora's model-based design to be feasible in a noisy system with real applications.
-
-
-%------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-\section{Possible RTF Extensions}
-%------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-\subsection{Alternative Resource Representations}
-Asynchrony and latency tolerance may make response time components overlap partly or fully;
-if the latter, then the maximum of the terms might be more appropriate than their sum.
-The result will still be convex, though, as will any other norm including the 2-norm,
-\emph{i.e.} the square root of the sum of the squares.
-This last variation could be viewed as a ``partially overlapped'' compromise between
-the 1-norm (sum) describing no overlap and the $\infty$-norm (maximum) describing full overlap.
-
-Sometimes a response time component might be better modeled by a term involving a combination of resources.
-For example, response time due to memory accesses might be approximated
-by a combination of memory bandwidth allocation $b_{r1}$ and cache allocation $m_{r2}$.
-Such a model could use the geometric mean of the two allocations in the denominator,
-\emph{viz.} $w_{r1,r2}/\sqrt{b_{r1}\cdot m_{r2}}$, without compromising convexity.
-
-This scheme also accommodates non-bandwidth resources such as memory,
-the general idea being to roughly approximate ``diminishing returns'' in the response time with increasing resources.
-For clarity's sake, rather than using $a_r$ indiscriminately for all allocations,
-we will denote an allocation of a bandwidth resource by $b_r$ and of a memory resource by $m_r$.
-This begs the question of how memory affects the response time.
-The effect is largely indirect.
-Memory permits exploitation of temporal locality and thereby \emph{amplifies} associated bandwidths.
-For example, additional main memory may reduce the need for storage or network bandwidth,
-and of course increased cache capacity may reduce the need for memory bandwidth.
-The effectiveness of cache in reducing bandwidth was studied by
-H. T. Kung\cite{Kung}, who developed tight asymptotic bounds on the bandwidth amplification
-factor $\alpha(m)$ resulting from a quantity of memory $m$ acting as cache for a variety of computations.
-He shows that
-\begin{displaymath}
-\begin{array}{lll}
-\alpha(m) &= \Theta(\sqrt m) & \mbox{for dense linear algebra solvers} \\
-          &= \Theta(m^{1/d}) & \mbox{for d-dimensional PDE solvers} \\
-          &= \Theta(\log m)  & \mbox{for comparison sorting and FFTs} \\
-          &= \Theta(1)       & \mbox{when temporal locality is absent}
-\end{array}
-\end{displaymath}
-
-For these expressions to make sense, the argument of $\alpha$ should be dimensionless and greater than 1.
-Ensuring this might be as simple as letting it be the number of memory resource quanta
-(\emph{e.g.} hundreds of memory pages) assigned to the application.
-If a application shows diminishing bandwidth amplification as its memory allocation increases, this can be accommodated:
-\begin{displaymath}
-\alpha(m) = \min(c_1\alpha_1(m),c_2\alpha_2(m)),\;c_1,c_2 \geq 0
-\end{displaymath}
-
-Each bandwidth amplification factor might be described by one of the functions above
-and included in the denominator of the appropriate component in the response time function model.
-For example, the storage response time component for the model of an out-of-core sort application might be
-the quantity of storage accesses divided by the product of the storage bandwidth allocation and $\log m$,
-the amplification function associated with sorting given a memory allocation of $m$.
-Amplification functions for each application might be learned from response time measurements
-by observing the effect of varying the associated memory resource while keeping the bandwidth allocation constant.
-Alternatively, redundant components, similar except for amplification function, could be included in the model
-to let the model fitting process decide among them.
-
-\subsection{Stochastic Models}
-
-
-
-
-
-\subsection{Handling Quasiconvex Response Time Functions}
-
-There are examples of response time versus resource behavior that violate convexity.  One such example sometimes occurs in memory allocation, where ``plateaus'' can sometimes be seen as in Figure~\ref{f:plat}.
-
-Such plateaus are typically caused by algorithm adaptations within the application to accommodate variable resource availability.  The response time is really the \emph{minimum} of several convex functions depending on allocation and the point-wise minimum that the application implements fails to preserve convexity.  The effect of the plateaus will be a non-convex penalty as shown in Figure~\ref{f:plateffect} and multiple extrema in the optimization problem will be a likely result.
-
-There are several ways to avoid this problem.  One is based on the observation that such response time functions
-will at least be \emph{quasiconvex}.  A function $f$ is quasiconvex if all of its \emph{sublevel sets}
-$S_\ell = \{x | f(x) \leq \ell\}$ are convex sets.
-Alternatively, $f$ is quasiconvex if its domain is convex and
-\begin{displaymath}
-f(\theta x + (1-\theta)y) \leq \max(f(x),f(y)), 0 \leq \theta \leq 1
-\end{displaymath}
-
-Quasiconvex optimization can be performed by selecting a threshold $\ell$ and replacing the objective function
-with a convex constraint function whose sublevel set $S_\ell$ is the same as that of $f$.
-Next, one determines whether there is a feasible solution for that particular threshold $\ell$.
-Repeated application with a binary search on $\ell$ will reduce the level of feasibility
-until the solution is approximated well enough.
-
-Another idea is to use additional constraints to explore convex sub-domains of $\tau$.
-For example,the affine constraint $a_{p,r} - \mu \leq 0$ excludes application $p$ from any assignment of resource $r$ exceeding $\mu$.  Similarly, $\mu - a_{p,r} \leq 0$ excludes the opposite possibility.
-A binary (or even linear)search of such sub-domains could be used to find the optimal value.
-
-
-
-

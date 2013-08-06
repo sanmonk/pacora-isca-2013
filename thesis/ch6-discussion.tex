@@ -35,6 +35,96 @@ concerns.
 
 % don't forget cpu frequency
 
+%------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+\section{Possible RTF Extensions}
+%------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+\subsection{Alternative Resource Representations}
+Asynchrony and latency tolerance may make response time components overlap partly or fully;
+if the latter, then the maximum of the terms might be more appropriate than their sum.
+The result will still be convex, though, as will any other norm including the 2-norm,
+\emph{i.e.} the square root of the sum of the squares.
+This last variation could be viewed as a ``partially overlapped'' compromise between
+the 1-norm (sum) describing no overlap and the $\infty$-norm (maximum) describing full overlap.
+
+Sometimes a response time component might be better modeled by a term involving a combination of resources.
+For example, response time due to memory accesses might be approximated
+by a combination of memory bandwidth allocation $b_{r1}$ and cache allocation $m_{r2}$.
+Such a model could use the geometric mean of the two allocations in the denominator,
+\emph{viz.} $w_{r1,r2}/\sqrt{b_{r1}\cdot m_{r2}}$, without compromising convexity.
+
+This scheme also accommodates non-bandwidth resources such as memory,
+the general idea being to roughly approximate ``diminishing returns'' in the response time with increasing resources.
+For clarity's sake, rather than using $a_r$ indiscriminately for all allocations,
+we will denote an allocation of a bandwidth resource by $b_r$ and of a memory resource by $m_r$.
+This begs the question of how memory affects the response time.
+The effect is largely indirect.
+Memory permits exploitation of temporal locality and thereby \emph{amplifies} associated bandwidths.
+For example, additional main memory may reduce the need for storage or network bandwidth,
+and of course increased cache capacity may reduce the need for memory bandwidth.
+The effectiveness of cache in reducing bandwidth was studied by
+H. T. Kung\cite{Kung}, who developed tight asymptotic bounds on the bandwidth amplification
+factor $\alpha(m)$ resulting from a quantity of memory $m$ acting as cache for a variety of computations.
+He shows that
+\begin{displaymath}
+\begin{array}{lll}
+\alpha(m) &= \Theta(\sqrt m) & \mbox{for dense linear algebra solvers} \\
+          &= \Theta(m^{1/d}) & \mbox{for d-dimensional PDE solvers} \\
+          &= \Theta(\log m)  & \mbox{for comparison sorting and FFTs} \\
+          &= \Theta(1)       & \mbox{when temporal locality is absent}
+\end{array}
+\end{displaymath}
+
+For these expressions to make sense, the argument of $\alpha$ should be dimensionless and greater than 1.
+Ensuring this might be as simple as letting it be the number of memory resource quanta
+(\emph{e.g.} hundreds of memory pages) assigned to the application.
+If a application shows diminishing bandwidth amplification as its memory allocation increases, this can be accommodated:
+\begin{displaymath}
+\alpha(m) = \min(c_1\alpha_1(m),c_2\alpha_2(m)),\;c_1,c_2 \geq 0
+\end{displaymath}
+
+Each bandwidth amplification factor might be described by one of the functions above
+and included in the denominator of the appropriate component in the response time function model.
+For example, the storage response time component for the model of an out-of-core sort application might be
+the quantity of storage accesses divided by the product of the storage bandwidth allocation and $\log m$,
+the amplification function associated with sorting given a memory allocation of $m$.
+Amplification functions for each application might be learned from response time measurements
+by observing the effect of varying the associated memory resource while keeping the bandwidth allocation constant.
+Alternatively, redundant components, similar except for amplification function, could be included in the model
+to let the model fitting process decide among them.
+
+\subsection{Stochastic Models}
+
+
+
+
+
+\subsection{Handling Quasiconvex Response Time Functions}
+
+There are examples of response time versus resource behavior that violate convexity.  One such example sometimes occurs in memory allocation, where ``plateaus'' can sometimes be seen as in Figure~\ref{f:plat}.
+
+Such plateaus are typically caused by algorithm adaptations within the application to accommodate variable resource availability.  The response time is really the \emph{minimum} of several convex functions depending on allocation and the point-wise minimum that the application implements fails to preserve convexity.  The effect of the plateaus will be a non-convex penalty as shown in Figure~\ref{f:plateffect} and multiple extrema in the optimization problem will be a likely result.
+
+There are several ways to avoid this problem.  One is based on the observation that such response time functions
+will at least be \emph{quasiconvex}.  A function $f$ is quasiconvex if all of its \emph{sublevel sets}
+$S_\ell = \{x | f(x) \leq \ell\}$ are convex sets.
+Alternatively, $f$ is quasiconvex if its domain is convex and
+\begin{displaymath}
+f(\theta x + (1-\theta)y) \leq \max(f(x),f(y)), 0 \leq \theta \leq 1
+\end{displaymath}
+
+Quasiconvex optimization can be performed by selecting a threshold $\ell$ and replacing the objective function
+with a convex constraint function whose sublevel set $S_\ell$ is the same as that of $f$.
+Next, one determines whether there is a feasible solution for that particular threshold $\ell$.
+Repeated application with a binary search on $\ell$ will reduce the level of feasibility
+until the solution is approximated well enough.
+
+Another idea is to use additional constraints to explore convex sub-domains of $\tau$.
+For example,the affine constraint $a_{p,r} - \mu \leq 0$ excludes application $p$ from any assignment of resource $r$ exceeding $\mu$.  Similarly, $\mu - a_{p,r} \leq 0$ excludes the opposite possibility.
+A binary (or even linear)search of such sub-domains could be used to find the optimal value.
+
+
+
+
 
 
 
