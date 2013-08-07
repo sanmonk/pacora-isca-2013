@@ -142,11 +142,11 @@ applications by considering the allocation of only one resource type at a
 time.
 
 A succinct mathematical characterization of this resource allocation scheme is the following:
-\begin{eqnarray*}
+\begin{eqnarray}
 & \makebox[1in][r]{Minimize}   & \sum_{p\in P} {\pi_p(\tau_p(a_{p,1}\ldots a_{p,n}))}  \\
 & \makebox[1in][r]{Subject to} & \sum_{p\in P} a_{p,r} \leq A_r, r = 1,\ldots n        \\
 & \makebox[1in][r]{and}        & a_{p,r} \geq 0
-\end{eqnarray*}
+\end{eqnarray}
 Here $\pi_p$ is the penalty function for application $p$,
 $\tau_p$ is its response time function,
 $a_{p,r}$ is the allocation of resource $r$ to application $p$,
