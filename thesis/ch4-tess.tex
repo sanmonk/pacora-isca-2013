@@ -20,6 +20,12 @@ performance.  In a single-operator datacenter environment this might be less of 
 
 There are also many different possible moments to create response time functions.  RTFs could be created in advance and distributed with the application. This approach could make lots of sense for app stores since most of them cater to just a few platforms. RTFs could also be crowd-sourced and built in the cloud, which has the advantage making it easy to collect a diverse set of training points.  However, all of these approaches lack adaptability.  As a result, we have chosen to implement two solutions that collect data directly from the user's machine.  The first approach is to adapt to the system by collecting all of the training points at application install time and building the model then.  The most highly adaptive approach collects data continuously as the application runs, uses the data to modify the model training set, and rebuilds the model.  A hybrid approach may be the most effective: applications can begin with a generic model and improve it over time. The remainder of this Section describes our model creation process in detail.
 
+In a client operating system, management of penalty function modifications
+should be highly automated by the system to avoid unduly burdening the user.
+As an application grows or diminishes in importance, its penalty function can be modified accordingly.
+Adjustment is also likely to occur in transitions between operating scenarios.
+For example, when unplugging a device all of the background activities could have their slopes significantly reduced to save battery life.
+
 \subsection*{Least-Squares Minimization}
 After enough measurements, discovery of the model parameters $w$ that define the function $\tau$
 can be based on a solution to the over-determined linear system $t=Dw$,

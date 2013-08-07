@@ -92,6 +92,7 @@ We chose this specific function because it is convex in the resources and in ini
 we found it models response time behavior accurately enough to allow the optimization to make good decisions. Section~\ref{RTFs} describes the design considerations for the RTFs in more detail. Section~\ref{init_eval} shows these evaluation results and discusses alternative models that were considered and evaluated during the design process.
 
 \subsection{Penalty Functions}
+
 Penalty functions are designed to represent the user-level goals of
 the application. They are similar to priorities but are functions of
 the response time rather than simply values, so they can explicitly
@@ -100,19 +101,6 @@ optimizations that are difficult in today's systems, such as running
 just fast enough to make the deadline. Like priorities, the penalty
 functions are set by the system on behalf of the user.
 
-\pacora's penalty functions $\pi$ are non-decreasing piecewise-linear
-functions of the response time $\tau$ of the form $\pi(\tau) = \max(0, (\tau - d)s)$
-where $d$ represents the deadline of the application and $s$ (slope)
-defines the rate the penalty increases as response time increases. For
-applications without response-time constraints the deadline can be set
-to $0$. Two representative graphs of this type appear in
-Figures~\ref{f:pen1} and~\ref{f:pen2}.
-
-In a client operating system, management of penalty function modifications
-should be highly automated by the system to avoid unduly burdening the user.
-As an application grows or diminishes in importance, its penalty function can be modified accordingly.
-Adjustment is also likely to occur in transitions between operating scenarios.
-For example, when unplugging a device all of the background activities could have their slopes significantly reduced to save battery life.
 
 \begin{figure}[hb]
 \parbox{3in}{
@@ -125,6 +113,14 @@ For example, when unplugging a device all of the background activities could hav
 \caption{\label{f:pen2}A penalty function with no response time constraint.}
 }
 \end{figure}
+
+\pacora's penalty functions $\pi$ are non-decreasing piecewise-linear
+functions of the response time $\tau$ of the form $\pi(\tau) = \max(0, (\tau - d)s)$
+where $d$ represents the deadline of the application and $s$ (slope)
+defines the rate the penalty increases as response time increases. For
+applications without response-time constraints the deadline can be set
+to $0$. Two representative graphs of this type appear in
+Figures~\ref{f:pen1} and~\ref{f:pen2}.
 
 \subsection{Resource Allocation as Optimization}
 
@@ -154,19 +150,23 @@ A succinct mathematical characterization of this resource allocation scheme is t
 Here $\pi_p$ is the penalty function for application $p$,
 $\tau_p$ is its response time function,
 $a_{p,r}$ is the allocation of resource $r$ to application $p$,
-and $A_r$ is the total amount of resource $r$ available.  Optimization details are described in Section~\ref{dyn_opt}.
+and $A_r$ is the total amount of resource $r$ available. 
 
-\subsection{Power and Energy}
+\subsection{Managing Power and Energy}
 In \pacora, we create an artificial application to represent the
-interest in reducing system power and energy.  Application 0 is
+interest in reducing the power and energy of the system.  Application 0 is
 designated the idle application and receives allocations of all
 resources that are left idle, \emph{i.e.,} not allocated to other
-applications.  The idle resources can be powered off or put to sleep
-if possible to save power.
+applications.  If the system has the appropriate power management mechanisms, these idle resources can be powered off or put to sleep to save power.
+
+Additionally, application 0 functions as \emph{slack} variables in our optimization problem turning the resource bounds into equalities:
+\begin{equation}
+\sum_{p\in P} a_{p,r} - A_r = 0, r = 1,\dots n.
+\end{equation}
 
 The ``response time'' for application 0, $\tau_0$, is artificially
-defined to be the total system power consumption.
-This response function is affine and monotone nonincreasing in its arguments $a_{0,r}$.
+defined to be the total system power consumption.  Application 0's RTF represents how the system power improves when particular resources are left idle (\emph{i.e.,} allocated to application 0), which is similar to other RTFs which represent how the response time of an application improves when allocated particular resource types. This response function is affine and monotone nonincreasing in its arguments $a_{0,r}$.
+
 The penalty function $\pi_0$ establishes a system tradeoff between
 power and performance that will determine which resources are
 allocated to applications to improve performance and which are left
@@ -177,10 +177,7 @@ $d_0$ can be adjusted to reflect the current battery charge in mobile
 devices. For example, as the battery depletes, $d_0$ could be decreased or $s_0$ increased
 to force other applications to slow or cease execution.
 
-Additionally, application 0 functions as \emph{slack} variables in our optimization problem turning the resource bounds into equalities:
-\begin{equation}
-\sum_{p\in P} a_{p,r} - A_r = 0, r = 1,\dots n.
-\end{equation}
+
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 \section{Convex Optimization}
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
