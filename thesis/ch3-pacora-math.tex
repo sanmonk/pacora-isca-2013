@@ -17,7 +17,15 @@ Although it may be relatively straightforward to provide
 responsiveness guarantees for individual applications such as video
 streams, the real challenge is to do so without reserving excessive
 resources, which will compromise system utilization or power
-consumption.  In this chapter, we describe the mathematical formulation of the \pacora framework, prove the convexity, and present our initial evaluations of the potential of using \pacora for resource allocation in a real system.
+consumption. 
+
+We believe \pacora is applicable to many resource-allocation
+scenarios, from cloud providers determining how many resources to give
+each job to avoid violating Service-Level Agreements (SLAs), through databases allocating
+resources to queries, to distributed embedded systems allocating
+bandwidth among devices and sensors.
+
+ In this chapter, we describe the mathematical formulation of the \pacora framework, prove the convexity, and present our initial evaluations of the potential of using \pacora for resource allocation in a real system.
 
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 \section{\pacora Architecture}\label{sys_design}
@@ -290,8 +298,10 @@ and a learned vector of work quantities $w$.
 
 
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-\section{Application and Assumptions}
+\section{Definitions and Assumptions}
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+\subsection{Applications}
 For our purposes an application is an entity to which the system
 allocates resources: these can be a complete application (\emph{e.g.,}
 a video player), a component of an application (\emph{e.g.,} a music
@@ -299,6 +309,7 @@ synthesizer), a background OS process (\emph{e.g.,} indexing), a job
 in warehouse-scale computing, or a distributed application in a
 distributed embedded system.
 
+\subsection{Hierarchical Scheduling}
 \pacora is designed for systems where resource allocation is separated
 from scheduling.  This split enables the use of application-specific
 scheduling policies, which have the potential to be easier to design
@@ -317,6 +328,7 @@ resources (\emph{e.g.,} nodes and storage) to jobs, and scheduling is
 left to other entities such as the MapReduce framework\cite{mapreduce}
 or the node OS.  \pacora can also be used in a hypervisor to allocate
 resources among guest OSes.
+
 \subsection{Performance Isolation}
 \pacora assumes some amount of performance isolation between
 applications.  In order for the RTFs to accurately reflect the
