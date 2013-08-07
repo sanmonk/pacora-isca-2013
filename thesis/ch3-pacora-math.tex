@@ -183,11 +183,11 @@ to force other applications to slow or cease execution.
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 If the penalty functions, response time functions, and resource
 constraints were arbitrary, little could be done to optimize the total
-penalty beyond searching at random for the best allocation.  However,
-by framing our resource allocation problem as a \emph{convex
-  optimization problem}\cite{BoVa}, two benefits accrue: an optimal
-solution will exist without multiple local extrema, and fast,
-incremental solutions will become feasible.
+penalty beyond searching at random for the best allocation.  However, we designed \pacora to be convex by construction, which enables us to use convex optimization~\cite{BoVa} methods to solve the optimization. 
+By framing our resource allocation problem as a convex optimization problem, we get two significant benefits: for each problem an optimal
+solution exists without multiple local extrema, and fast optimization methods with practical incremental solutions become feasible.  In this section, we prove the convexity of \pacora's optimization formulation and the penalty and RTF functions. 
+
+\subsection{Resource Allocation Optimization Convexity}
 
 A constrained optimization problem is \emph{convex} if both the objective function to be minimized
 and the constraint functions that define its feasible solutions are convex functions.
@@ -214,12 +214,15 @@ A convex optimization problem is one that can be expressed in this form:
 optimization problem in the $m = |P|\cdot n$ variables $a_{p,r}$ as
 long as the penalty functions $\pi_p$ are convex non-decreasing and
 the response-time functions $\tau_p$ are convex.  We designed our
-functions to meet these constraints, and proofs of their convexity can
-be found in~\cite{pacora_tr}.
-%Appendix~\ref{convex}. 
-Note that the resource constraints
-are affine and therefore convex; they can be rewritten as $\sum_{p\in
-  P} (a_{p,r} - A_r) \leq 0$ and $-a_{p,r} \leq 0$.
+functions to meet these constraints, and proofs of their convexity are shown below.
+ 
+The resource constraints are affine and therefore convex; they can be rewritten as 
+\begin{equation}
+\sum_{p\in P} (a_{p,r} - A_r) \leq 0  -a_{p,r} \leq 0
+\end{equation}
+\begin{equation}
+-a_{p,r} \leq 0
+\end{equation}
 
 The convex formulation makes the optimization scale linearly in the
 number of resource types and the number of applications.  For client
@@ -232,9 +235,10 @@ potential benefits of a good allocation should scale rapidly with the
 size of the system.
 
 \pacora also formulates RTF \emph{creation} as a convex optimization
-problem, as explained in Section~\ref{RTFs}.
+problem, as explained in Section~\ref{rtf_creation}.
 
 \subsection{Penalty Function Convexity}
+In this section, we discuss the convexity of \pacora's penalty functions.
 A few facts about convex functions will be useful in what follows.
 First, a \emph{concave} function is one whose negative is convex.
 Maximization of a concave function is equivalent to minimization of its convex negative.
