@@ -16,16 +16,14 @@ background tasks such as updates, virus scans, or file indexing.
 Although it may be relatively straightforward to provide
 responsiveness guarantees for individual applications such as video
 streams, the real challenge is to do so without reserving excessive
-resources, which will compromise system utilization or power
-consumption. 
+resources, which will compromise system utilization, power
+consumption, or responsiveness of other applications.
 
 We believe \pacora is applicable to many resource-allocation
 scenarios, from cloud providers determining how many resources to give
 each job to avoid violating Service-Level Agreements (SLAs), through databases allocating
 resources to queries, to distributed embedded systems allocating
-bandwidth among devices and sensors.
-
- In this chapter, we describe the mathematical formulation of the \pacora framework, prove the convexity, and present our initial evaluations of the potential of using \pacora for resource allocation in a real system.
+bandwidth among devices and sensors.  These potential applications of \pacora are discussed in greater detail in Chapter~\ref{discuss}. In this chapter, we describe the mathematical formulation of the \pacora framework, prove the convexity, and present our initial evaluations of the potential of using \pacora for resource allocation in an operating system.
 
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 \section{\pacora Architecture}\label{sys_design}
@@ -36,7 +34,7 @@ response-time function and a penalty function. The response-time
 function represents the performance of the application with different
 resources and is built with runtime measurements.  The penalty
 function represents the user-level goals for the application
-(\emph{i.e.,} the deadline and how important it is to meet). \pacora uses convex optimization\cite{BoVa} to
+(\emph{i.e.,} the deadline and how important it is to meet). \pacora uses convex optimization~\cite{BoVa} to
 determine the ideal resource allocation across all active
 applications.  The following subsections briefly introduce the primary
 components of \pacora and the optimization formulation.
