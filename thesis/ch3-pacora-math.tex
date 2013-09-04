@@ -67,12 +67,12 @@ from applications we studied.
 
 \begin{figure*}[hb]
 \subfloat{
-\includegraphics*[bb=0 0 360 360,width=.49\columnwidth]{Figures/bfs-fig.pdf}
+\includegraphics*[bb=0 0 360 360,width=.48\columnwidth]{Figures/bfs-fig.pdf}
 \label{bfs-fig}
 }
 \subfloat{
 \includegraphics*[bb=0 0 360
-  360,width=.49\columnwidth]{Figures/streamcluster-fig.pdf}
+  360,width=.48\columnwidth]{Figures/streamcluster-fig.pdf}
 \label{streamcluster-fig}
 }  
 \caption{\label{sample_rtf} Response-Time Functions for a
@@ -92,9 +92,9 @@ and $j$, and $w_{i,j}$ is the application-specific weight for
 the term representing resources $i$ and $j$.
 
 In our experience the cross term weights (those with $i\neq j$) are almost always negligible and can be omitted if desired.
-This omission allows the dimensionality of the function, and thus the storage space required, to increase roughly linearly with the number of resource types.
+This omission allows the dimensionality of the function, and thus the storage space required, to increase roughly linearly with the number of resource types.  The value of the cross terms is discussed further in Section~\ref{init_eval}.
 
-We chose this specific function because it is convex in the resources and in initial application studies
+We chose this specific function because it is convex in the resources, and in initial application studies,
 we found it models response time behavior accurately enough to allow the optimization to make good decisions. Section~\ref{RTFs} describes the design considerations for the RTFs in more detail. Section~\ref{init_eval} shows these evaluation results and discusses alternative models that were considered and evaluated during the design process.
 
 \subsection{Penalty Functions}
@@ -133,7 +133,7 @@ Figures~\ref{f:pen1} and~\ref{f:pen2}.
 \pacora formulates resource allocation as an optimization problem
 designed to minimize the total penalty of the system. This approach is
 analogous to minimizing user dissatisfaction with the user experience
-due to missed deadlines in a client system, and minimizing the contract
+due to missed deadlines in a client system and minimizing the contract
 penalties paid for violated SLAs in a cloud
 system.
 
@@ -144,8 +144,7 @@ choose to allocate more memory bandwidth in lieu of on-chip cache, or
 one large core instead of several small cores.  Given that all of the
 resources allocated to an application contribute to the response time,
 it would difficult to provide predictable response times for
-applications by considering the allocation of only one resource type at a
-time.
+applications without over-provisioning by independently allocating each resource type.
 
 A succinct mathematical characterization of this resource allocation scheme is the following:
 \begin{eqnarray}
@@ -171,7 +170,7 @@ Additionally, application 0 functions as \emph{slack} variables in our optimizat
 \end{equation}
 
 The ``response time'' for application 0, $\tau_0$, is artificially
-defined to be the total system power consumption.  Application 0's RTF represents how the system power improves when particular resources are left idle (\emph{i.e.,} allocated to application 0), which is similar to other RTFs which represent how the response time of an application improves when allocated particular resource types. This response function is affine and monotone nonincreasing in its arguments $a_{0,r}$.
+defined to be the total system power consumption.  Application 0's RTF represents how the system power improves when particular resources are left idle (\emph{i.e.,} allocated to application 0), which is similar to other RTFs since they represent how the response time of an application improves when allocated particular resource types. This response function is affine and monotone non-increasing in its arguments $a_{0,r}$.
 
 The penalty function $\pi_0$ establishes a system tradeoff between
 power and performance that will determine which resources are
@@ -191,7 +190,8 @@ If the penalty functions, response time functions, and resource
 constraints were arbitrary, little could be done to optimize the total
 penalty beyond searching at random for the best allocation.  However, we designed \pacora to be convex by construction, which enables us to use convex optimization~\cite{BoVa} methods to solve the optimization. 
 By framing our resource allocation problem as a convex optimization problem, we get two significant benefits: for each problem an optimal
-solution exists without multiple local extrema, and fast optimization methods with practical incremental solutions become feasible.  In this section, we prove the convexity of \pacora's optimization formulation and the penalty and RTF functions. 
+solution exists without multiple local extrema, and fast optimization methods with practical incremental solutions become feasible.  In this section, we prove the convexity of \pacora's optimization formulation and the penalty and RTF functions. \pacora also formulates RTF \emph{creation} as a convex optimization
+problem, as explained in Section~\ref{rtf_creation}.
 
 \subsection{Resource Allocation Optimization Convexity}
 
@@ -239,9 +239,6 @@ current systems.  Cloud systems could have many more than 100
 applications running, but the problem size scales linearly and the
 potential benefits of a good allocation should scale rapidly with the
 size of the system.
-
-\pacora also formulates RTF \emph{creation} as a convex optimization
-problem, as explained in Section~\ref{rtf_creation}.
 
 \subsection{Penalty Function Convexity}
 In this section, we discuss the convexity of \pacora's penalty functions.
