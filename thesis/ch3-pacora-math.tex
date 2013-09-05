@@ -295,8 +295,11 @@ and a learned vector of work quantities $w$.
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 \section{Definitions and Assumptions}
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+In Section~\ref{sys_design}, we have presented the mathematical framework behind \pacora.  In this Section, we further define terms such as application and resource and describe the assumptions that \pacora makes about the system design in order to explain how the framework would operate to perform resource allocation in a real system.
+
 
 \subsection{Applications}
+
 For our purposes an application is an entity to which the system
 allocates resources: these can be a complete application (\emph{e.g.,}
 a video player), a component of an application (\emph{e.g.,} a music
@@ -304,7 +307,38 @@ synthesizer), a background OS process (\emph{e.g.,} indexing), a job
 in warehouse-scale computing, or a distributed application in a
 distributed embedded system.
 
+\subsection{Resources and Allocation Enforcement}
+
+In our client system, resources are anything that the system can
+``partition'' in hardware or software.  Resources can be thought of as typically as one of three types: compute, communication, and capacity.  
+
+In our operating system experiments, we use cores, network bandwidth, cache ways, and memory pages.
+As more QoS mechanisms become available on future systems, other resources could be easily added assuming they have QoS
+enforcement mechanisms.  The other scenarios would have resources that
+perform similar functions (compute, communication capacity), but at a
+different scale. For warehouse-scale computing, resources are more
+likely to be different types of nodes, network bandwidth, and
+storage. For distributed embedded systems, resources would include
+compute devices, link bandwidths, and memories.
+
+For \pacora to be able to use the resource, the system must be able to allocate the resource (\emph{e.g.,} a core) or a fraction of it (\emph{e.g.,} a percentage of network bandwidth) to an application and enforce this allocation.  Enforcement can be in hardware or software.  For example, cache partitioning could be implemented in hardware easily by changing the replacement algorithm to limit what ways an application can write in to (as is done in our sandy bride prototype used in the experiments in Section~\ref{init_eval}) or the operating system could use page coloring emulate cache partitioning. 
+
+\subsection{Heterogeneity}
+
+\subsection{Performance Isolation and Shared Resources}
+
+\pacora assumes some amount of performance isolation between
+applications.  In order for the RTFs to accurately reflect the
+expected response times of the applications, it is important that the
+response time does not change much as a function of the other
+applications currently running on the machine.  However, the
+performance isolation need not be completely perfect: all of our
+evaluation was run on current x86 hardware with some shared resources,
+and \pacora is still effective. Section~\ref{discuss} discusses
+handling shared resources in more detail.
+
 \subsection{Hierarchical Scheduling}
+
 \pacora is designed for systems where resource allocation is separated
 from scheduling.  This split enables the use of application-specific
 scheduling policies, which have the potential to be easier to design
@@ -324,31 +358,7 @@ left to other entities such as the MapReduce framework\cite{mapreduce}
 or the node OS.  \pacora can also be used in a hypervisor to allocate
 resources among guest OSes.
 
-\subsection{Performance Isolation}
-\pacora assumes some amount of performance isolation between
-applications.  In order for the RTFs to accurately reflect the
-expected response times of the applications, it is important that the
-response time does not change much as a function of the other
-applications currently running on the machine.  However, the
-performance isolation need not be completely perfect: all of our
-evaluation was run on current x86 hardware with some shared resources,
-and \pacora is still effective. Section~\ref{discuss} discusses
-handling shared resources in more detail.
 
-\subsection{Resources}
-
-In our client system, resources are anything that the system can
-``partition'' in hardware or software: specifically we use cores,
-network bandwidth, cache ways, and memory pages in our system.
-However, other resources could be easily added assuming they have QoS
-enforcement mechanisms.  The other scenarios would have resources that
-perform similar functions (compute, network, capacity), but at a
-different scale. For warehouse-scale computing, resources are more
-likely to be different types of nodes, network bandwidth, and
-storage. For distributed embedded systems, resources would include
-compute devices, link bandwidths, and memories.
-
-\subsubsection{Heterogeneity}
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 \section{RTF Design Considerations}\label{RTFs}
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
