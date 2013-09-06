@@ -343,9 +343,11 @@ handling shared resources in more detail.
 from scheduling.  This split enables the use of application-specific
 scheduling policies, which have the potential to be easier to design
 and more efficient than general-purpose schedulers that have to work
-for everything.  This approach leaves the system to focus on the
+for everything.  The resource allocation system is then able to focus on the
 problem of \emph{how much} of each resource type to assign to each
-application.  In client machines, \pacora is used to make coarse-grain
+application.  
+
+In client machines, \pacora is used to make coarse-grain
 resource-allocation decisions (\emph{e.g.,} cores and memory pages) at
 the OS level, while the micro-management of these resources to run
 application tasks is left to user-level runtimes such as Intel
