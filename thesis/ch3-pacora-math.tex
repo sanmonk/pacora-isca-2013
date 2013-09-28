@@ -99,8 +99,8 @@ we found it models response time behavior accurately enough to allow the optimiz
 
 \subsection{Penalty Functions}
 
-Penalty functions are designed to represent the user-level goals of
-the application. They are similar to priorities but are functions of
+Penalty functions embody user-level goals of
+the application. Although similar to priorities, they are functions of
 the response time rather than simply values, so they can explicitly
 represent deadlines.  Knowing the deadlines lets the system make
 optimizations that are difficult in today's systems, such as running
@@ -359,15 +359,19 @@ evaluation was run on current x86 hardware with some shared resources,
 and \pacora was still effective. Section~\ref{discuss} discusses
 handling shared resources in more detail.
 
-
-
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-\section{RTF Design Considerations}\label{RTFs}
+\section{RTF Design}\label{RTFs}
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-In this section, we describe the design of \pacora's RTFs in more detail.
-RTFs describe an application's performance given its resource assignments.  These functions capture information about the performance impact of a particular resource to an application on the current hardware at a particular time. Without this information, it would be difficult for any resource allocation system to make informed decisions short of blindly trying a variety of allocations and picking the best one.
+In this section, we discuss the design considerations and requirements for \pacora's RTF and describe the chosen design in more detail. Section~\ref{init_eval} evaluates the performance of the chosen RTF along with several other RTF options that were originally considered. Section~\ref{discuss} discusses alternative and enhanced RTF models that could be used to handle variability.
 
-\subsection{Model Design}
+\subsection{Purpose}
+
+In order for a resource allocation framework to make informed decisions about application performance, there must be a way for it to understand the performance impact of a resource allocation in the current system on the application's performance.  One can imagine several high-level approaches to accomplish this. One option would be for the the system to try a variety of allocations and select the best one.  don't understand the value of individual resources, doesn't compose well with other apps.  hill climbing:  local minuma, expensive, could miss deadlines,  maybe it composes better
+mod
+
+RTFs describe an application's performance given its resource assignments.  These functions capture information about the performance impact of a particular resource to an application on the current hardware at a particular time. 
+
+\subsection{Design Considerations}
 \subsubsection{Modeling versus Interpolating} While it might have been possible to model response times by recording past values and interpolating among them, this idea has serious shortcomings:
 \begin{itemize}
 \item The multidimensional response time tables would be large;
@@ -378,6 +382,9 @@ RTFs describe an application's performance given its resource assignments.  Thes
 \end{itemize}
 
 Instead of interpolating, \pacora maintains a parameterized analytic response time model with the partial derivatives evaluated from the model \emph{a priori}. Application responsiveness is highly nonlinear for an increasing variety of applications like streaming media or gaming, thus requiring many data points to represent the response times without a model. Using models, each application can be described in a small number of parameters.  Models can be built from just a few data points and can naturally smooth out noisy data. Their gradients, needed by \pacora to solve the optimization problem efficiently, are easy to calculate.
+
+
+\subsection{Model Design}
 
 \pacora models response times with functions that are convex by construction.
 The specific function chosen for \pacora is shown in Equation~\ref{rtf_eq} above.
