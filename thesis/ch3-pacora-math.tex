@@ -295,7 +295,7 @@ and a learned vector of work quantities $w$.
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 \section{Definitions and Assumptions}
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-In Section~\ref{sys_design}, we have presented the mathematical framework behind \pacora.  In this Section, we further define terms such as application and resource and describe the assumptions that \pacora makes about the system design in order to explain how the framework would operate to perform resource allocation in a real system.
+In Section~\ref{sys_design}, we have presented the mathematical framework behind \pacora.  In this Section, we further define terms such as application and resource and describe the assumptions that \pacora makes about the system design in order to explain how the framework would perform resource allocation in a real system.
 
 
 \subsection{Applications}
@@ -306,36 +306,6 @@ a video player), a component of an application (\emph{e.g.,} a music
 synthesizer), a background OS process (\emph{e.g.,} indexing), a job
 in warehouse-scale computing, or a distributed application in a
 distributed embedded system.
-
-\subsection{Resources and Allocation Enforcement}
-
-In our client system, resources are anything that the system can
-``partition'' in hardware or software.  Resources can be thought of as typically as one of three types: compute, communication, and capacity.  
-
-In our operating system experiments, we use cores, network bandwidth, cache ways, and memory pages.
-As more QoS mechanisms become available on future systems, other resources could be easily added assuming they have QoS
-enforcement mechanisms.  The other scenarios would have resources that
-perform similar functions (compute, communication capacity), but at a
-different scale. For warehouse-scale computing, resources are more
-likely to be different types of nodes, network bandwidth, and
-storage. For distributed embedded systems, resources would include
-compute devices, link bandwidths, and memories.
-
-For \pacora to be able to use the resource, the system must be able to allocate the resource (\emph{e.g.,} a core) or a fraction of it (\emph{e.g.,} a percentage of network bandwidth) to an application and enforce this allocation.  Enforcement can be in hardware or software.  For example, cache partitioning could be implemented in hardware easily by changing the replacement algorithm to limit what ways an application can write in to (as is done in our sandy bride prototype used in the experiments in Section~\ref{init_eval}) or the operating system could use page coloring emulate cache partitioning. 
-
-\subsection{Heterogeneity}
-
-\subsection{Performance Isolation and Shared Resources}
-
-\pacora assumes some amount of performance isolation between
-applications.  In order for the RTFs to accurately reflect the
-expected response times of the applications, it is important that the
-response time does not change much as a function of the other
-applications currently running on the machine.  However, the
-performance isolation need not be completely perfect: all of our
-evaluation was run on current x86 hardware with some shared resources,
-and \pacora is still effective. Section~\ref{discuss} discusses
-handling shared resources in more detail.
 
 \subsection{Hierarchical Scheduling}
 
@@ -353,12 +323,42 @@ the OS level, while the micro-management of these resources to run
 application tasks is left to user-level runtimes such as Intel
 Threaded Building Blocks~\cite{CoMa08} or Lithe~\cite{lithe}, and to
 user-level memory managers.
-As a result, \pacora could be used to consolidate realtime systems.  Resources can be allocated to various realtime user-level schedulers such as Earliest-Deadline-First or Rate-Monotonic schedulers, eliminating the need in the case of many applications for a realtime OS designed around one of these schedulers.
-In the cloud environment, \pacora allocates
-resources (\emph{e.g.,} nodes and storage) to jobs, and scheduling is
+
+If the machine is operating in a cloud computing environment, \pacora could be used in a hypervisor to allocate
+resources among guest OSes. For warehouse-scale computers, \pacora could be used to allocate
+resources (\emph{e.g.,} nodes and storage) to jobs, while scheduling is
 left to other entities such as the MapReduce framework\cite{mapreduce}
-or the node OS.  \pacora can also be used in a hypervisor to allocate
-resources among guest OSes.
+or the node OS.   
+
+\pacora could be used in a system designed to consolidate realtime systems.  Resources can be allocated to various realtime user-level schedulers such as Earliest-Deadline-First or Rate-Monotonic schedulers, and \pacora will guarantee quality-of-service to the schedulers, eliminating the need in the case of many applications for a realtime OS designed around a single real-time scheduler.
+
+\subsection{Resources}
+
+In our client system, resources are anything that the system can ``partition'' in hardware or software.  Resources can be thought of as typically as one of three types: compute, communication, and capacity\footnote{\pacora does not treat any resource types differently so classification is not strictly necessary. It is only described here to demonstrate the range of resources that could be controlled by \pacora.}.
+In our operating system experiments, we use cores (compute), network bandwidth (communication), and cache ways and memory pages (capacity).
+Other operating scenarios would have resources that perform similar functions at a different scale. For warehouse-scale computing, resources are more
+likely to be different types of nodes, network bandwidth, and storage. For distributed embedded systems, resources would include compute devices, link bandwidths, and memories. 
+
+\subsubsection{Allocation Enforcement}
+
+As more QoS mechanisms become available on future systems, other resources could be easily added to \pacora. For \pacora to be able to use the resource, the system must be able to allocate the resource (\emph{e.g.,} a core) or a fraction of it (\emph{e.g.,} a percentage of network bandwidth) to an application and enforce this allocation.  Enforcement can be in hardware or software.  For example, cache partitioning could be implemented in hardware easily by changing the replacement algorithm to limit what ways an application can write in to (as is done in our sandy bride prototype used in the experiments in Section~\ref{init_eval}) or the operating system could use page coloring emulate cache partitioning. 
+
+\subsubsection{Heterogeneity}
+
+Heterogeneity is naturally handled by \pacora.  Each core type can be viewed as a different resource system, so fat cores may be resource 1, thin cores may be resource 2, and GPUs could be resource 3.  The application developer would not need to specify, which core types the application uses best; \pacora would try allocating the cores and the resulting performance would be captured in the RTFs.  So, for example, if an application did not use a GPU then this would be discovered empirically and the RTF would show no performance improvement along the GPU dimension.  
+
+\subsubsection{Performance Isolation and Shared Resources}
+
+\pacora assumes some amount of performance isolation between
+applications.  In order for the RTFs to accurately reflect the
+expected response times of the applications, it is important that the
+response time does not change much as a function of the other
+applications currently running on the machine.  However, the
+performance isolation need not be completely perfect: all of our
+evaluation was run on current x86 hardware with some shared resources,
+and \pacora was still effective. Section~\ref{discuss} discusses
+handling shared resources in more detail.
+
 
 
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
