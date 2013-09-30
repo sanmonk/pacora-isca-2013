@@ -362,27 +362,28 @@ handling shared resources in more detail.
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 \section{RTF Design}\label{RTFs}
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-In this section, we discuss the design considerations and requirements for \pacora's RTF and describe the chosen design in more detail. Chapter~\ref{init_eval} evaluates the performance of the chosen RTF along with several other RTF options that were originally considered. Chapter~\ref{discuss} discusses alternative and enhanced RTF models that could be used to handle variability.
+In this section, we discuss the design considerations and requirements for \pacora's RTF and describe the chosen design in more detail. Chapter~\ref{init_eval} evaluates the performance of the chosen RTF along with several other RTF options that were originally considered. Chapter~\ref{discuss} discusses alternative and enhanced RTF models.
 
 \subsection{Purpose}
 
-In order for a resource allocation framework to make informed decisions about application performance, there must be a way for it to understand the performance impact of a resource allocation in the current system on the application's performance.  One can imagine several high-level approaches to accomplish this. One option would be for the the system to try a variety of allocations and select the best one.  don't understand the value of individual resources, doesn't compose well with other apps.  hill climbing:  local minuma, expensive, could miss deadlines,  maybe it composes better
-mod
+In order for a resource allocation framework to make informed decisions about application performance, there must be a way for it to understand the performance impact of a resource allocation in the current system on the application's performance.  One can imagine several high-level approaches to accomplish this. One option would be for the the system to try a variety of allocations and select the best one.  However, there are a few disadvantages to this method: first, the system may need to try many points to find an efficient resource allocation for multidimensional allocation problems; second, the result for a single application may not compose well for multiple applications; and third, it doesn't give the system much understanding of the value of individual resources making resource tradeoffs difficult.  Another option would be something similar to hill climbing where the system incrementally adds or removes resources and measures the change in performance.  However, there are several challenges for an incremental approach as well.  Since the system relies on measuring the incremental gradients, it could get stuck in local minima or remain on a performance plateau for a particular resource without discovering the threshold that gives significant performance improvement (\emph{e.g.,} the point where the application fits in cache).  It could also be difficult to explore more than one resource dimension at a time. Additionally it could take quite a long time to reach an efficient resource allocation, particularly for a system with multiple applications running, and could violate the application's quality-of-service while exploring resource allocations.  While obviously these techniques can be improved upon, we felt the fundamental problems of composablity and potentially high overhead to find an efficient multidimensional allocation would be very difficult to overcome. 
 
-RTFs describe an application's performance given its resource assignments.  These functions capture information about the performance impact of a particular resource to an application on the current hardware at a particular time. 
+For \pacora, we instead chose to take a modeling approach to represent an application's performance given its resource assignments.  We explicitly create RTFs from measured values that capture information about the performance impact of a particular resource to an application on the current hardware at a particular time. We chose to use models because they can be easily used in an optimization that considers multiple resources and applications at the same time. 
 
 \subsection{Design Considerations}
-\subsubsection{Modeling versus Interpolating} While it might have been possible to model response times by recording past values and interpolating among them, this idea has serious shortcomings:
+
+One approach to creating explicit resource-performance models would have been to model response times by recording past values and interpolating among them, however this idea has serious shortcomings for resource allocation problems:
 \begin{itemize}
-\item The multidimensional response time tables would be large;
-\item Interpolation in many dimensions is computationally expensive;
+\item The multidimensional response time tables would be large and thus more expensive to store;
+\item Interpolation in many dimensions is computationally expensive thereby increasing the overhead of the resource allocation optimization;
 \item The measurements will be noisy and require smoothing;
-\item Convexity in the resources may be violated;
+\item Convexity in the resources may be violated and as a result significantly increasing the cost of the resource allocation optimization by eliminating the opportunity to use efficient convex optimization techniques;
 \item Gradient estimation will be slow and difficult.
 \end{itemize}
 
-Instead of interpolating, \pacora maintains a parameterized analytic response time model with the partial derivatives evaluated from the model \emph{a priori}. Application responsiveness is highly nonlinear for an increasing variety of applications like streaming media or gaming, thus requiring many data points to represent the response times without a model. Using models, each application can be described in a small number of parameters.  Models can be built from just a few data points and can naturally smooth out noisy data. Their gradients, needed by \pacora to solve the optimization problem efficiently, are easy to calculate.
 
+\subsubsection{Model Requirements}
+Instead of interpolating, \pacora maintains a parameterized analytic response time model with the partial derivatives evaluated from the model \emph{a priori}. Application responsiveness is highly nonlinear for an increasing variety of applications like streaming media or gaming, thus requiring many data points to represent the response times without a model. Using models, each application can be described in a small number of parameters.  Models can be built from just a few data points and can naturally smooth out noisy data. Their gradients, needed by \pacora to solve the optimization problem efficiently, are easy to calculate.
 
 \subsection{Model Design}
 
