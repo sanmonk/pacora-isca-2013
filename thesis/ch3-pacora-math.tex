@@ -413,17 +413,27 @@ Since $\tau$ is analytic, generic, and symbolically differentiable
 it is a simple matter to compute the gradient of $\tau$ once the model is defined.
 
 \subsubsection{Non-Convexity}
+
+\begin{figure}[hb]
+\center
+\includegraphics*[width=.80\columnwidth]{Figures/stencil_outlier.png}
+\caption{\label{stencil_outlier_fig}Response time function with some resource ``plateaus''.}
+\end{figure}
+
+\begin{figure}[hb]
+\center
+\includegraphics*[width=.80\columnwidth]{Figures/mem_page_data.png}
+\caption{\label{mem_page_fig}Response time function with some resource ``plateaus''.}
+\end{figure}
+
+
 Forcing RTFs to be convex assumes that the actual response times are
-close to convex. We find this to be a plausible requirement as
-applications usually follow the ``Law of Diminishing Returns'' for
-resource allocations.
+close to convex. We believe this to be a plausible requirement as applications usually follow the ``Law of Diminishing Returns'' for resource allocations, and in our implementation and evaluation, we found our convexity assumption to be reasonably true. In cases where the assumption was not completely valid \pacora was still able to produce near optimal allocations (See Chapter~\ref{init_eval}).  The reason that non-convex response time versus resource behavior did not result in bad resource allocations was that for the most part the non-convex behavior we measured was usually particular resource allocations producing much worse results than their surrounding allocations and these points were ignored as outliers in the model and rarely selected by the optimization.  For example, we have seen non-convex performance in applications when dealing with hyperthreads or memory pages.  For two of our applications, 5 hyperthreads resulted in significantly worse performance than either 4 or 6.  When studying some other applications, we found that particular numbers of memory pages, (\emph{e.g.,} 2K), resulted in much better performance than the adjacent page allocations as shown in Figure~\ref{mem_page_fig}.  These outliers and additional challenges to response time modeling are discussed in Chapter~\ref{discuss} along with additional techniques that could be employed to handle them.
 
-However, there are examples of response time versus resource behavior that violate convexity.   For example, we have seen non-convex performance in applications when dealing with hyperthreads or memory pages.  For two of our applications, 5 hyperthreads resulted in significantly worse performance than either 4 or 6.  When studying some other applications, we found that particular numbers of memory pages, (\emph{e.g.,} 2K), resulted in much better performance than the adjacent page allocations.  Outliers and additional challenges to response time modeling are discussed in Section~\ref{discuss}.
-%Avoiding (or seeking out) these allocations would add significant cost to the optimization problem.
 
-Another kind of convexity violation can occur in memory allocation, where ``plateaus'' can sometimes occur as in Figure~\ref{f:plat}. Such plateaus are typically caused by adaptations within the application (\emph{e.g.,} adjusting the algorithm or output quality).
-%to accommodate variable resource availability.  
-The response time is really the \emph{minimum} of several convex functions depending on allocation, and the point-wise minimum that the application implements fails to preserve convexity.  The effect of the plateaus will be a non-convex penalty as shown in Figure~\ref{f:plateffect} and multiple extrema in the optimization problem will be a likely result. 
+
+Another kind of convexity violation can occur in memory allocation, where ``plateaus'' can sometimes occur as in Figure~\ref{f:plat}. Such plateaus can be caused by adaptations within the application such as adjusting the algorithm or output quality (For example, a video player may choose to increase resolution having received an increase in network bandwidth and thus the system may not measure an improvement in frame rate) or certain resources which only provide performance improvements in increments rather than smoothly.
+In these applications, the response time is really the \emph{minimum} of several convex functions depending on allocation, and the point-wise minimum that the application implements fails to preserve convexity.  The effect of the plateaus will be a non-convex penalty as shown in Figure~\ref{f:plateffect} and multiple extrema in the optimization problem will be a likely result. 
 
 
 
