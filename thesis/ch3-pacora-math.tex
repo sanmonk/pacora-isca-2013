@@ -372,17 +372,26 @@ For \pacora, we instead chose to take a modeling approach to represent an applic
 
 \subsection{Design Considerations}
 
-One approach to creating explicit resource-performance models would have been to model response times by recording past values and interpolating among them, however this idea has serious shortcomings for resource allocation problems:
+When considering what was necessary for a performance model to be used in a real system we came up with the following requirements to guarantee that the model would be low cost to produce and use and work with real applications:
 \begin{itemize}
-\item The multidimensional response time tables would be large and thus more expensive to store;
+\item Low cost to produce;
+\item Low storage overhead;
+\item Works with a variable number of resource dimensions;
+\item Tolerant of noisy measurements;
+\item Convex;
+\item Easily computed gradients.
+\end{itemize}
+
+One approach to creating explicit resource-performance models would have been to model response times by recording past values and interpolating among them, however this idea has serious shortcomings for resource allocation problems:
+
+\begin{itemize}
+\item The multidimensional response time tables would be large and thus more expensive to measure and store;
 \item Interpolation in many dimensions is computationally expensive thereby increasing the overhead of the resource allocation optimization;
 \item The measurements will be noisy and require smoothing;
 \item Convexity in the resources may be violated and as a result significantly increasing the cost of the resource allocation optimization by eliminating the opportunity to use efficient convex optimization techniques;
 \item Gradient estimation will be slow and difficult.
 \end{itemize}
 
-
-\subsubsection{Model Requirements}
 Instead of interpolating, \pacora maintains a parameterized analytic response time model with the partial derivatives evaluated from the model \emph{a priori}. Application responsiveness is highly nonlinear for an increasing variety of applications like streaming media or gaming, thus requiring many data points to represent the response times without a model. Using models, each application can be described in a small number of parameters.  Models can be built from just a few data points and can naturally smooth out noisy data. Their gradients, needed by \pacora to solve the optimization problem efficiently, are easy to calculate.
 
 \subsection{Model Design}
