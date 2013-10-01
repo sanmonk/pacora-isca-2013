@@ -92,10 +92,10 @@ and $j$, and $w_{i,j}$ is the application-specific weight for
 the term representing resources $i$ and $j$.
 
 In our experience the cross term weights (those with $i\neq j$) are almost always negligible and can be omitted if desired.
-This omission allows the dimensionality of the function, and thus the storage space required, to increase roughly linearly with the number of resource types.  The value of the cross terms is discussed further in Section~\ref{init_eval}.
+This omission allows the dimensionality of the function, and thus the storage space required, to increase roughly linearly with the number of resource types.  The value of the cross terms is discussed further in Chapter~\ref{init_eval}.
 
 We chose this specific function because it is convex in the resources, and in initial application studies,
-we found it models response time behavior accurately enough to allow the optimization to make good decisions. Section~\ref{RTFs} describes the design considerations for the RTFs in more detail. Section~\ref{init_eval} shows these evaluation results and discusses alternative models that were considered and evaluated during the design process.
+we found it models response time behavior accurately enough to allow the optimization to make good decisions. Section~\ref{RTFs} describes the design considerations for the RTFs in more detail. Chapter~\ref{init_eval} shows these evaluation results and discusses alternative models that were considered and evaluated during the design process.
 
 \subsection{Penalty Functions}
 
@@ -184,7 +184,7 @@ to force other applications to slow or cease execution.
 
 
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-\section{Convex Optimization}
+\section{Convex Optimization}\label{convex_sec}
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 If the penalty functions, response time functions, and resource
 constraints were arbitrary, little could be done to optimize the total
@@ -396,28 +396,26 @@ Instead of interpolating, \pacora maintains a parameterized analytic response ti
 
 \subsection{Model Design}
 
-\pacora models response times with functions that are convex by construction.
+To select an appropriate model for \pacora's RTF functions, we used three steps.  First, we performed a simple study using microbenchmarks in a real system determine the complexity required for the model. Once we had determined the general form of the model from the experiments, we then designed a model that seemed logical using our domain knowledge of computer hardware, applications, and performance.  Finally, we performed experiments using real benchmarks and kernels on a real system to validate that our model fit the measured values.  Chapter~\ref{init_eval} presents all of these experiments and their results.   Here we describe the selected model in more detail. 
+
+As explained in Section~\ref{convex_sec}, \pacora models response times with functions that are convex by construction in order to take advantage of the efficient solution methods available in convex optimization.
 The specific function chosen for \pacora is shown in Equation~\ref{rtf_eq} above.
 In this equation, the response time is modeled as a weighted sum of component terms,
-roughly one per resource, where a term $w_i/a_i$ is the amount of work $w_i \geq 0$
-divided by $a_i$, the allocation of the $i$th resource~\cite{Snav}.
-For example, one term might model instructions executed divided by total processor MIPS;
-another might model network accesses divided by bandwidth, and so forth.
-Asynchrony and latency tolerance may make response time components overlap partly or fully; and thus we added additional terms to represent the interactions between resources.
+roughly one per resource, where a term $w_i/a_i$ is the amount of work $w_i \geq 0$ divided by $a_i$, the allocation of the $i$th resource~\cite{Snav}.  We felt that this naturally represented approximately how resources behave. For example, one term might model instructions executed divided by total processor MIPS, so the application-specific $w$ \pacora is learning is the number of instructions.  As we increase the allocation of MIPS, then we'll see the contribution to total runtime from this term decrease since the additional processing power reduces the time to execute the instructions.  Other terms follow the same pattern but for different resources such as model network accesses divided by bandwidth, and so forth.
 
-Such models are automatically convex in the allocations because $1/a$ is convex for positive $a$ and because a positively-weighted sum of convex functions is convex.  The models are also linear in the weights.
+The examples described above all contain only a single resource type.  However, our intuition was that there may be relationships between resource types and asynchrony and latency tolerance may make response time components overlap partly or fully. For example, one can easily imagine that the amount of cache an application has affects its required memory bandwidth.  Thus we added additional terms to represent the interactions between resources.  To our surprise, in most of our experiments, we have found that the interaction terms are nearly always negligible and thus can be eliminated to save space and computation.  However, it is possible that some systems would still require them.  Interaction term results are shown in Chapter~\ref{init_eval}.   
 
 It is obviously important to guarantee the positivity of the resource allocations. This guarantee can be enforced as the allocations are selected during penalty optimization, or the response time model can be made to return $\infty$ if any allocation is less than or equal to zero. This latter idea preserves the convexity of the model and extends its domain to all of $\Re^n$ and consequently we used this approach in our implementation.
-The gradient $\nabla\tau$ is needed by the penalty optimization algorithm.
-Since $\tau$ is analytic, generic, and symbolically differentiable
-it is a simple matter to compute the gradient of $\tau$ once the model is defined.
+
+Our chosen model design satisfies the design requirements listed above.  The model is low cost to produce: we can use convex optimization to produce it, which is described in Chapter~\ref{tess_design_ch}. The models (without the interaction terms) scale linearly with the number of resource dimensions and only require a small number of history values to produce a good model so they are lightweight to store.  They can capture information about all of the resource types and are tolerant of noise (See Chapters~\ref{init_eval} and \ref{discuss} for variability results and discussion) . Such models are automatically convex in the allocations because $1/a$ is convex for positive $a$ and because a positively-weighted sum of convex functions is convex.  Lastly,
+the gradient $\nabla\tau$, which is needed by the penalty optimization algorithm, is simple to compute since $\tau$ is analytic, generic, and symbolically differentiable.
 
 \subsubsection{Non-Convexity}
 
 \begin{figure}[hb]
 \center
-\includegraphics*[width=.80\columnwidth]{Figures/stencil_outlier.png}
-\caption{\label{stencil_outlier_fig}Measured runtimes for the stencil benchmark as compared with the RTF model.  The 2 dimensional resource space (cores and cache ways) is flattened onto a one dimensional space.}
+\includegraphics*[width=.80\columnwidth]{Figures/dedup_5hp.png}
+\caption{\label{dedup_outlier_fig} Measured runtimes for the dedup benchmark in PARSEC varying cores from 1-8 and giving 1, 2, and 12 cache ways. Ways 3-11 are not shown, but look nearly identical to 2 and 12.}
 \end{figure}
 
 \begin{figure}[hb]
@@ -428,7 +426,7 @@ it is a simple matter to compute the gradient of $\tau$ once the model is define
 
 
 Forcing RTFs to be convex assumes that the actual response times are
-close to convex. We believe this to be a plausible requirement as applications usually follow the ``Law of Diminishing Returns'' for resource allocations, and in our implementation and evaluation, we found our convexity assumption to be reasonably true. In cases where the assumption was not completely valid \pacora was still able to produce near optimal allocations (See Chapter~\ref{init_eval}).  The reason that non-convex response time versus resource behavior did not result in bad resource allocations was that for the most part the non-convex behavior we measured was usually particular resource allocations producing much worse results than their surrounding allocations and these points were ignored as outliers in the model and rarely selected by the optimization.  For example, we have seen non-convex performance in applications when dealing with hyperthreads or memory pages.  For two of our applications, 5 hyperthreads resulted in significantly worse performance than either 4 or 6. Figure~\ref{stencil_outlier} show this behavior with our stencil benchmark. When studying some other applications, we found that particular numbers of memory pages, (\emph{e.g.,} 2K), resulted in much better performance than the adjacent page allocations as shown in Figure~\ref{mem_page_fig}.  These outliers and additional challenges to response time modeling are discussed in Chapter~\ref{discuss} along with additional techniques that could be employed to handle them.
+close to convex. We believe this to be a plausible requirement as applications usually follow the ``Law of Diminishing Returns'' for resource allocations, and in our implementation and evaluation, we found our convexity assumption to be reasonably true. In cases where the assumption was not completely valid \pacora was still able to produce near optimal allocations (See Chapter~\ref{init_eval}).  The reason that non-convex response time versus resource behavior did not result in bad resource allocations was that for the most part the non-convex behavior we measured was usually particular resource allocations producing much worse results than their surrounding allocations and these points were ignored as outliers in the model and rarely selected by the optimization.  For example, we have seen non-convex performance in applications when dealing with hyperthreads or memory pages.  For two of our applications, 5 hyperthreads resulted in significantly worse performance than either 4 or 6. Figure~\ref{dedup_outlier_fig} show this behavior with PARSEC's dedup benchmark.   When studying some other applications, we found that particular numbers of memory pages, (\emph{e.g.,} 2K), resulted in much better performance than the adjacent page allocations as shown in Figure~\ref{mem_page_fig}.  These outliers and additional challenges to response time modeling are discussed in Chapter~\ref{discuss} along with additional techniques that could be employed to handle them.
 
 
 Another potential kind of convexity violation might not be so easily ignored is where ``plateaus'' can sometimes occur as in Figure~\ref{f:plat}. Such plateaus can be caused by adaptations within the application such as adjusting the algorithm or output quality (For example, a video player may choose to increase resolution having received an increase in network bandwidth and thus the system may not measure an improvement in frame rate) or certain resources which only provide performance improvements in increments rather than smoothly.
