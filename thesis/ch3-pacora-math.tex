@@ -362,6 +362,8 @@ handling shared resources in more detail.
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 \section{RTF Design}\label{RTFs}
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
 In this section, we discuss the design considerations and requirements for \pacora's RTF and describe the chosen design in more detail. Chapter~\ref{init_eval} evaluates the performance of the chosen RTF along with several other RTF options that were originally considered. Chapter~\ref{discuss} discusses alternative and enhanced RTF models.
 
 \subsection{Purpose}
@@ -396,6 +398,19 @@ Instead of interpolating, \pacora maintains a parameterized analytic response ti
 
 \subsection{Model Design}
 
+\begin{figure*}[h]
+\center
+\includegraphics*[width=.80\columnwidth]{Figures/dedup_5hp.png}
+\caption{\label{dedup_outlier_fig} Measured runtimes for the dedup benchmark in PARSEC varying cores from 1-8 and giving 1, 2, and 12 cache ways. Ways 3-11 are not shown, but look nearly identical to 2 and 12.}
+\end{figure*}
+
+\begin{figure*}[h]
+\center
+\includegraphics*[width=.80\columnwidth]{Figures/mem_page_data.png}
+\caption{\label{mem_page_fig} Average frame time for an n-bodies application running on Windows 7 while varying the memory pages and cores.}
+\end{figure*}
+
+
 To select an appropriate model for \pacora's RTF functions, we used three steps.  First, we performed a simple study using microbenchmarks in a real system determine the complexity required for the model. Once we had determined the general form of the model from the experiments, we then designed a model that seemed logical using our domain knowledge of computer hardware, applications, and performance.  Finally, we performed experiments using real benchmarks and kernels on a real system to validate that our model fit the measured values.  Chapter~\ref{init_eval} presents all of these experiments and their results.   Here we describe the selected model in more detail. 
 
 As explained in Section~\ref{convex_sec}, \pacora models response times with functions that are convex by construction in order to take advantage of the efficient solution methods available in convex optimization.
@@ -411,19 +426,6 @@ Our chosen model design satisfies the design requirements listed above.  The mod
 the gradient $\nabla\tau$, which is needed by the penalty optimization algorithm, is simple to compute since $\tau$ is analytic, generic, and symbolically differentiable.
 
 \subsubsection{Non-Convexity}
-
-\begin{figure}[hb]
-\center
-\includegraphics*[width=.80\columnwidth]{Figures/dedup_5hp.png}
-\caption{\label{dedup_outlier_fig} Measured runtimes for the dedup benchmark in PARSEC varying cores from 1-8 and giving 1, 2, and 12 cache ways. Ways 3-11 are not shown, but look nearly identical to 2 and 12.}
-\end{figure}
-
-\begin{figure}[hb]
-\center
-\includegraphics*[width=.80\columnwidth]{Figures/mem_page_data.png}
-\caption{\label{mem_page_fig} Average frame time for an n-bodies application running on Windows 7 while varying the memory pages and cores.}
-\end{figure}
-
 
 Forcing RTFs to be convex assumes that the actual response times are
 close to convex. We believe this to be a plausible requirement as applications usually follow the ``Law of Diminishing Returns'' for resource allocations, and in our implementation and evaluation, we found our convexity assumption to be reasonably true. In cases where the assumption was not completely valid \pacora was still able to produce near optimal allocations (See Chapter~\ref{init_eval}).  The reason that non-convex response time versus resource behavior did not result in bad resource allocations was that for the most part the non-convex behavior we measured was usually particular resource allocations producing much worse results than their surrounding allocations and these points were ignored as outliers in the model and rarely selected by the optimization.  For example, we have seen non-convex performance in applications when dealing with hyperthreads or memory pages.  For two of our applications, 5 hyperthreads resulted in significantly worse performance than either 4 or 6. Figure~\ref{dedup_outlier_fig} show this behavior with PARSEC's dedup benchmark.   When studying some other applications, we found that particular numbers of memory pages, (\emph{e.g.,} 2K), resulted in much better performance than the adjacent page allocations as shown in Figure~\ref{mem_page_fig}.  These outliers and additional challenges to response time modeling are discussed in Chapter~\ref{discuss} along with additional techniques that could be employed to handle them.
