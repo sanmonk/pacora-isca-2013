@@ -261,3 +261,29 @@ To address the scheduling and resource allocation challenges, we have been explo
 
 The scheduling framework decides the best resource allocation for a set of applications by performing an optimization of an objective function involving all of the models.  The objective function represents a system--level goal such as minimize total energy or maximize throughput.  %Appendix\~\ref{details} describes the different components of this scheduling framework in more detail.
 
+\pacora is a framework designed to determine the proper amount of each
+resource type to give each application.  The purpose of \pacora is to dynamically assign resources
+across multiple applications to guarantee responsiveness without
+over-provisioning and to adapt allocations as the application mix
+changes. For example, consider a video conference scenario where each participant requires a separate,
+performance-guaranteed video stream.  New participants may join the
+conference and others may leave, increasing or decreasing the number
+of streams running at any given time.  Simultaneously, participants
+may be collaborating through web browsers, or watching shared video
+clips and web searching, while their systems run compute-intensive
+background tasks such as updates, virus scans, or file indexing.
+Although it may be relatively straightforward to provide
+responsiveness guarantees for individual applications such as video
+streams, the real challenge is to do so without reserving excessive
+resources, which will compromise system utilization, power
+consumption, or responsiveness of other applications.
+
+
+
+We believe \pacora is applicable to many resource-allocation
+scenarios, from cloud providers determining how many resources to give
+each job to avoid violating Service-Level Agreements (SLAs), through databases allocating
+resources to queries, to distributed embedded systems allocating
+bandwidth among devices and sensors.  These potential applications of \pacora are discussed in greater detail in Chapter~\ref{discuss}. 
+
+
