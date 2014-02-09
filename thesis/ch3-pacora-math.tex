@@ -1,24 +1,17 @@
 \chapter{PACORA Framework}
 
-In this chapter, we describe the mathematical formulation of the \pacora framework, prove the convexity, and present our initial evaluations of the potential of using \pacora for resource allocation in an operating system.
+In this chapter, we describe the architecture of the PACORA framework.  We present the mathematical formulation and prove its convexity.  We also describe the two application specific-functions in detail and present experiments that helped guide the selection of the response-time function.
+
+
+%present our initial evaluations of the potential of using \pacora for resource allocation in an operating system.
 
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 \section{\pacora Architecture}\label{sys_design}
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 TODO: insert math diagram
 
-\pacora formulates resource allocation as an optimization problem
-built from two types of application-specific functions: a
-response-time function and a penalty function. The response-time
-function represents the performance of the application with different
-resources and is built with runtime measurements.  The penalty
-function represents the user-level goals for the application
-(\emph{i.e.,} the deadline and how important it is to meet). \pacora uses convex optimization~\cite{BoVa} to
-determine the ideal resource allocation across all active
-applications.  The following subsections briefly introduce the primary
-components of \pacora and the optimization formulation.
-
-\subsection{Applications}
+\pacora is a framework designed to determine the proper amount of each
+resource type to give each application. 
 
 For our purposes an application is an entity to which the system
 allocates resources: these can be a complete application (\emph{e.g.,}
@@ -27,107 +20,17 @@ synthesizer), a background OS process (\emph{e.g.,} indexing), a job
 in warehouse-scale computing, or a distributed application in a
 distributed embedded system.
 
-\subsection{Resources}
-
-In our client system, resources are anything that the system can ``partition'' in hardware or software.  Resources can be thought of as typically as one of three types: compute, communication, and capacity\footnote{\pacora does not treat any resource types differently so classification is not strictly necessary. It is only described here to demonstrate the range of resources that could be controlled by \pacora.}.
+Resources are anything that the system can ``partition'' in hardware or software.  Resources can be thought of as typically as one of three types: compute, communication, and capacity\footnote{\pacora does not treat any resource types differently so classification is not strictly necessary. It is only described here to demonstrate the range of resources that could be controlled by \pacora.}.
 In our operating system experiments, we use cores (compute), network bandwidth (communication), and cache ways and memory pages (capacity).
 Other operating scenarios would have resources that perform similar functions at a different scale. For warehouse-scale computing, resources are more
 likely to be different types of nodes, network bandwidth, and storage. For distributed embedded systems, resources would include compute devices, link bandwidths, and memories. 
 
-\subsection{Response-Time Functions}
-
-Response-time functions (RTF) represent the expected \emph{response
-  time} of an application as a function of the resources allocated to
-the application. The response time is an application-specific measure
-of the performance of the application.  For example, the response time
-of an application might be:
-    \begin{itemize}\itemsep0pt \parskip0pt \parsep5pt
-    \item The time from a mouse click to its result;
-    \item The time to produce a frame;
-    \item The time from a service request to its response;
-    \item The time from job launch to job completion;
-    \item The time to execute a specified amount of work.
-    \end{itemize}
-
-The RTFs are built to be convex functions.  All applications have a
-function of the same form, but the application-specific weights are set
-using the performance history of the application.  RTFs are designed
-to capture information such as how well an application scales with a
-particular resource. As a result, RTFs naturally support
-heterogeneity.  Each CPU or GPU type is simply viewed as a different
-resource type by the system, and thus the RTFs will represent how
-effectively an application uses a particular type of
-core. Figure~\ref{sample_rtf} shows two example RTFs we have created
-from applications we studied.
-
-\begin{figure*}[hb]
-\subfloat{
-\includegraphics*[bb=0 0 360 360,width=.48\columnwidth]{Figures/bfs-fig.pdf}
-\label{bfs-fig}
-}
-\subfloat{
-\includegraphics*[bb=0 0 360
-  360,width=.48\columnwidth]{Figures/streamcluster-fig.pdf}
-\label{streamcluster-fig}
-}  
-\caption{\label{sample_rtf} Response-Time Functions for a
-  breadth-first search algorithm and \texttt{streamcluster} from the PARSEC benchmark suite~\cite{parsec}. We show two resource dimensions: cores and cache ways.}
-\end{figure*}
-
-Equation~\ref{rtf_eq} below shows the RTF we selected for \pacora.  
-
-\begin{equation}\label{rtf_eq}
-\tau(w,a) = \tau_0 + \sum_{i\in n,j\in n}{\frac{w_{i,j}}{\sqrt{a_i * a_j}}}
-\end{equation}
-
-Here $\tau$ is the response time, $i$ and $j$ are
-resource types, $n$ is the total number of resource types,
-$a_{i}$ and $a_{j}$ are the allocations of resource types $i$
-and $j$, and $w_{i,j}$ is the application-specific weight for
-the term representing resources $i$ and $j$.
-
-In our experience the cross term weights (those with $i\neq j$) are almost always negligible and can be omitted if desired.
-This omission allows the dimensionality of the function, and thus the storage space required, to increase roughly linearly with the number of resource types.  The value of the cross terms is discussed further in Chapter~\ref{init_eval}.
-
-We chose this specific function because it is convex in the resources, and in initial application studies,
-we found it models response time behavior accurately enough to allow the optimization to make good decisions. Section~\ref{RTFs} describes the design considerations for the RTFs in more detail. Chapter~\ref{init_eval} shows these evaluation results and discusses alternative models that were considered and evaluated during the design process.
-
-\subsection{Penalty Functions}
-
-Penalty functions embody user-level goals of
-the application. Although similar to priorities, they are functions of
-the response time rather than simply values, so they can explicitly
-represent deadlines.  Knowing the deadlines lets the system make
-optimizations that are difficult in today's systems, such as running
-just fast enough to make the deadline. Like priorities, the penalty
-functions are set by the system on behalf of the user.
-
-
-\begin{figure}[hb]
-\parbox{3in}{
-\includegraphics*[width=.45\columnwidth]{Figures/Penalty1.eps}
-\caption{\label{f:pen1}A penalty function with a response time constraint.}
-}
-\hspace{\fill}
-\parbox{3in}{
-\includegraphics*[width=.45\columnwidth]{Figures/Penalty2.eps}
-\caption{\label{f:pen2}A penalty function with no response time constraint.}
-}
-\end{figure}
-
-\pacora's penalty functions $\pi$ are non-decreasing piecewise-linear
-functions of the response time $\tau$ of the form $\pi(\tau) = \max(0, (\tau - d)s)$
-where $d$ represents the deadline of the application and $s$ (slope)
-defines the rate the penalty increases as response time increases. For
-applications without response-time constraints the deadline can be set
-to $0$. Two representative graphs of this type appear in
-Figures~\ref{f:pen1} and~\ref{f:pen2}.
-
 \subsection{Resource Allocation as Optimization}
 
 \pacora formulates resource allocation as an optimization problem
-designed to minimize the total penalty of the system. This approach is
-analogous to minimizing user dissatisfaction with the user experience
+designed determine the ideal resource allocation across all active
+application by trying to minimize the total penalty of the system. This approach is
+analogous to minimizing dissatisfaction with the user experience
 due to missed deadlines in a client system and minimizing the contract
 penalties paid for violated SLAs in a cloud
 system.
@@ -141,6 +44,13 @@ resources allocated to an application contribute to the response time,
 it would difficult to provide predictable response times for
 applications without over-provisioning by independently allocating each resource type.
 
+\pacora employs two types of application-specific functions in its optimization: a
+response-time function (RTF) and a penalty function. The response-time
+function represents the performance of the application with different
+resources and is built with runtime measurements.  The penalty
+function represents the user-level goals for the application
+(\emph{i.e.,} the deadline and how important it is to meet) is set by the system, developer, or administrator.
+
 A succinct mathematical characterization of this resource allocation scheme is the following:
 \begin{eqnarray}
 & \makebox[1in][r]{Minimize}   & \sum_{p\in P} {\pi_p(\tau_p(a_{p,1}\ldots a_{p,n}))}  \\
@@ -152,38 +62,14 @@ $\tau_p$ is its response time function,
 $a_{p,r}$ is the allocation of resource $r$ to application $p$,
 and $A_r$ is the total amount of resource $r$ available. 
 
-\subsection{Managing Power and Energy}
-In \pacora, we create an artificial application to represent the
-interest in reducing the power and energy of the system.  Application 0 is
-designated the idle application and receives allocations of all
-resources that are left idle, \emph{i.e.,} not allocated to other
-applications.  If the system has the appropriate power management mechanisms, these idle resources can be powered off or put to sleep to save power.
+\pacora is designed to be convex by construction to take advantage of efficient convex optimization methods for solving the optimization problem~\cite{BoVa}.
 
-Additionally, application 0 functions as \emph{slack} variables in our optimization problem turning the resource bounds into equalities:
-\begin{equation}
-\sum_{p\in P} a_{p,r} - A_r = 0, r = 1,\dots n.
-\end{equation}
 
-The ``response time'' for application 0, $\tau_0$, is artificially
-defined to be the total system power consumption.  Application 0's RTF represents how the system power improves when particular resources are left idle (\emph{i.e.,} allocated to application 0), which is similar to other RTFs since they represent how the response time of an application improves when allocated particular resource types. This response function is affine and monotone non-increasing in its arguments $a_{0,r}$.
-
-The penalty function $\pi_0$ establishes a system tradeoff between
-power and performance that will determine which resources are
-allocated to applications to improve performance and which are left
-idle.  The penalty function $\pi_0$ can be used to keep total system
-power below the parameter $d_0$ to the extent the penalties of other
-applications cannot overcome its penalty slope $s_0$. Both $s_0$ and
-$d_0$ can be adjusted to reflect the current battery charge in mobile
-devices. For example, as the battery depletes, $d_0$ could be decreased or $s_0$ increased
-to force other applications to slow or cease execution.
 
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 \subsection{Assumptions}
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-In Section~\ref{sys_design}, we have presented the mathematical framework behind \pacora.  In this Section, we further define terms such as application and resource and describe the assumptions that \pacora makes about the system design in order to explain how the framework would perform resource allocation in a real system.
-
-
-
+In Section~\ref{sys_design}, we have presented the mathematical framework behind \pacora.  However, in order to deploy \pacora in a real system, we also need to assume several things about the design of the system.  Here we describe these assumptions in detail.
 
 \subsubsection{Hierarchical Scheduling}
 
@@ -195,12 +81,11 @@ for everything.  The resource allocation system is then able to focus on the
 problem of \emph{how much} of each resource type to assign to each
 application.  
 
-In client machines, \pacora is used to make coarse-grain
+In client machines, \pacora makes coarse-grain
 resource-allocation decisions (\emph{e.g.,} cores and memory pages) at
-the OS level, while the micro-management of these resources to run
-application tasks is left to user-level runtimes such as Intel
+the OS level, while the micro-management of these resources is left to user-level runtimes such as Intel
 Threaded Building Blocks~\cite{CoMa08} or Lithe~\cite{lithe}, and to
-user-level memory managers.
+user-level memory managers.  However, a user-level runtime is not strictly necessary: in Linux, for example, we have used \pacora to set thread affinity or size resource containers.
 
 If the machine is operating in a cloud computing environment, \pacora could be used in a hypervisor to allocate
 resources among guest OSes. For warehouse-scale computers, \pacora could be used to allocate
@@ -210,12 +95,12 @@ or the node OS.
 
 \pacora could be used in a system designed to consolidate realtime systems.  Resources can be allocated to various realtime user-level schedulers such as Earliest-Deadline-First or Rate-Monotonic schedulers, and \pacora will guarantee quality-of-service to the schedulers, eliminating the need in the case of many applications for a realtime OS designed around a single real-time scheduler.
 
-
-
 \subsubsection{Allocation Enforcement}
 
-As more QoS mechanisms become available on future systems, other resources could be easily added to \pacora. For \pacora to be able to use the resource, the system must be able to allocate the resource (\emph{e.g.,} a core) or a fraction of it (\emph{e.g.,} a percentage of network bandwidth) to an application and enforce this allocation.  Enforcement can be in hardware or software.  For example, cache partitioning could be implemented in hardware easily by changing the replacement algorithm to limit what ways an application can write in to (as is done in our sandy bride prototype used in the experiments in Section~\ref{init_eval}) or the operating system could use page coloring emulate cache partitioning. 
+\pacora relies on resource allocation mechanisms to assign resources and enforce allocations. For \pacora to be able to use a resource, the system must be able to allocate the resource (\emph{e.g.,} a core) or a fraction of it (\emph{e.g.,} a percentage of network bandwidth) to an application and enforce this allocation.  Enforcement can be in hardware or software.  For example, cache partitioning could be implemented in hardware easily by changing the replacement algorithm to limit what ways an application can write in to (as is done in our sandy bride prototype used in the experiments in Section~\ref{init_eval}) or the operating system could use page coloring emulate cache partitioning. 
 
+We have found that these mechanisms are readily available in most systems for some resources (\emph{e.g.,} cores and memory pages}) and can other can easily be managed in with software (\emph{e.g.,} network bandwidth).   During the course of this work we have also seen a QoS mechanisms being added to commercial systems (\emph{e.g.,} cache partitioning).
+As more QoS mechanisms become available on future systems, other resources could be easily added to \pacora.
 
 \subsubsection{Performance Isolation and Shared Resources}
 
@@ -287,6 +172,42 @@ applications running, but the problem size scales linearly and the
 potential benefits of a good allocation should scale rapidly with the
 size of the system.
 
+
+
+%------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+\section{Penalty Functions}\label{PFs}
+%------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+Penalty functions embody user-level goals of
+the application. Although similar to priorities, they are functions of
+the response time rather than simply values, so they can explicitly
+represent deadlines.  Knowing the deadlines lets the system make
+optimizations that are difficult in today's systems, such as running
+just fast enough to make the deadline. Like priorities, the penalty
+functions are set by the system on behalf of the user.
+
+
+\begin{figure}[hb]
+\parbox{3in}{
+\includegraphics*[width=.45\columnwidth]{Figures/Penalty1.eps}
+\caption{\label{f:pen1}A penalty function with a response time constraint.}
+}
+\hspace{\fill}
+\parbox{3in}{
+\includegraphics*[width=.45\columnwidth]{Figures/Penalty2.eps}
+\caption{\label{f:pen2}A penalty function with no response time constraint.}
+}
+\end{figure}
+
+\pacora's penalty functions $\pi$ are non-decreasing piecewise-linear
+functions of the response time $\tau$ of the form $\pi(\tau) = \max(0, (\tau - d)s)$
+where $d$ represents the deadline of the application and $s$ (slope)
+defines the rate the penalty increases as response time increases. For
+applications without response-time constraints the deadline can be set
+to $0$. Two representative graphs of this type appear in
+Figures~\ref{f:pen1} and~\ref{f:pen2}.
+
 \subsection{Penalty Function Convexity}
 In this section, we discuss the convexity of \pacora's penalty functions.
 A few facts about convex functions will be useful in what follows.
@@ -301,11 +222,67 @@ its composition with a convex response time function will also be convex.
 
 
 
-
-
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 \section{RTF Design}\label{RTFs}
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+\subsection{Response-Time Functions}
+
+Response-time functions (RTF) represent the expected \emph{response
+  time} of an application as a function of the resources allocated to
+the application. The response time is an application-specific measure
+of the performance of the application.  For example, the response time
+of an application might be:
+    \begin{itemize}\itemsep0pt \parskip0pt \parsep5pt
+    \item The time from a mouse click to its result;
+    \item The time to produce a frame;
+    \item The time from a service request to its response;
+    \item The time from job launch to job completion;
+    \item The time to execute a specified amount of work.
+    \end{itemize}
+
+The RTFs are built to be convex functions.  All applications have a
+function of the same form, but the application-specific weights are set
+using the performance history of the application.  RTFs are designed
+to capture information such as how well an application scales with a
+particular resource. As a result, RTFs naturally support
+heterogeneity.  Each CPU or GPU type is simply viewed as a different
+resource type by the system, and thus the RTFs will represent how
+effectively an application uses a particular type of
+core. Figure~\ref{sample_rtf} shows two example RTFs we have created
+from applications we studied.
+
+\begin{figure*}[hb]
+\subfloat{
+\includegraphics*[bb=0 0 360 360,width=.48\columnwidth]{Figures/bfs-fig.pdf}
+\label{bfs-fig}
+}
+\subfloat{
+\includegraphics*[bb=0 0 360
+  360,width=.48\columnwidth]{Figures/streamcluster-fig.pdf}
+\label{streamcluster-fig}
+}  
+\caption{\label{sample_rtf} Response-Time Functions for a
+  breadth-first search algorithm and \texttt{streamcluster} from the PARSEC benchmark suite~\cite{parsec}. We show two resource dimensions: cores and cache ways.}
+\end{figure*}
+
+Equation~\ref{rtf_eq} below shows the RTF we selected for \pacora.  
+
+\begin{equation}\label{rtf_eq}
+\tau(w,a) = \tau_0 + \sum_{i\in n,j\in n}{\frac{w_{i,j}}{\sqrt{a_i * a_j}}}
+\end{equation}
+
+Here $\tau$ is the response time, $i$ and $j$ are
+resource types, $n$ is the total number of resource types,
+$a_{i}$ and $a_{j}$ are the allocations of resource types $i$
+and $j$, and $w_{i,j}$ is the application-specific weight for
+the term representing resources $i$ and $j$.
+
+In our experience the cross term weights (those with $i\neq j$) are almost always negligible and can be omitted if desired.
+This omission allows the dimensionality of the function, and thus the storage space required, to increase roughly linearly with the number of resource types.  The value of the cross terms is discussed further in Chapter~\ref{init_eval}.
+
+We chose this specific function because it is convex in the resources, and in initial application studies,
+we found it models response time behavior accurately enough to allow the optimization to make good decisions. Section~\ref{RTFs} describes the design considerations for the RTFs in more detail. Chapter~\ref{init_eval} shows these evaluation results and discusses alternative models that were considered and evaluated during the design process.
 
 
 In this section, we discuss the design considerations and requirements for \pacora's RTF and describe the chosen design in more detail. Chapter~\ref{init_eval} evaluates the performance of the chosen RTF along with several other RTF options that were originally considered. Chapter~\ref{discuss} discusses alternative and enhanced RTF models.
@@ -432,6 +409,33 @@ In these applications, the response time is really the \emph{minimum} of several
 \end{figure}
 
 There are several ways to avoid this problem.  One is based on the observation that such response time functions will at least be \emph{quasiconvex}.  Another idea is to use additional constraints to explore convex sub-domains of $\tau$. Either approach adds significant computational cost, and we found that our simple convex models still resulted in high-quality resource allocations. Thus we chose not to implement any of these approaches.  
+
+%------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+\section{Managing Power and Energy}\label{app0}
+%------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+In \pacora, we create an artificial application to represent the
+interest in reducing the power and energy of the system.  Application 0 is
+designated the idle application and receives allocations of all
+resources that are left idle, \emph{i.e.,} not allocated to other
+applications.  If the system has the appropriate power management mechanisms, these idle resources can be powered off or put to sleep to save power.
+
+Additionally, application 0 functions as \emph{slack} variables in our optimization problem turning the resource bounds into equalities:
+\begin{equation}
+\sum_{p\in P} a_{p,r} - A_r = 0, r = 1,\dots n.
+\end{equation}
+
+The ``response time'' for application 0, $\tau_0$, is artificially
+defined to be the total system power consumption.  Application 0's RTF represents how the system power improves when particular resources are left idle (\emph{i.e.,} allocated to application 0), which is similar to other RTFs since they represent how the response time of an application improves when allocated particular resource types. This response function is affine and monotone non-increasing in its arguments $a_{0,r}$.
+
+The penalty function $\pi_0$ establishes a system tradeoff between
+power and performance that will determine which resources are
+allocated to applications to improve performance and which are left
+idle.  The penalty function $\pi_0$ can be used to keep total system
+power below the parameter $d_0$ to the extent the penalties of other
+applications cannot overcome its penalty slope $s_0$. Both $s_0$ and
+$d_0$ can be adjusted to reflect the current battery charge in mobile
+devices. For example, as the battery depletes, $d_0$ could be decreased or $s_0$ increased
+to force other applications to slow or cease execution.
 
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 \section{Discussion}\label{math-discuss}
