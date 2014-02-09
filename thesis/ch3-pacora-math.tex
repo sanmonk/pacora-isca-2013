@@ -45,7 +45,7 @@ it would difficult to provide predictable response times for
 applications without over-provisioning by independently allocating each resource type.
 
 \pacora employs two types of application-specific functions in its optimization: a
-response-time function and a penalty function. The response-time
+response-time function (RTF) and a penalty function. The response-time
 function represents the performance of the application with different
 resources and is built with runtime measurements.  The penalty
 function represents the user-level goals for the application
@@ -69,10 +69,7 @@ and $A_r$ is the total amount of resource $r$ available.
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 \subsection{Assumptions}
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-In Section~\ref{sys_design}, we have presented the mathematical framework behind \pacora.  In this Section, we further define terms such as application and resource and describe the assumptions that \pacora makes about the system design in order to explain how the framework would perform resource allocation in a real system.
-
-
-
+In Section~\ref{sys_design}, we have presented the mathematical framework behind \pacora.  However, in order to deploy \pacora in a real system, we also need to assume several things about the design of the system.  Here we describe these assumptions in detail.
 
 \subsubsection{Hierarchical Scheduling}
 
@@ -84,12 +81,11 @@ for everything.  The resource allocation system is then able to focus on the
 problem of \emph{how much} of each resource type to assign to each
 application.  
 
-In client machines, \pacora is used to make coarse-grain
+In client machines, \pacora makes coarse-grain
 resource-allocation decisions (\emph{e.g.,} cores and memory pages) at
-the OS level, while the micro-management of these resources to run
-application tasks is left to user-level runtimes such as Intel
+the OS level, while the micro-management of these resources is left to user-level runtimes such as Intel
 Threaded Building Blocks~\cite{CoMa08} or Lithe~\cite{lithe}, and to
-user-level memory managers.
+user-level memory managers.  However, a user-level runtime is not strictly necessary: in Linux, for example, we have used \pacora to set thread affinity or size resource containers.
 
 If the machine is operating in a cloud computing environment, \pacora could be used in a hypervisor to allocate
 resources among guest OSes. For warehouse-scale computers, \pacora could be used to allocate
@@ -99,12 +95,12 @@ or the node OS.
 
 \pacora could be used in a system designed to consolidate realtime systems.  Resources can be allocated to various realtime user-level schedulers such as Earliest-Deadline-First or Rate-Monotonic schedulers, and \pacora will guarantee quality-of-service to the schedulers, eliminating the need in the case of many applications for a realtime OS designed around a single real-time scheduler.
 
-
-
 \subsubsection{Allocation Enforcement}
 
-As more QoS mechanisms become available on future systems, other resources could be easily added to \pacora. For \pacora to be able to use the resource, the system must be able to allocate the resource (\emph{e.g.,} a core) or a fraction of it (\emph{e.g.,} a percentage of network bandwidth) to an application and enforce this allocation.  Enforcement can be in hardware or software.  For example, cache partitioning could be implemented in hardware easily by changing the replacement algorithm to limit what ways an application can write in to (as is done in our sandy bride prototype used in the experiments in Section~\ref{init_eval}) or the operating system could use page coloring emulate cache partitioning. 
+\pacora relies on resource allocation mechanisms to assign resources and enforce allocations. For \pacora to be able to use a resource, the system must be able to allocate the resource (\emph{e.g.,} a core) or a fraction of it (\emph{e.g.,} a percentage of network bandwidth) to an application and enforce this allocation.  Enforcement can be in hardware or software.  For example, cache partitioning could be implemented in hardware easily by changing the replacement algorithm to limit what ways an application can write in to (as is done in our sandy bride prototype used in the experiments in Section~\ref{init_eval}) or the operating system could use page coloring emulate cache partitioning. 
 
+We have found that these mechanisms are readily available in most systems for some resources (\emph{e.g.,} cores and memory pages}) and can other can easily be managed in with software (\emph{e.g.,} network bandwidth).   During the course of this work we have also seen a QoS mechanisms being added to commercial systems (\emph{e.g.,} cache partitioning).
+As more QoS mechanisms become available on future systems, other resources could be easily added to \pacora.
 
 \subsubsection{Performance Isolation and Shared Resources}
 
