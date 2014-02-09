@@ -13,7 +13,7 @@ open: all
 $(PAPER).pdf: $(TEX) $(BIB) $(FIGS) ucbthesis.cls
 	echo $(FIGS)
 	pdflatex $(PAPER)
-	bibtex $(PAPER)
+	bibtex8 --wolfgang $(PAPER)
 	pdflatex $(PAPER)
 	pdflatex $(PAPER)
 
