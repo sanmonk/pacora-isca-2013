@@ -184,24 +184,23 @@ size of the system.
 \section{Penalty Functions}\label{PFs}
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-
 Penalty functions embody user-level goals of
-the application. Although similar to priorities, they are functions of
-the response time rather than simply values, so they can explicitly
-represent deadlines.  Knowing the deadlines lets the system make
+the application. Although similar to priorities, they are \emph{functions} of
+the response time rather than simply \emph{scalar values}, so they can explicitly
+represent deadlines.  Knowing the deadlines lets \pacora make
 optimizations that are difficult in today's systems, such as running
 just fast enough to make the deadline. Like priorities, the penalty
-functions are set by the system on behalf of the user.
+functions are typically set by the system on behalf of the user.  However, one could imagine in future systems potentially learning them through user interactions.
 
 
 \begin{figure}[hb]
 \parbox{3in}{
-\includegraphics*[width=.45\columnwidth]{Figures/Penalty1.eps}
+\includegraphics*[width=.45\columnwidth]{Figures/pf-ex1.pdf}
 \caption{\label{f:pen1}A penalty function with a response time constraint.}
 }
 \hspace{\fill}
 \parbox{3in}{
-\includegraphics*[width=.45\columnwidth]{Figures/Penalty2.eps}
+\includegraphics*[width=.45\columnwidth]{Figures/pf-ex2.pdf}
 \caption{\label{f:pen2}A penalty function with no response time constraint.}
 }
 \end{figure}
@@ -222,7 +221,7 @@ Maximization of a concave function is equivalent to minimization of its convex n
 An affine function, one whose graph is a straight line in two dimensions or a hyperplane in n dimensions,
 is both convex and concave.  A non-negative weighted sum or point-wise maximum (minimum) of convex (concave) functions is convex (concave), as is either kind of function composed with an affine function.  The composition of a convex non-decreasing (concave non-increasing) scalar function with a convex function remains convex (concave).
 
-Each penalty function $\pi$ is the pointwise maximum of two affine functions and is therefore convex.
+Each penalty function $\pi$ is the point-wise maximum of two affine functions and is therefore convex.
 Moreover, since each penalty function is scalar and nondecreasing,
 its composition with a convex response time function will also be convex.
 
