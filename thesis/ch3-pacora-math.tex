@@ -1,5 +1,11 @@
 \chapter{PACORA Framework}
 
+\begin{figure*}[p]
+\center
+\includegraphics*[width=1.2\columnwidth, angle=90]{Figures/pacora_framework_overview.pdf}
+\caption{\label{pacora_arch_fig} Visual representation of \pacora's optimization formulation.  The runtime functions represented are the speech recognition, stencil kernel, and graph traversal applications from the evaluation Chapter~\ref{init_eval}.}
+\end{figure*}
+
 In this chapter, we describe the architecture of the PACORA framework.  We present the mathematical formulation and prove its convexity.  We also describe the two application specific-functions in detail and present experiments that helped guide the selection of the response-time function.
 
 
@@ -8,7 +14,7 @@ In this chapter, we describe the architecture of the PACORA framework.  We prese
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 \section{\pacora Architecture}\label{sys_design}
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-TODO: insert math diagram
+
 
 \pacora is a framework designed to determine the proper amount of each
 resource type to give each application. 
@@ -33,7 +39,7 @@ application by trying to minimize the total penalty of the system. This approach
 analogous to minimizing dissatisfaction with the user experience
 due to missed deadlines in a client system and minimizing the contract
 penalties paid for violated SLAs in a cloud
-system.
+system.   Figure~\ref{pacora_arch_fig} presents the formulation visually.
 
 The optimization selects the allocations for all resources and
 resource types at once.  This approach enables the system to make
@@ -99,7 +105,7 @@ or the node OS.
 
 \pacora relies on resource allocation mechanisms to assign resources and enforce allocations. For \pacora to be able to use a resource, the system must be able to allocate the resource (\emph{e.g.,} a core) or a fraction of it (\emph{e.g.,} a percentage of network bandwidth) to an application and enforce this allocation.  Enforcement can be in hardware or software.  For example, cache partitioning could be implemented in hardware easily by changing the replacement algorithm to limit what ways an application can write in to (as is done in our sandy bride prototype used in the experiments in Section~\ref{init_eval}) or the operating system could use page coloring emulate cache partitioning. 
 
-We have found that these mechanisms are readily available in most systems for some resources (\emph{e.g.,} cores and memory pages}) and can other can easily be managed in with software (\emph{e.g.,} network bandwidth).   During the course of this work we have also seen a QoS mechanisms being added to commercial systems (\emph{e.g.,} cache partitioning).
+We have found that these mechanisms are readily available in most systems for some resources (\emph{e.g.,} cores and memory pages) and can other can easily be managed in with software (\emph{e.g.,} network bandwidth).   During the course of this work we have also seen a QoS mechanisms being added to commercial systems (\emph{e.g.,} cache partitioning).
 As more QoS mechanisms become available on future systems, other resources could be easily added to \pacora.
 
 \subsubsection{Performance Isolation and Shared Resources}
@@ -122,7 +128,7 @@ If the penalty functions, response time functions, and resource
 constraints were arbitrary, little could be done to optimize the total
 penalty beyond searching at random for the best allocation.  However, we designed \pacora to be convex by construction, which enables us to use convex optimization~\cite{BoVa} methods to solve the optimization. 
 By framing our resource allocation problem as a convex optimization problem, we get two significant benefits: for each problem an optimal
-solution exists without multiple local extrema, and fast optimization methods with practical incremental solutions become feasible.  In this section, we prove the convexity of \pacora's optimization formulation and the penalty and RTF functions. \pacora also formulates RTF \emph{creation} as a convex optimization
+solution exists without multiple local extrema, and fast optimization methods with practical incremental solutions become feasible.  In this section, we prove the convexity of \pacora's optimization formulation.  The penalty and RTF function convexity are discussed in Sections \ref{PF_convexity} and \ref{RTF_convexity} respectively.  \pacora also formulates RTF \emph{creation} as a convex optimization
 problem, as explained in Section~\ref{rtf_creation}.
 
 \subsection{Resource Allocation Optimization Convexity}
@@ -208,7 +214,7 @@ applications without response-time constraints the deadline can be set
 to $0$. Two representative graphs of this type appear in
 Figures~\ref{f:pen1} and~\ref{f:pen2}.
 
-\subsection{Penalty Function Convexity}
+\subsection{Penalty Function Convexity}\label{PF_convexity}
 In this section, we discuss the convexity of \pacora's penalty functions.
 A few facts about convex functions will be useful in what follows.
 First, a \emph{concave} function is one whose negative is convex.
@@ -346,7 +352,7 @@ It is obviously important to guarantee the positivity of the resource allocation
 Our chosen model design satisfies the design requirements listed above.  The model is low cost to produce: we can use convex optimization to produce it, which is described in Chapter~\ref{tess_design_ch}. The models (without the interaction terms) scale linearly with the number of resource dimensions and only require a small number of history values to produce a good model so they are lightweight to store.  They can capture information about all of the resource types and are tolerant of noise (See Chapters~\ref{init_eval} and \ref{discuss} for variability results and discussion) . Such models are automatically convex in the allocations because $1/a$ is convex for positive $a$ and because a positively-weighted sum of convex functions is convex.  Lastly,
 the gradient $\nabla\tau$, which is needed by the penalty optimization algorithm, is simple to compute since $\tau$ is analytic, generic, and symbolically differentiable.
 
-\subsection{Response Time Convexity}
+\subsection{Response Time Convexity}\label{RTF_convexity}
 We now show that response time functions $\tau$ are convex
 in the resources $a_i$ given any of the possibilities we have considered.
 %Since norms preserve convexity, this reduces the question to proving each term in the norm is convex.
