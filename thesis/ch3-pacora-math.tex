@@ -418,6 +418,18 @@ There are several ways to avoid this problem.  One is based on the observation t
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 \section{Managing Power and Energy}\label{app0}
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+\begin{figure}[h]
+\parbox{3in}{
+\includegraphics*[width=.45\columnwidth]{Figures/power-rf.pdf}
+\caption{\label{power-rd-fig}Example application 0 RTF.}
+}
+\hspace{\fill}
+\parbox{3in}{
+\includegraphics*[width=.45\columnwidth]{Figures/non-convex-pf-ex}
+\caption{\label{power-pf-fig}Example application 0 penalty function using the deadline as a power cap.}
+}
+\end{figure}
 The optimization in Equations~\ref{op_eq1}-\ref{op_eq3} does not include any cost for allocating resources, and thus all the resulting allocations would divide \emph{all} the resources among the applications.  While that may have been reasonable in former computing paradigms (\emph{e.g.,} desktop computers), in current systems it is essential to operate efficiently in order to extend battery life or reduce power consumption.  As a result for \pacora to be practical in today's system, it is also necessary to consider the power required to run the resource in the allocation decision.
 
 To represent the cost of operating a resource, we create an artificial application called \emph{application 0}.  Application 0 is
@@ -431,7 +443,7 @@ Additionally, application 0 functions as \emph{slack} variables in our optimizat
 \end{equation}
 
 The ``response time'' for application 0, $\tau_0$, is artificially
-defined to be the total system power consumption.  Application 0's RTF represents how the system power improves when particular resources are left idle (\emph{i.e.,} allocated to application 0), which is similar to other RTFs since they represent how the response time of an application improves when allocated particular resource types. This response function is affine and monotone non-increasing in its arguments $a_{0,r}$.
+defined to be the total system power consumption.  Application 0's RTF represents how the system power improves when particular resources are left idle (\emph{i.e.,} allocated to application 0), which is similar to other RTFs since they represent how the response time of an application improves when allocated particular resource types.  Figure~\ref{power-rd-fig} shows an example RTF.  
 
 The penalty function $\pi_0$ establishes a system tradeoff between
 power and performance that will determine which resources are
@@ -443,7 +455,9 @@ $d_0$ can be adjusted to reflect the current battery charge in mobile
 devices. For example, as the battery depletes, $d_0$ could be decreased or $s_0$ increased
 to force other applications to slow or cease execution.
 
-We chose to use the application 0 abstraction to represent power and energy over the more traditional approach of directly adding an allocation cost to the optimization because we found it to be more expressive of real life scenarios.  Using the RTF machinery, we are able to represent the power of the resources running as a function rather than simply a value, which enables us to express things like the fact that using more of a resource increases the power consumption per resource, thanks to thermal interactions. The penalty functions deadline allows us to represent scenarios like "I need my battery to last until I plug it in when I get home tonight."  In this case, the power needs to be capped so that the battery does not drain too fast, but there is little advantage to saving more power below the cap.  With \pacora's deadline and slope arguments, this scenario can easily be captured: as long as the power consumption is less than the deadline than there is no penalty to the system, but greater than the deadline the slope is quite steep.
+The power response function is affine and monotone non-increasing in its arguments $a_{0,r}$, which satisfies our convexity requirements for RTFs, thus making it safe for us perform this application 0 trick in our optimization.  Additionally, creating slack variables turns the resources constraint inequalities into equalities, which makes the optimization easier to solve.
+
+We chose to use the application 0 abstraction to represent power and energy over the more traditional approach of directly adding an allocation cost to the optimization because we found it to be more expressive of real life scenarios.  Using the RTF machinery, we are able to represent the power of the resources running as a function rather than simply a value, which enables us to express things like the fact that using more of a resource increases the power consumption per resource, thanks to thermal interactions. The penalty functions deadline allows us to represent scenarios like "I need my battery to last until I plug it in when I get home tonight."  In this case, the power needs to be capped so that the battery does not drain too fast, but there is little advantage to saving more power below the cap.  As shown in Figure~\ref{power-pf-fig}, with \pacora's deadline and slope arguments this scenario can easily be captured; as long as the power consumption is less than the deadline than there is no penalty to the system, but greater than the deadline the slope is quite steep.
 
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 \section{Discussion}\label{math-discuss}
