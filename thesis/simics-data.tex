@@ -1,0 +1,110 @@
+
+We use cycles of execution time as a predicted output representative of application performance.  To help correlate application performance with resource utilization and not just resource allocation we also collect data from several performance counters that are usually strongly correlated with performance. These utilization metrics include L2 cache misses, L2 cache requests, and instructions retired. Any metric of interest that is measurable at runtime can be a potential output candidate. All of these models can be referenced by the spatial resource scheduling algorithm.
+
+
+A final model we create predicts the energy consumed by a resource allocation, which is useful  for energy-aware scheduling decisions. We calculate the energy used by each allocation by creating a simple energy model which incorporates energy levels for allocated versus unallocated resources and uses performance counter data as a proxy for resource activity.  Such an energy model is clearly somewhat simplistic --- we include it to show that our scheduling framework can feasibly make decisions based on per allocation energy if that data is a given input.  We use a simplified version of some of the activity based energy models in previous work \cite{}.
+
+\begin{table}
+\scriptsize
+\begin{tabular}{|l|c|c|c|}
+\hline
+Name & Additive & Quadratic & GPRS \\ \hline
+  p--c--b-- & 392.11\% (398.89) &  240.12\% (261.72) & 7.42\% (16.80)  \\ \hline
+ p--c--b+ &  138133\% (290142)&  105682\% (248332) &  253.46\% (418.27)  \\ \hline
+ p--c+b-- &   37225\% (65356) &  25797\% (47989) & 84.31\% (74.62)  \\ \hline
+ p--c+b+ &   45276\% (82816) &  21819\% (30963) &  87.84\% (209.33)  \\ \hline
+ p+c--b-- & 236.30\% (261.31) &  121.44\% (124.23) & 15.27\% (14.80)    \\ \hline
+ p+c--b+ &   101696\% (169812)  &  73241\% (117426) & 25.42\% (31.95) \\ \hline
+ p+c+b--&  16920\% (22871)&   12517\% (19362) & 7.47\% (8.25)  \\ \hline
+ p+c+b+&   9480\% (11542) &  6647\% (9164) &  22.12\% (26.14)  \\ \hline
+  \end{tabular}
+ \caption{Means (standard deviations) of percentage error in offchip accesses for each of the predictive models for each of the microbenchmarks.}
+\label{table:acc-offchip}
+\end{table}
+
+\begin{table}
+\small
+\begin{tabular}{|l|c|c|c|}
+\hline
+Name & Additive & Quadratic & GPRS \\ \hline
+ p--c--b-- & 0.03\% (0.04) & 0.03\% (0.05) & 0.28\% (0.36) \\ \hline
+ p--c--b+ & 241.91\% (262.05)  & 218.93\% (382.43) &  0.1\% (0.07) \\ \hline
+ p--c+b-- & 8.49\% (5.49) & 6.17\% (6.50) & 0.41\% (1.13) \\ \hline
+ p--c+b+ & 8.01\% (5.2)  & 5.79\% (6.11) & 0.07\% (0.06) \\ \hline
+ p+c--b-- & 7.28\% (10.50)  & 0.05\% (0.04) & 0.27\%(0.19) \\ \hline
+ p+c--b+ & 233.26\% (250.1) & 153.10\% (234.34) &  4.89\% (12.97)\\ \hline
+ p+c+b-- & 20.23\% (24.18)  & 5.10\% (4.26) &  0.30\% (0.28) \\ \hline
+ p+c+b+ & 13.30\% (10.23)  & 5.25\% (4.77)  & 0.05\% (0.03) \\ \hline
+  \end{tabular}
+ \caption{Means (standard deviations) of percentage error in cache transaction counts for each of the predictive models for each of the microbenchmarks.}
+\label{table:acc-cache}
+\end{table}
+
+%\begin{table}
+%\small
+%\begin{tabular}{|l|c|c|c|}
+%\hline
+%Name & Cycles &Offchip Accesses &Cache Accesses \\ \hline
+% p--c--b-- & 0.06\% (0.04) &  392.11\% (398.89) & 0.03\% (0.04) \\ \hline
+% p--c--b+ &   234.07\% (287.44) & 138133\% (290142) & 241.91\% (262.05)  \\ \hline
+% p--c+b-- &  12.67\% (5.30) & 37225\% (65356) & 8.49\% (5.49)  \\ \hline
+% p--c+b+ &  12.04\% (5.09) &  45276\% (82816) & 8.01\% (5.2)  \\ \hline
+% p+c--b-- &  0.07\% (0.05) &  236.30\% (261.31) & 7.28\% (10.50)  \\ \hline
+% p+c--b+ &  271.05\% (377.53) & 101696\% (169812) & 233.26\% (250.1)  \\ \hline
+% p+c+b--&  13.08\% (6.91) & 16920\% (22871) & 20.23\% (24.18)  \\ \hline
+% p+c+b+&  12.07\% (4.86) &  9480\% (11542) & 13.30\% (10.23)  \\ \hline \hline
+% cluster &  1 (1) & 1 (1)  & 1 (1)  \\ \hline
+% gaussian&  1 (1) & 1 (1) & 1 (1)  \\ \hline
+% update&  1 (1) & 1 (1)  & 1 (1)  \\ \hline
+% pruning&  1 (1) & 1 (1)  & 1 (1)  \\ \hline
+% epsilon &  1 (1) & 1 (1)  & 1 (1)  \\ \hline
+% \end{tabular}
+% \caption{Means (standard deviations) of percentage error for each of the performance measures for each of the benchmarks, as predicted by the linear response surface model.}
+%\label{table:acc-lin}
+%\end{table}
+%
+%\begin{table}
+%\small
+%\begin{tabular}{|l|c|c|c|}
+%\hline
+%Name & Cycles &Offchip Accesses &Cache Accesses \\ \hline
+% p--c--b-- & 0.04\% (0.04) &  240.12\% (261.72) & 0.03\% (0.05) \\ \hline
+% p--c--b+ &  139.21\% (167.10) &  105682\% (248332) & 218.93\% (382.43)  \\ \hline
+% p--c+b-- &  8.26\% (5.30) &  25797\% (47989) & 6.17\% (6.50)  \\ \hline
+% p--c+b+ &  7.83\% (4.69) &  21819\% (30963) & 5.79\% (6.11)  \\ \hline
+% p+c--b-- &  0.05\% (0.06) &  121.44\% (124.23) & 0.05\% (0.04)  \\ \hline
+% p+c--b+ &  164.23\% (226.23) &  73241\% (117426) & 153.10\% (234.34)  \\ \hline
+% p+c+b--&  8.79\% (7.32) &   12517\% (19362) & 5.10\% (4.26)   \\ \hline
+% p+c+b+&  8.05\% (5.49) &  6647\% (9164) & 5.25\% (4.77)  \\ \hline \hline
+% cluster &  1 (1) & 1 (1) & 1 (1)  \\ \hline
+% gaussian&  1 (1) & 1 (1) & 1 (1)  \\ \hline
+% update&  1 (1) & 1 (1) &  1 (1)  \\ \hline
+% pruning&  1 (1) & 1 (1) & 1 (1)  \\ \hline
+% epsilon &  1 (1) & 1 (1) &  1 (1)  \\ \hline
+% \end{tabular}
+% \caption{Means (standard deviations) of percentage error for each of the performance measures for each of the benchmarks, as predicted by the quadratic response surface model.}
+%\label{table:acc-quad}
+%\end{table}
+%
+%\begin{table}
+%\small
+%\begin{tabular}{|l|c|c|c|}
+%\hline
+%Name & Cycles &Offchip Accesses &Cache Accesses \\ \hline
+% p--c--b-- & 0.02\% (0.02) &   7.42\% (16.80) & 1 (1) \\ \hline
+% p--c--b+ &  0.23\% (0.40) &  253.46\% (418.27) & 1 (1)  \\ \hline
+% p--c+b-- &  0.02\% (0.02) &  84.31\% (74.62) & 1 (1)  \\ \hline
+% p--c+b+ &  0.06\% (0.06) &  87.84\% (209.33) & 1 (1)  \\ \hline
+% p+c--b-- &  0.05\% (0.03) &  15.27\% (14.80) & 1 (1)  \\ \hline
+% p+c--b+ &  0.51\% (1.08) &  25.42\% (31.95) & 1 (1)  \\ \hline
+% p+c+b--&  0.06\% (0.07) &  7.47\% (8.25)) & 1 (1)  \\ \hline
+% p+c+b+&  0.08\% (0.06) &  22.12\% (26.14) & 1 (1)  \\ \hline \hline
+% cluster &  1 (1) & 1 (1) &  1 (1)  \\ \hline
+% gaussian&  1 (1) & 1 (1) & 1 (1)  \\ \hline
+% update&  1 (1) & 1 (1)  & 1 (1)  \\ \hline
+% pruning&  1 (1) & 1 (1) & 1 (1)  \\ \hline
+% epsilon &  1 (1) & 1 (1) & 1 (1)  \\ \hline
+% \end{tabular}
+% \caption{Means (standard deviations) of percentage error for each of the performance measures for each of the benchmarks, as predicted by the GPRS model.}
+%\label{table:acc-nonlin}
+%\end{table}
