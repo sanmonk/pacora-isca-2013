@@ -4,6 +4,8 @@ We use cycles of execution time as a predicted output representative of applicat
 
 A final model we create predicts the energy consumed by a resource allocation, which is useful  for energy-aware scheduling decisions. We calculate the energy used by each allocation by creating a simple energy model which incorporates energy levels for allocated versus unallocated resources and uses performance counter data as a proxy for resource activity.  Such an energy model is clearly somewhat simplistic --- we include it to show that our scheduling framework can feasibly make decisions based on per allocation energy if that data is a given input.  We use a simplified version of some of the activity based energy models in previous work \cite{}.
 
+We perform this analysis for several performance metrics captured from simulation, including runtime in cycles, number of instructions committed, number of cache accesses, and number of off-chip memory accesses.
+
 \begin{table}
 \scriptsize
 \begin{tabular}{|l|c|c|c|}
@@ -108,3 +110,5 @@ Name & Additive & Quadratic & GPRS \\ \hline
 % \caption{Means (standard deviations) of percentage error for each of the performance measures for each of the benchmarks, as predicted by the GPRS model.}
 %\label{table:acc-nonlin}
 %\end{table}
+
+Table~\ref{table:acc-offchip} does the same for the off-chip accesses metric and Table~\ref{table:acc-cache} for the L2 cache transactions metric.  Points in the test set are not in the training set.
