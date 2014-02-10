@@ -93,9 +93,13 @@ Alternatively, redundant components, similar except for amplification function, 
 to let the model fitting process decide among them.
 
 \subsection{Stochastic Models}
-Execution times are random to some extent. Variations in amounts of work within an application are reflected only after the fact by the $w_i$ which change as the process runs.  Insufficiently isolated resources may also cause such variability. Complicating things further, service objectives may specify guarantees in the form of high probability upper bounds on actual application runtimes.  The predicted runtimes $\tau$ in these cases are insufficient.Random fluctuations will be reflected in the runtime measurements t and the residual error $\epsilon = t - \sigma$. The sample mean and standard deviation of the error can bound the probability that the actual runtime will exceed the prediction $\tau$. Using this information, a Chebyshev bound on the error of the form
-\begin{equation}Pr\left\{\left|\frac{(\epsilon-\overline{\epsilon})}{\sigma_\epsilon}\right| > k\right\}\leq\frac{1}{k^2} 
-\end{equation}can guarantee the probability that a particular runtime requirement is met.For example, a runtime upper bound of 50 microseconds with probability 0.99, given an error sample mean of 3 microseconds (meaning $\tau$ underestimates t by that much) and a sample standard deviation of 2 microseconds, leads to the requirement that $\tau + 3$ must be less than $50 - k \sigma\epsilon = 50 - 10\times2 = 30$ microseconds to guarantee that $t = \tau  + \epsilon$ exceeds 50 microseconds only 1\% of the time.  The penalty function deadline for this application should accordingly be set to 27 microseconds.  Of course if the system is incapable of meeting all of its deadlines, penalty slopes will determine the extent of the violations.
+Execution times are random to some extent. Variations in amounts of work within an application are reflected only after the fact by the $w_i$ which change as the process runs.  Insufficiently isolated resources may also cause such variability. Complicating things further, service objectives may specify guarantees in the form of high probability upper bounds on actual application runtimes.  The predicted runtimes $\tau$ in these cases are insufficient.
+Random fluctuations will be reflected in the runtime measurements t and the residual error $\epsilon = t - \sigma$. The sample mean and standard deviation of the error can bound the probability that the actual runtime will exceed the prediction $\tau$. Using this information, a Chebyshev bound on the error of the form
+\begin{equation}
+Pr\left\{\left|\frac{(\epsilon-\overline{\epsilon})}{\sigma_\epsilon}\right| > k\right\}\leq\frac{1}{k^2} 
+\end{equation}
+can guarantee the probability that a particular runtime requirement is met.
+For example, a runtime upper bound of 50 microseconds with probability 0.99, given an error sample mean of 3 microseconds (meaning $\tau$ underestimates t by that much) and a sample standard deviation of 2 microseconds, leads to the requirement that $\tau + 3$ must be less than $50 - k \sigma\epsilon = 50 - 10\times2 = 30$ microseconds to guarantee that $t = \tau  + \epsilon$ exceeds 50 microseconds only 1\% of the time.  The penalty function deadline for this application should accordingly be set to 27 microseconds.  Of course if the system is incapable of meeting all of its deadlines, penalty slopes will determine the extent of the violations.
 
 
 
@@ -123,6 +127,11 @@ until the solution is approximated well enough.
 Another idea is to use additional constraints to explore convex sub-domains of $\tau$.
 For example,the affine constraint $a_{p,r} - \mu \leq 0$ excludes application $p$ from any assignment of resource $r$ exceeding $\mu$.  Similarly, $\mu - a_{p,r} \leq 0$ excludes the opposite possibility.
 A binary (or even linear)search of such sub-domains could be used to find the optimal value.
+
+
+\subsection{Heterogeneity}
+
+Heterogeneity is naturally handled by \pacora.  Each core type can be viewed as a different resource system, so fat cores may be resource 1, thin cores may be resource 2, and GPUs could be resource 3.  The application developer would not need to specify, which core types the application uses best; \pacora would try allocating the cores and the resulting performance would be captured in the RTFs.  So, for example, if an application did not use a GPU then this would be discovered empirically and the RTF would show no performance improvement along the GPU dimension.  
 
 
 

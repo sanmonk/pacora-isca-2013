@@ -459,18 +459,17 @@ The power response function is affine and monotone non-increasing in its argumen
 
 We chose to use the application 0 abstraction to represent power and energy over the more traditional approach of directly adding an allocation cost to the optimization because we found it to be more expressive of real life scenarios.  Using the RTF machinery, we are able to represent the power of the resources running as a function rather than simply a value, which enables us to express things like the fact that using more of a resource increases the power consumption per resource, thanks to thermal interactions. The penalty functions deadline allows us to represent scenarios like "I need my battery to last until I plug it in when I get home tonight."  In this case, the power needs to be capped so that the battery does not drain too fast, but there is little advantage to saving more power below the cap.  As shown in Figure~\ref{power-pf-fig}, with \pacora's deadline and slope arguments this scenario can easily be captured; as long as the power consumption is less than the deadline than there is no penalty to the system, but greater than the deadline the slope is quite steep.
 
-%------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-\section{Discussion}\label{math-discuss}
-%------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-how to handle heterogeneity, other resource types, possibly other
-forms of object function. ÊWhat you didn't do, what you might do given
-more time or a different platform.
+%%------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+%\section{Discussion}\label{math-discuss}
+%%------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+%
+%how to handle heterogeneity, other resource types, possibly other
+%forms of object function. ÊWhat you didn't do, what you might do given
+%more time or a different platform.
 
-\subsubsection{Heterogeneity}
-
-Heterogeneity is naturally handled by \pacora.  Each core type can be viewed as a different resource system, so fat cores may be resource 1, thin cores may be resource 2, and GPUs could be resource 3.  The application developer would not need to specify, which core types the application uses best; \pacora would try allocating the cores and the resulting performance would be captured in the RTFs.  So, for example, if an application did not use a GPU then this would be discovered empirically and the RTF would show no performance improvement along the GPU dimension.  
-
-
+%\subsubsection{Heterogeneity}
+%
+%Heterogeneity is naturally handled by \pacora.  Each core type can be viewed as a different resource system, so fat cores may be resource 1, thin cores may be resource 2, and GPUs could be resource 3.  The application developer would not need to specify, which core types the application uses best; \pacora would try allocating the cores and the resulting performance would be captured in the RTFs.  So, for example, if an application did not use a GPU then this would be discovered empirically and the RTF would show no performance improvement along the GPU dimension.  
 
 
