@@ -380,17 +380,6 @@ There are several ways to avoid this problem.  One is based on the observation t
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 \section{Penalty Functions}\label{PFs}
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-In addition to understanding how an application's performance responds to resources (represented with the application RTF), in resource allocation it is also necessary to know the relative importance of the applications: one application may use a resource type more efficiently, but another, less efficient, application may be more important to the user.   To embody user-level preferences about the application, we added a second application-specific function called the \emph{penalty function} in \pacora.
-
-Although similar to priorities, penalty functions are \emph{functions} of
-the response time rather than simply \emph{scalar values}, so they can explicitly
-represent deadlines.  Knowing the deadlines lets \pacora make
-optimizations that are difficult in today's systems, such as running
-just fast enough to make the deadline. Like priorities, the penalty
-functions are typically set by the system on behalf of the user.  However, one could imagine in future systems potentially learning them through user interactions.
-
-
 \begin{figure}[hb]
 \parbox{3in}{
 \includegraphics*[width=.45\columnwidth]{Figures/pf-ex1.pdf}
@@ -402,6 +391,15 @@ functions are typically set by the system on behalf of the user.  However, one c
 \caption{\label{f:pen2}A penalty function with no response time constraint.}
 }
 \end{figure}
+
+In addition to understanding how an application's performance responds to resources (represented with the application RTF), in resource allocation it is also necessary to know the relative importance of the applications: one application may use a resource type more efficiently, but another, less efficient, application may be more important to the user.   To embody user-level preferences about the application, we added a second application-specific function called the \emph{penalty function} in \pacora.
+
+Although similar to priorities, penalty functions are \emph{functions} of
+the response time rather than simply \emph{scalar values}, so they can explicitly
+represent deadlines.  Knowing the deadlines lets \pacora make
+optimizations that are difficult in today's systems, such as running
+just fast enough to make the deadline. Like priorities, the penalty
+functions are typically set by the system on behalf of the user.  However, one could imagine in future systems potentially learning them through user interactions.
 
 \pacora's penalty functions $\pi$ are non-decreasing piecewise-linear
 functions of the response time $\tau$ of the form $\pi(\tau) = \max(0, (\tau - d)s)$
