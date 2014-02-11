@@ -307,11 +307,40 @@ Genetic programming is a technique, based on evolutionary biology, used to optim
 {\em genetically-programmed response surface} (GPRS), are nonlinear models that create explicit equations describing the relationship between design variables and performance, and we incorporate them into our framework as an example of a nonlinear modeling alternative.
 A GPRS is generated automatically, meaning that the modeler does not have to specify the form of the response surface equation in advance. Instead, genetic programming \cite{koza} is used to create an equation and tune the coefficients.  For more information on GPRS creation, see \cite{alvarez-thesis} or \cite{cook-dac08}.
 
-We also explored other statistical machine learning techniques, specially KCCA, to predict the response time in the style of \cite{Archana}. However, the results are not presented here as  we found that we generally had too few sample points for the models to function.
+We also explored a statistical machine learning technique, Kernel Canonical Correlation Analysis (KCCA) \cite{kcca}, to predict the response time in the style of \cite{Archana}. However, the results are not presented here as we found that we generally had too few sample points for the models to function.
 
 \subsubsection*{Experimental Testbed}
 We use Virtutech Simics \cite{simics} to simulate a CMP system with a two level on-chip memory hierarchy to collect the data used create our performance models and to test the effectiveness of our resource scheduling framework.  Simics is a full system simulator capable of running a commodity OS and completing simulations consisting of billions of cycles. We modify the Simics cache and memory timing modules to reflect the capabilities of our hardware partitioning mechanisms.  Our target machine has 10 cores, private 64KB L1D and 32KB L1I caches for each core and a shared L2 (16 MB, 16-way set associative).  All caches have 128 B lines.   All banks in the L2 cache have uniform access time of 7 cycles.  Our target machine runs Fedora Core 5 Linux (kernel 2.6.15). We constrain the simulated system to a maximum allocation of 10 cores, 16 MB of L2 cache, and 4 cache lines/cycle of off-chip bandwidth, and a minimum allocation of 1 core, 16 KB of L2 cache, and 5 cache lines/thousand cycles of off-chip bandwidth.
 
+
+\subsubsection*{Evaluation of Model Accuracy}
+
+To test the accuracy of the different model types, we chose a sample of 55 points from the space of 19200 possible allocations (or 0.3\%) using an Audze-Eglais Uniform Latin Hypercube design of experiments~\cite{bates-aes03}, and trained the models using this sample set. Audze-Eglais selects sample points which are as evenly distributed as possible through the space of possible allocations  We then evaluated the accuracy of the model relative to measured performance on a training set which contains all points disjoint from the sample set.  %Due to the length of our simulations, we could not exhaustively compare to all possible allocations and so limited our model error analysis to a testing set of 10 randomly selected points.  
+
+\begin{table}\centering
+\small
+\begin{tabular}{|l|c|c|c|}
+\hline
+Name & Linear & Quadratic & GPRS \\ \hline
+ p--c--b-- & 0.06\% (0.04) & 0.04\% (0.04) &0.02\% (0.02) \\ \hline
+ p--c--b+ &   234.07\% (287.44) & 139.21\% (167.10) &  0.23\% (0.40)   \\ \hline
+ p--c+b-- &  12.67\% (5.30) &  8.26\% (5.30) &  0.02\% (0.02) \\ \hline
+ p--c+b+ &  12.04\% (5.09) &  7.83\% (4.69) & 0.06\% (0.06)  \\ \hline
+ p+c--b-- &  0.07\% (0.05) &  0.05\% (0.06)  &  0.05\% (0.03)  \\ \hline
+ p+c--b+ &  271.05\% (377.53) & 164.23\% (226.23) & 0.51\% (1.08) \\ \hline
+ p+c+b--&  13.08\% (6.91) & 8.79\% (7.32) & 0.06\% (0.07) \\ \hline
+ p+c+b+&  12.07\% (4.86) &  8.05\% (5.49) & 0.08\% (0.06)  \\ \hline
+   \end{tabular}
+ \caption{Means (standard deviations) of percentage error in runtime cycles for each of the predictive models for each of the synthetic microbenchmarks.}
+\label{table:acc-cycles}
+\end{table}
+
+
+Table~\ref{table:acc-cycles} reports the mean and standard deviation of percentage error for the synthetic benchmarks of each of the models in predicting runtime cycles of each allocation versus the actual measured performance of that allocation.  We can see that two of the benchmarks, p+c--b-- and p--c--b--, seem to be very easy to predict and all three model types have less than 0.1\% mean error.  Four of the remaining benchmarks, p--c+b--, p--c+b+, p+c+b--, and p+c+b+, are more difficult to predict for the linear and the quadratic model. The linear model has an error around 12\% with a significant standard deviation, 5\%, for each benchmark.  The quadratic model performs a bit better and has an average error around 8\% for each of these benchmarks but still has a very large standard deviation.   The GPRS model, however, performs extremely well on these benchmarks and again has an average error of less than 0.1\%.  The final two benchmarks, p--c--b+ and p+c--b+, prove quite challenging for the linear and quadratic model resulting in an average error of 250\% and 150\% respectively.  The GPRS model, however, has very little trouble with these benchmarks and produces an error around 0.5\%.
+
+Figure~\ref{fig:acc} visually represents what is happening in each of the these cases.  The figure plots the predictions from each model versus measured data for all the benchmarks.  The x axis is resource configurations ordered by runtime and the y axis is the runtime.   Looking at the plots we can see that the benchmarks that all models perform well on have a very predictable structure and no performance cliffs.  In particular benchmarks which encounter a cliff and then saturate (such as the working set fitting in cache) prove difficult for the linear and quadratic models.
+ 
+ %It is also worth noting that the amount of error introduced in the linear additive and quadratic model causes them to predict negative values for some benchmarks.
 
 \begin{figure*}
 	\centering
@@ -328,41 +357,13 @@ We use Virtutech Simics \cite{simics} to simulate a CMP system with a two level 
 	\label{fig:acc}
 \end{figure*}
 
-%%\subsection{Partitioning Mechanism Efficacy}
-%%It is worth noting that conflicts between different applications will always be destructive to performance and predictability.  The only danger to performance presented by hardware partitioning is the possibility of resource fragmentation, in which an application is allocated more of a resource than it can actually use.  However, a conservative allocation policy combined with fair sharing of excess resources can significantly mitigate this problem.
 
 
-\subsubsection*{Evaluation of Model Accuracy}
-
-Here we examine the accuracy afforded by both the different linear regression models and the nonlinear GPRS--based regression model.  We chose a sample of 55 points from the space of 19200 possible allocations (or 0.3\%) using an Audze-Eglais Uniform Latin Hypercube design of experiments~\cite{bates-aes03} , and trained the models using this sample set. Audze-Eglais selects sample points which are as evenly distributed as possible through the space of possible allocations
-
-We evaluate the accuracy of the model relative to measured performance on a a training set of points disjoint from the sample set.  Due to the length of our simulations, we cannot exhaustively compare to all possible allocations and so limit our model error analysis to a testing set of 10 randomly selected points.  
-
- Figure~\ref{fig:acc} plots the predictions versus measured data of a single performance metric for the sample set. While linear and nonlinear models perform equally well for some benchmarks, the nonlinear model is significantly more accurate at predicting others. The linear models struggle to capture the performance cliffs inherent to some benchmarks, especially those which move between being cache size-limited and bandwidth-limited.  In particular benchmarks which encounter a cliff and then saturate (such as the working set fitting in cache) are not faithfully modeled by the linear models.  The nonlinear model has no such difficulty.  It is also worth noting that the amount of error introduced in the linear additive and quadratic model causes them to predict negative values for some benchmarks.
-
-\begin{table}
+\begin{table}\centering
 \small
 \begin{tabular}{|l|c|c|c|}
 \hline
-Name & Additive & Quadratic & GPRS \\ \hline
- p--c--b-- & 0.06\% (0.04) & 0.04\% (0.04) &0.02\% (0.02) \\ \hline
- p--c--b+ &   234.07\% (287.44) & 139.21\% (167.10) &  0.23\% (0.40)   \\ \hline
- p--c+b-- &  12.67\% (5.30) &  8.26\% (5.30) &  0.02\% (0.02) \\ \hline
- p--c+b+ &  12.04\% (5.09) &  7.83\% (4.69) & 0.06\% (0.06)  \\ \hline
- p+c--b-- &  0.07\% (0.05) &  0.05\% (0.06)  &  0.05\% (0.03)  \\ \hline
- p+c--b+ &  271.05\% (377.53) & 164.23\% (226.23) & 0.51\% (1.08) \\ \hline
- p+c+b--&  13.08\% (6.91) & 8.79\% (7.32) & 0.06\% (0.07) \\ \hline
- p+c+b+&  12.07\% (4.86) &  8.05\% (5.49) & 0.08\% (0.06)  \\ \hline
-   \end{tabular}
- \caption{Means (standard deviations) of percentage error in runtime cycles for each of the predictive models for each of the microbenchmarks.}
-\label{table:acc-cycles}
-\end{table}
-
-\begin{table}
-\small
-\begin{tabular}{|l|c|c|c|}
-\hline
-Name & Additive & Quadratic & GPRS \\ \hline
+Name & Linear & Quadratic & GPRS \\ \hline
  cluster &  4.27\% (3.66) & 6.90\% (5.67)  & 15.52\% (10.36)  \\ \hline
  gaussian&  1.83\% (0.72) & 4.16\% (2.49) & 2.33\% (3.19)  \\ \hline
  update&  4.98\% (3.04) & 7.94\% (7.12)  & 5.89\% (5.09)  \\ \hline
@@ -374,20 +375,12 @@ Name & Additive & Quadratic & GPRS \\ \hline
 \end{table}
 
 
-Table~\ref{table:acc-cycles} reports the mean and standard deviation of percentage error of each of the models in predicting runtime cycles versus the measured performance of the test set. 
-
-For some performance metrics the quadratic response surface models do a poor job of capturing the performance behavior of the points in the test set.  Linear additive model performance is even worse than the quadratic model, due mainly to the fact the the additive models lack interaction terms. However, the nonlinear models accurately capture the performance behavior of all metrics in most cases, with only a trouble areas, discussed below.
-
-For all benchmarks, the number of instructions was relatively easy to predict, while the off-chip bandwidth and number of cache accesses were much more difficult.  Performance (cycles) prediction accuracy fell in between.  The benchmarks with the worst standard deviations had several extreme outliers that reduced the mean accuracy. Since the accuracy reported in the aforementioned tables is {\em percentage} error, it is subject to inflation when some absolute values being predicted are small relative to others in the set, which is the case particularly for off-chip bandwidth measurements.  Therefore, our judgement of model quality is dependent on how much we value accurate prediction of these small values.  For example, the GPRS--based model of microbenchmark \texttt{  p--c--b+}'s offchip accesses has a percentage error of 253.46\%, but this is caused by mispredictons of less than 5000 accesses (versus up to 2 million accesses incurred by the benchmark for certain resource allocations).
-
-Our target machine runs Linux, which can add some non-deterministic performance to the experiments.  A system with two-level scheduling would mostly likely see improved model accuracy.
-
 While certain benchmarks are more challenging than others, there is no substantial difference in prediction accuracy between the synthetic benchmarks and real application. Table~\ref{table:acc-cycles-lvsrc} shows the accuracy of predictions of runtime (in cycles) per phase in terms of percentage error when measured against a test set.  The phases of the LVSRC application were actually more easily predicted than some of the microbenchmarks.  Due to the extreme length of the application (which was run to completion), the space of allocations we considered was limited to a maximum of two cores.  We reduced the size of the sample set correspondingly.  As a result, Table~\ref{table:acc-cycles-lvsrc} reflects models tuned on very small samples; with some adjustment of the genetic search parameters to prevent overfitting, all of the GPRS--based model percentage errors were reduced below 2\%.
 
 %%For all of the applications, we can see that the models captured the performance of 90\% of the test points with less than []\% error.  This result leads us to believe that the model is an adequate enough representation of application performance to be useful in predicting performance for the remainder of the allocation options.
 
 Clearly, the nonlinear models are extremely accurate and would make excellent input to our spatial resource allocation algorithm.  However, the GPRS--based models used here took between 0.5 and 6 hours each to build, so clearly they would have to be created offline and stored for use at runtime.  The linear models can be trained extremely rapidly, but are less accurate.  The true metric of whether or not a model is accurate ``enough'' depends on the quality of the decisions made based on it.
-%We investigate decisions based on both linear and nonlinear model in Section~\ref{sec:decisions}.
+
 
 \subsubsection*{Effect of Sample Size on Model Accuracy}
 \label{sec:eval:acc-sample}
