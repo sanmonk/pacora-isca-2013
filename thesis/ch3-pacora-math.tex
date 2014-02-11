@@ -381,10 +381,11 @@ Looking at the results for our real speech application (shown in Table~\ref{tabl
 
 \subsection{Response-Time Functions}\label{final_rtf}
 
-Response-time functions (RTF) represent the expected \emph{response
-  time} of an application as a function of the resources allocated to
-the application. The response time is an application-specific measure
-of the performance of the application.  For example, the response time
+In this section, we discuss the final design for \pacora's RTFs. 
+
+While the initial studies only looked at total runtime as the metric of performance for an application, we decided that the RTFs actually should represent the expected \emph{response
+  time} of an application as a function of the resources allocated to the application. We use response time is an application-specific measure
+of the performance representing the runtime for the critical function of the application.  For example, the response time
 of an application might be:
     \begin{itemize}\itemsep0pt \parskip0pt \parsep5pt
     \item The time from a mouse click to its result;
@@ -394,16 +395,20 @@ of an application might be:
     \item The time to execute a specified amount of work.
     \end{itemize}
 
-The RTFs are built to be convex functions.  All applications have a
-function of the same form, but the application-specific weights are set
-using the performance history of the application.  RTFs are designed
-to capture information such as how well an application scales with a
-particular resource. As a result, RTFs naturally support
-heterogeneity.  Each CPU or GPU type is simply viewed as a different
-resource type by the system, and thus the RTFs will represent how
-effectively an application uses a particular type of
-core. Figure~\ref{sample_rtf} shows two example RTFs we have created
+
+
+As explained in Section~\ref{convex_sec}, \pacora needs to model response times with functions that are convex by construction in order to take advantage of the efficient solution methods available in convex optimization.  All applications have a function of the same form, but the application-specific weights are set using the performance history of the application. Equation~\ref{rtf_eq} below shows the RTF we selected for \pacora, and Figure~\ref{sample_rtf} shows two example RTFs we have created
 from applications we studied.
+
+\begin{equation}\label{rtf_eq}
+\tau(w,a) = \tau_0 + \sum_{i\in n,j\in n}{\frac{w_{i,j}}{\sqrt{a_i * a_j}}}
+\end{equation}
+
+Here $\tau$ is the response time, $i$ and $j$ are
+resource types, $n$ is the total number of resource types,
+$a_{i}$ and $a_{j}$ are the allocations of resource types $i$
+and $j$, and $w_{i,j}$ is the application-specific weight for
+the term representing resources $i$ and $j$.
 
 \begin{figure*}[hb]
 \subfloat{
@@ -419,36 +424,34 @@ from applications we studied.
   breadth-first search algorithm and \texttt{streamcluster} from the PARSEC benchmark suite~\cite{parsec}. We show two resource dimensions: cores and cache ways.}
 \end{figure*}
 
-Equation~\ref{rtf_eq} below shows the RTF we selected for \pacora.  
-
-\begin{equation}\label{rtf_eq}
-\tau(w,a) = \tau_0 + \sum_{i\in n,j\in n}{\frac{w_{i,j}}{\sqrt{a_i * a_j}}}
-\end{equation}
-
-Here $\tau$ is the response time, $i$ and $j$ are
-resource types, $n$ is the total number of resource types,
-$a_{i}$ and $a_{j}$ are the allocations of resource types $i$
-and $j$, and $w_{i,j}$ is the application-specific weight for
-the term representing resources $i$ and $j$.
-
-In our experience the cross term weights (those with $i\neq j$) are almost always negligible and can be omitted if desired.
-This omission allows the dimensionality of the function, and thus the storage space required, to increase roughly linearly with the number of resource types.  The value of the cross terms is discussed further in Chapter~\ref{init_eval}.
-
-We chose this specific function because it is convex in the resources, and in initial application studies,
-we found it models response time behavior accurately enough to allow the optimization to make good decisions. Section~\ref{RTFs} describes the design considerations for the RTFs in more detail. Chapter~\ref{init_eval} shows these evaluation results and discusses alternative models that were considered and evaluated during the design process.
-
-As explained in Section~\ref{convex_sec}, \pacora models response times with functions that are convex by construction in order to take advantage of the efficient solution methods available in convex optimization.
-The specific function chosen for \pacora is shown in Equation~\ref{rtf_eq} above.
 In this equation, the response time is modeled as a weighted sum of component terms,
 roughly one per resource, where a term $w_i/a_i$ is the amount of work $w_i \geq 0$ divided by $a_i$, the allocation of the $i$th resource~\cite{Snav}.  We felt that this naturally represented approximately how resources behave. For example, one term might model instructions executed divided by total processor MIPS, so the application-specific $w$ \pacora is learning is the number of instructions.  As we increase the allocation of MIPS, then we'll see the contribution to total runtime from this term decrease since the additional processing power reduces the time to execute the instructions.  Other terms follow the same pattern but for different resources such as model network accesses divided by bandwidth, and so forth.
 
-The examples described above all contain only a single resource type.  However, our intuition was that there may be relationships between resource types and asynchrony and latency tolerance may make response time components overlap partly or fully. For example, one can easily imagine that the amount of cache an application has affects its required memory bandwidth.  Thus we added additional terms to represent the interactions between resources.  To our surprise, in most of our experiments, we have found that the interaction terms are nearly always negligible and thus can be eliminated to save space and computation.  However, it is possible that some systems would still require them.  Interaction term results are shown in Chapter~\ref{init_eval}.   
+The examples described above all contain only a single resource type.  However, our intuition was that there may be relationships between resource types and asynchrony and latency tolerance may make response time components overlap partly or fully. For example, one can easily imagine that the amount of cache an application has affects its required memory bandwidth.  Thus we added additional terms to represent the interactions between resources.  To our surprise, in most of our experiments, we have found that the interaction terms are nearly always negligible and thus can be eliminated to save space and computation. This omission allows the dimensionality of the function, and thus the storage space required, to increase roughly linearly with the number of resource types.  However, it is possible that some systems would still require them.  The value of the cross terms is discussed further in Chapter~\ref{init_eval}.  
+
+
+
+
 
 It is obviously important to guarantee the positivity of the resource allocations. This guarantee can be enforced as the allocations are selected during penalty optimization, or the response time model can be made to return $\infty$ if any allocation is less than or equal to zero. This latter idea preserves the convexity of the model and extends its domain to all of $\Re^n$ and consequently we used this approach in our implementation.
 
-Our chosen model design satisfies the design requirements listed above.  The model is low cost to produce: we can use convex optimization to produce it, which is described in Chapter~\ref{tess_design_ch}. The models (without the interaction terms) scale linearly with the number of resource dimensions and only require a small number of history values to produce a good model so they are lightweight to store.  They can capture information about all of the resource types and are tolerant of noise (See Chapters~\ref{init_eval} and \ref{discuss} for variability results and discussion) . Such models are automatically convex in the allocations because $1/a$ is convex for positive $a$ and because a positively-weighted sum of convex functions is convex.  Lastly,
-the gradient $\nabla\tau$, which is needed by the penalty optimization algorithm, is simple to compute since $\tau$ is analytic, generic, and symbolically differentiable.
+Our chosen model design satisfies the design requirements listed above.  The model is low cost to produce: we can use convex optimization to produce it, which is described in Chapter~\ref{tess_design_ch}. The models (without the interaction terms) scale linearly with the number of resource dimensions and only require a small number of history values to produce a good model so they are lightweight to store.  They can capture information about all of the resource types and are tolerant of noise (See Chapters~\ref{init_eval} and \ref{discuss} for variability results and discussion). Such models are automatically convex in the allocations because $1/a$ is convex for positive $a$ and because a positively-weighted sum of convex functions is convex.  Lastly,
+the gradient $\nabla\tau$, which is needed by the penalty optimization algorithm, is simple to compute since $\tau$ is analytic, generic, and symbolically differentiable.  However, we leave it to Chapter~\ref{init_eval} to demonstrate the efficacy of our model in a real system.
 
+%The RTFs are built to be convex functions.  All applications have a
+%function of the same form, but the application-specific weights are set
+%using the performance history of the application.  RTFs are designed
+%to capture information such as how well an application scales with a
+%particular resource. As a result, RTFs naturally support
+%heterogeneity.  Each CPU or GPU type is simply viewed as a different
+%resource type by the system, and thus the RTFs will represent how
+%effectively an application uses a particular type of
+%core. 
+%In our experience the cross term weights (those with $i\neq j$) are almost always negligible and can be omitted if desired.
+%This omission allows the dimensionality of the function, and thus the storage space required, to increase roughly linearly with the number of resource types.  The value of the cross terms is discussed further in Chapter~\ref{init_eval}.
+%
+%We chose this specific function because it is convex in the resources, and in initial application studies,
+%we found it models response time behavior accurately enough to allow the optimization to make good decisions. Section~\ref{RTFs} describes the design considerations for the RTFs in more detail. Chapter~\ref{init_eval} shows these evaluation results and discusses alternative models that were considered and evaluated during the design process.
 
 \subsection{Response Time Convexity}\label{RTF_convexity}
 
