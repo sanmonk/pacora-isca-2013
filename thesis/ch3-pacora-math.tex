@@ -57,7 +57,7 @@ resources and is built with runtime measurements.  The penalty
 function represents the user-level goals for the application
 (\emph{i.e.,} the deadline and how important it is to meet) is set by the system, developer, or administrator.
 
-A succinct mathematical characterization of this resource allocation scheme is the following:
+A succinct mathematical characterization of this resource optimization scheme is the following:
 \begin{eqnarray}
 & \makebox[1in][r]{Minimize}   & \sum_{p\in P} {\pi_p(\tau_p(a_{p,1}\ldots a_{p,n}))} \label{op_eq1} \\
 & \makebox[1in][r]{Subject to} & \sum_{p\in P} a_{p,r} \leq A_r, r = 1,\ldots n     \label{op_eq2}   \\
@@ -126,7 +126,7 @@ handling shared resources in more detail.
 %------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 If the penalty functions, response time functions, and resource
 constraints were arbitrary, little could be done to optimize the total
-penalty beyond searching at random for the best allocation.  However, we designed \pacora to be convex by construction, which enables us to use convex optimization~\cite{BoVa} methods to solve the optimization. 
+penalty beyond searching at random for the best allocation.  However, we designed \pacora's optimization, RTFs, and penalty functions to be convex by construction, which enables us to use convex optimization~\cite{BoVa} methods to solve the optimization. 
 By framing our resource allocation problem as a convex optimization problem, we get two significant benefits: for each problem an optimal
 solution exists without multiple local extrema, and fast optimization methods with practical incremental solutions become feasible.  In this section, we prove the convexity of \pacora's optimization formulation.  The penalty and RTF function convexity are discussed in Sections \ref{PF_convexity} and \ref{RTF_convexity} respectively.  \pacora also formulates RTF \emph{creation} as a convex optimization
 problem, as explained in Section~\ref{rtf_creation}.
@@ -137,7 +137,7 @@ A constrained optimization problem is \emph{convex} if both the objective functi
 and the constraint functions that define its feasible solutions are convex functions.
 A function $f$ is convex if its domain is a convex set and
 $f(\theta x + (1-\theta)y) \leq \theta f(x) + (1-\theta)f(y)$
-for all $\theta$ between 0 and 1.
+for all $x$ and $y$ in its domain and for $\theta$ between 0 and 1.
 A set is convex if for any two points $x$ and $y$ in the set, the point
 $\theta x + (1-\theta)y$
 is also in the set for all $\theta$ between 0 and 1.
@@ -188,7 +188,7 @@ In this section, we discuss the design considerations and requirements for \paco
 
 \subsection{Purpose}
 
-In order for a resource allocation framework to make informed decisions about application performance, there must be a way for it to understand the performance impact of a resource allocation in the current system on the application's performance.  One can imagine several high-level approaches to accomplish this. One option would be for the the system to try a variety of allocations and select the best one.  However, there are a few disadvantages to this method: first, the system may need to try many points to find an efficient resource allocation for multidimensional allocation problems; second, the result for a single application may not compose well for multiple applications; and third, it doesn't give the system much understanding of the value of individual resources making resource tradeoffs difficult.  Another option would be something similar to hill climbing where the system incrementally adds or removes resources and measures the change in performance.  However, there are several challenges for an incremental approach as well.  Since the system relies on measuring the incremental gradients, it could get stuck in local minima or remain on a performance plateau for a particular resource without discovering the threshold that gives significant performance improvement (\emph{e.g.,} the point where the application fits in cache).  It could also be difficult to explore more than one resource dimension at a time. Additionally it could take quite a long time to reach an efficient resource allocation, particularly for a system with multiple applications running, and could violate the application's quality-of-service while exploring resource allocations.  While obviously these techniques can be improved upon, we felt the fundamental problems of composablity and potentially high overhead to find an efficient multidimensional allocation would be very difficult to overcome. 
+In order for a resource allocation framework to make informed decisions about application performance, there must be a way for it to understand the performance impact of an application's resource allocation in the system.  One can imagine several high-level approaches to accomplish this. One option would be for the the system to try a variety of allocations and select the best one.  However, there are a few disadvantages to this method: first, the system may need to try many points to find an efficient resource allocation for multidimensional allocation problems; second, the result for a single application may not compose well for multiple applications; and third, it doesn't give the system much understanding of the value of individual resources making resource tradeoffs difficult.  Another option would be something similar to hill climbing where the system incrementally adds or removes resources and measures the change in performance.  However, there are several challenges for an incremental approach as well.  Since the system relies on measuring the incremental gradients, it could get stuck in local minima or remain on a performance plateau for a particular resource without discovering the threshold that gives significant performance improvement (\emph{e.g.,} the point where the application fits in cache).  It could also be difficult to explore more than one resource dimension at a time. Additionally it could take quite a long time to reach an efficient resource allocation, particularly for a system with multiple applications running, and could violate the application's quality-of-service while exploring resource allocations.  While obviously these techniques can be improved upon, we felt the fundamental problems of composablity and potentially high overhead to find an efficient multidimensional allocation would be very difficult to overcome. 
 
 For \pacora, we instead chose to take a modeling approach to represent an application's performance given its resource assignments.  We explicitly create RTFs from measured values that capture information about the performance impact of a particular resource to an application on the current hardware at a particular time. We chose to use models because they can be easily used in an optimization that considers multiple resources and applications at the same time. 
 
@@ -196,11 +196,11 @@ For \pacora, we instead chose to take a modeling approach to represent an applic
 
 When considering what was necessary for a performance model to be used in a real system we came up with the following requirements to guarantee that the model would be low cost to produce and use and work with real applications:
 \begin{itemize}
-\item Low cost to produce;
+\item Low cost to produce and maintain;
 \item Low storage overhead;
-\item Works with a variable number of resource dimensions;
+\item Works with any number of resource dimensions;
 \item Tolerant of noisy measurements;
-\item Convex;
+\item Convex by construction;
 \item Easily computed gradients.
 \end{itemize}
 
@@ -214,7 +214,7 @@ One approach to creating explicit resource-performance models would have been to
 \item Gradient estimation will be slow and difficult.
 \end{itemize}
 
-Instead of interpolating, \pacora maintains a parameterized analytic response time model with the partial derivatives evaluated from the model \emph{a priori}. Application responsiveness is highly nonlinear for an increasing variety of applications like streaming media or gaming, thus requiring many data points to represent the response times without a model. Using models, each application can be described in a small number of parameters.  Models can be built from just a few data points and can naturally smooth out noisy data. Their gradients, needed by \pacora to solve the optimization problem efficiently, are easy to calculate. 
+Instead of interpolating, \pacora maintains a parameterized analytic response time model with the partial derivatives evaluated from the model \emph{a priori}. Application responsiveness is highly nonlinear for an increasing variety of applications like streaming media or gaming, thus requiring many data points to represent the response times without a model. Using models, each application can be described in a small number of parameters.  Models can be built from just a few data points and can naturally smooth out noisy data. The gradients, needed by \pacora to solve the optimization problem efficiently, are easy to calculate. 
 
 However, to realize the potential advantages of modeling we first needed to demonstrate that simple models could adequately represent the response time of an application for resource allocation purposes.  To determine if simple models would work and to select an appropriate model for \pacora's RTF functions, we used three steps.  First, we performed a simple study using microbenchmarks in a real system determine the complexity required for the model (presented in Section~\ref{init_model_eval}). Once we had determined the general form of the model from the experiments, we then designed a model that seemed logical using our domain knowledge of computer hardware, applications, and performance (explained in Section~\ref{final_rtf}).  Finally, we performed experiments using real benchmarks and kernels on a real system to validate that our model fit the measured values.  These final experiments and results are presented in Chapter~\ref{init_eval}.  
 
@@ -383,7 +383,7 @@ Looking at the results for our real speech application (shown in Table~\ref{tabl
 
 In this section, we discuss the final design for \pacora's RTFs. 
 
-While the initial studies only looked at total runtime as the metric of performance for an application, we decided that the RTFs actually should represent the expected \emph{response
+While the initial studies only looked at total runtime as the metric of performance for an application, we decided that the RTF actually should represent the expected \emph{response
   time} of an application as a function of the resources allocated to the application. We use response time is an application-specific measure
 of the performance representing the runtime for the critical function of the application.  For example, the response time
 of an application might be:
@@ -431,11 +431,9 @@ The examples described above all contain only a single resource type.  However, 
 
 
 
-
-
 It is obviously important to guarantee the positivity of the resource allocations. This guarantee can be enforced as the allocations are selected during penalty optimization, or the response time model can be made to return $\infty$ if any allocation is less than or equal to zero. This latter idea preserves the convexity of the model and extends its domain to all of $\Re^n$ and consequently we used this approach in our implementation.
 
-Our chosen model design satisfies the design requirements listed above.  The model is low cost to produce: we can use convex optimization to produce it, which is described in Chapter~\ref{tess_design_ch}. The models (without the interaction terms) scale linearly with the number of resource dimensions and only require a small number of history values to produce a good model so they are lightweight to store.  They can capture information about all of the resource types and are tolerant of noise (See Chapters~\ref{init_eval} and \ref{discuss} for variability results and discussion). Such models are automatically convex in the allocations because $1/a$ is convex for positive $a$ and because a positively-weighted sum of convex functions is convex.  Lastly,
+Our chosen model design satisfies the design requirements listed above.  The model is low cost to produce: we can use convex optimization to produce it as described in Chapter~\ref{tess_design_ch}. The models (without the interaction terms) scale linearly with the number of resource dimensions and only require a small number of history values to produce a good model so they are compact to store.  They can capture information about all of the resource types and are tolerant of noise (See Chapters~\ref{init_eval} and \ref{discuss} for variability results and discussion). Such models are automatically convex in the allocations because $1/a$ is convex for positive $a$ and because a positively-weighted sum of convex functions is convex.  Lastly,
 the gradient $\nabla\tau$, which is needed by the penalty optimization algorithm, is simple to compute since $\tau$ is analytic, generic, and symbolically differentiable.  However, we leave it to Chapter~\ref{init_eval} to demonstrate the efficacy of our model in a real system.
 
 %The RTFs are built to be convex functions.  All applications have a
@@ -453,7 +451,7 @@ the gradient $\nabla\tau$, which is needed by the penalty optimization algorithm
 %We chose this specific function because it is convex in the resources, and in initial application studies,
 %we found it models response time behavior accurately enough to allow the optimization to make good decisions. Section~\ref{RTFs} describes the design considerations for the RTFs in more detail. Chapter~\ref{init_eval} shows these evaluation results and discusses alternative models that were considered and evaluated during the design process.
 
-\subsection{Response Time Convexity}\label{RTF_convexity}
+\subsection{RTF Convexity}\label{RTF_convexity}
 
 \begin{figure*}[h]
 \center
@@ -549,8 +547,8 @@ There are several ways to avoid this problem.  One is based on the observation t
 In addition to understanding how an application's performance responds to resources (represented with the application RTF), in resource allocation it is also necessary to know the relative importance of the applications: one application may use a resource type more efficiently, but another, less efficient, application may be more important to the user.   To embody user-level preferences about the application, we added a second application-specific function called the \emph{penalty function} in \pacora.
 
 Although similar to priorities, penalty functions are \emph{functions} of
-the response time rather than simply \emph{scalar values}, so they can explicitly
-represent deadlines.  Knowing the deadlines lets \pacora make
+the response time rather than simple \emph{scalar values}, so they can explicitly
+represent deadlines.  Knowing deadlines lets \pacora make
 optimizations that are difficult in today's systems, such as running
 just fast enough to make the deadline. Like priorities, the penalty
 functions are typically set by the system on behalf of the user.  However, one could imagine in future systems potentially learning them through user interactions.
@@ -558,7 +556,7 @@ functions are typically set by the system on behalf of the user.  However, one c
 \pacora's penalty functions $\pi$ are non-decreasing piecewise-linear
 functions of the response time $\tau$ of the form $\pi(\tau) = \max(0, (\tau - d)s)$
 where $d$ represents the deadline of the application and $s$ (slope)
-defines the rate the penalty increases as response time increases. For
+defines the rate the penalty increases as response time exceeds $d$. For
 applications without response-time constraints the deadline can be set
 to $0$. Two representative graphs of this type appear in
 Figures~\ref{f:pen1} and~\ref{f:pen2}.  
@@ -600,7 +598,7 @@ designated the idle application and receives allocations of all
 resources that are left idle, \emph{i.e.,} not allocated to other
 applications.  If the system has the appropriate power management mechanisms, these idle resources can be powered off or put to sleep to save power.
 
-Additionally, application 0 functions as \emph{slack} variables in our optimization problem turning the resource bounds into equalities:
+Additionally, application 0's resources allocations act as \emph{slack} variables in our optimization problem turning the resource bounds into equalities:
 \begin{equation}
 \sum_{p\in P} a_{p,r} - A_r = 0, r = 1,\dots n.
 \end{equation}
