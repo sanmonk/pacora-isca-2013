@@ -315,7 +315,7 @@ We use Virtutech Simics \cite{simics} to simulate a CMP system with a two level 
 
 \subsubsection*{Evaluation of Model Accuracy}
 
-To test the accuracy of the different model types, we chose a sample of 55 points from the space of 19200 possible allocations (or 0.3\%) using an Audze-Eglais Uniform Latin Hypercube design of experiments~\cite{bates-aes03}, and trained the models using this sample set. Audze-Eglais selects sample points which are as evenly distributed as possible through the space of possible allocations  We then evaluated the accuracy of the model relative to measured performance on a training set which contains all points disjoint from the sample set.  %Due to the length of our simulations, we could not exhaustively compare to all possible allocations and so limited our model error analysis to a testing set of 10 randomly selected points.  
+To test the accuracy of the different model types, we chose a sample of 55 points from the space of 19200 possible allocations (or 0.3\%) using an Audze-Eglais Uniform Latin Hypercube design of experiments~\cite{bates-aes03}, and trained the models using this sample set. Audze-Eglais selects sample points which are as evenly distributed as possible through the space of possible allocations.  We use the benchmark runtime in cycles to represent the response time for the benchmarks. We then evaluated the accuracy of the model relative to measured performance on a training set which contains all points disjoint from the sample set.  %Due to the length of our simulations, we could not exhaustively compare to all possible allocations and so limited our model error analysis to a testing set of 10 randomly selected points.  
 
 \begin{table}\centering
 \small
@@ -357,7 +357,7 @@ Figure~\ref{fig:acc} visually represents what is happening in each of the these 
 	\label{fig:acc}
 \end{figure*}
 
-
+Clearly from the synthetic benchmark results, the GPRS models are extremely accurate and the other models have the potential to have problems. However, the GPRS--based models used here took up to 6 hours each to build and are also be very expensive to use in an optimization.  The linear and quadratic models can be trained extremely rapidly and are very efficient to use in the optimization problem, but this efficiency clearly comes with a cost in terms of accuracy.  However, there a few things to consider when evaluating these results.  First, these are synthetic benchmarks and may not be representative of real applications.  Second, the true metric of whether or not a model is accurate ``enough'' depends on the quality of the resource allocations decisions produced from using it.
 
 \begin{table}\centering
 \small
@@ -375,26 +375,9 @@ Name & Linear & Quadratic & GPRS \\ \hline
 \end{table}
 
 
-While certain benchmarks are more challenging than others, there is no substantial difference in prediction accuracy between the synthetic benchmarks and real application. Table~\ref{table:acc-cycles-lvsrc} shows the accuracy of predictions of runtime (in cycles) per phase in terms of percentage error when measured against a test set.  The phases of the LVSRC application were actually more easily predicted than some of the microbenchmarks.  Due to the extreme length of the application (which was run to completion), the space of allocations we considered was limited to a maximum of two cores.  We reduced the size of the sample set correspondingly.  As a result, Table~\ref{table:acc-cycles-lvsrc} reflects models tuned on very small samples; with some adjustment of the genetic search parameters to prevent overfitting, all of the GPRS--based model percentage errors were reduced below 2\%.
+Looking at the results for our real speech application (shown in Table~\ref{table:acc-cycles-lvsrc}), we can see that the phases of the LVSRC application were actually easier to predict for the linear and quadratic model than most of the synthetic benchmarks while the GPRS actually performs worse than on the synthetic benchmarks.  These results make the linear and quadratic models seem like potentially reasonable choices.  However, our simulator is too slow test the quality of resource allocations the models produce, so we perform an additional study using an FPGA system to test the allocation quality.  These results are presented in Chapter~\ref{init_eval}.  However, for this discussion it is worth mentioning that we found that the linear and quadratic models outperform the GPRS models because they work well with the optimizer and that the quadratic model often produced near optimal allocations.  As a result, we chose to move forward with a quadratic model.   The following section describes how we designed \pacora's RTF using a quadratic model.  We then perform accuracy tests with a wide range of benchmarks on the new model.  These results are presented in Chapter~\ref{init_eval}.
 
-%%For all of the applications, we can see that the models captured the performance of 90\% of the test points with less than []\% error.  This result leads us to believe that the model is an adequate enough representation of application performance to be useful in predicting performance for the remainder of the allocation options.
-
-Clearly, the nonlinear models are extremely accurate and would make excellent input to our spatial resource allocation algorithm.  However, the GPRS--based models used here took between 0.5 and 6 hours each to build, so clearly they would have to be created offline and stored for use at runtime.  The linear models can be trained extremely rapidly, but are less accurate.  The true metric of whether or not a model is accurate ``enough'' depends on the quality of the decisions made based on it.
-
-
-\subsubsection*{Effect of Sample Size on Model Accuracy}
-\label{sec:eval:acc-sample}
-
-Figure ~\ref{fig:acc-sample} shows the impact that changing the sample set size has on model accuracy, using the example of execution time predictions for the microbenchmarks.  It is worth noting that while the accuracy of the quadratic and  nonlinear models improve rapidly with increasing sample size, the linear additive model sees no improvement on average.  This failure to improve when exposed to additional data indicates that it is the {\em form} of the model itself which is flawed (i.e. too simplistic).  Another important feature is that as sample size increases, the improvement seen by the other models slows, indicating a point of diminishing returns for increasing sample size.
-
-This sample size analysis informs our decision about whether we can afford to use online or offline, linear or nonlinear models.  On the one hand, GPRS--based nonlinear models are much more accurate even when given smaller sample sizes.  However, they take a long time to train, and cannot be rapidly adapted to account for new data points.  On the other hand, linear models of sufficient complexity require more points to succeed, but can be rapidly trained and retrained.  A hybrid approach, in which genetic programming is used to construct the form of the response surface model offline, and then the model's coefficients are retuned based on performance data collected online, may a viable way to get the best of both worlds.
-
-\begin{figure}
-	\centering
-	\includegraphics[scale = 0.5] {Figures/acc_sample.png}
-	\caption{ \small Comparison of model accuracy for different models as training sample size is increased.  Y-axis is average percentage error in predictions of runtime averaged across all benchmarks. X-axis is increasing sample size.  Some models are more robust to reduced sample size than others.}
-	\label{fig:acc-sample}
-\end{figure}
+%Due to the extreme length of the application (which was run to completion), the space of allocations we considered was limited to a maximum of two cores.  We reduced the size of the sample set correspondingly.  As a result, Table~\ref{table:acc-cycles-lvsrc} reflects models tuned on very small samples; with some adjustment of the genetic search parameters to prevent overfitting, all of the GPRS--based model percentage errors were reduced below 2\%.
 
 
 \subsection{Response-Time Functions}\label{final_rtf}
