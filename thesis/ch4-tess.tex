@@ -1,5 +1,20 @@
 \chapter{PACORA Implementation in a Manycore Operating System}\label{tess_design_ch}
-\section{Response Time Model Creation}\label{rtf_creation}
+In this chapter, we present our implementation of \pacora in \tess OS, a manycore research operating system \cite{tess, tess_resource, tess09, tess_dac}.  We give an overview of \tess and why we chose it for our implementation.  We then discuss the details for building RTFs online in the operating system.  Finally, we present our implementation of the resource allocator using an ADMM optimization method.
+
+
+\section{\tess Overview}
+
+To evaluate \pacora's ability to make real-time decisions in a real operating system, we implemented it in an in-house research operating system, \tess. We chose to implement in \tess rather than Linux for three reasons:
+ \begin{enumerate}\itemsep0pt \parskip0pt \parsep5pt
+\item \tess separates resource allocation from scheduling, so is
+  closer to the OS architecture assumed by \pacora
+\item \tess allows resource revocation, enabling \pacora to dynamically reallocate resources
+\item \tess implements additional resource partitioning mechanisms,
+  letting \pacora manage  more resource types
+\end{enumerate}
+This dynamic framework is used to test our implementations of the algorithms, measure the overhead and reaction times, and illustrate \pacora's ability to work in a real system.
+
+\section{RTF Creation}\label{rtf_creation}
 To create RTF models either at install time or online we use a convex
 least-squares approach described below.  At install time, we use a
 genetic algorithm, Audze-Eglasis Design of
@@ -146,9 +161,9 @@ Although system power may not be perfectly convex in reality, forcing it to be c
 
 
 
-\section{Model Update and Downdate Algorithms}
+\subsection{Model Update and Downdate Algorithms}
 
-\subsection{Row Update and Downdate}
+\subsubsection{Row Update and Downdate}
 
 Downdating makes an instructive example. A row downdate operation applies
 a sequence of Givens rotations to the rows of $Q^T$.
@@ -206,7 +221,7 @@ Then $R$ is made upper triangular once more by a sequence of Givens rotations th
 (formerly the diagonal elements of $\tilde{R}$) one at a time.
 These rotations are applied not just to $R$ but also to $Q^Tt$ and of course to $Q^T$ itself.
 
-\subsection{Rank Preservation}
+\subsubsection{Rank Preservation}
 
 Deciding in advance whether downdating a row of $R$ will reduce its rank
 is equivalent to predicting whether one of the Givens rotations, when applied to $R$,
@@ -227,7 +242,7 @@ A rank-preserving row to downdate will always be available as long as $R$ is suf
 Having at least twice as many rows as columns is enough since the number of available rows to downdate
 matches or exceeds the maximum possible rank of $R$.
 
-\subsection{Column Update and Downdate}
+\subsubsection{Column Update and Downdate}
 
 The active-set NNLS method is based on the idea that since the only constraints are variable positivity
 then for all components either the variable or its gradient will be zero at a solution point; see~\cite{BoVa}, page~142.

@@ -42,17 +42,7 @@
 	\end{center}
 \end{figure}
 
-%\cite{tess09,tess_dac}
 
-To evaluate \pacora's ability to make real-time decisions in a real operating system, we implemented it in an in-house research operating system, \tess. We chose to implement in \tess rather than Linux for three reasons:
- \begin{enumerate}\itemsep0pt \parskip0pt \parsep5pt
-\item \tess separates resource allocation from scheduling, so is
-  closer to the OS architecture assumed by \pacora
-\item \tess allows resource revocation, enabling \pacora to dynamically reallocate resources
-\item \tess implements additional resource partitioning mechanisms,
-  letting \pacora manage  more resource types
-\end{enumerate}
-This dynamic framework is used to test our implementations of the algorithms, measure the overhead and reaction times, and illustrate \pacora's ability to work in a real system.
 
 \subsection{Platform}
 Our dynamic experiments are all run on an Intel Nehalem-EP system with two 2.66-GHz Xeon X5550 quad-core processors and hyperthreading enabled with 16 hardware threads. This system also contains a 1-Gbps Intel Pro/1000 Ethernet network adapter.
