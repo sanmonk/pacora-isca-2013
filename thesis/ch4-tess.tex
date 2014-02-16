@@ -2,7 +2,7 @@
 In this chapter, we present our implementation of \pacora in \tess OS, a manycore research operating system \cite{tess, tess_resource, tess09, tess_dac}.  We give an overview of \tess and why we chose it for our implementation.  We then discuss the details for building RTFs online in the operating system.  Finally, we present our implementation of the resource allocator using an ADMM optimization method.
 
 
-\section{\tess Overview}
+
 
 To evaluate \pacora's ability to make real-time decisions in a real operating system, we implemented it in an in-house research operating system, \tess. We chose to implement in \tess rather than Linux for three reasons:
  \begin{enumerate}\itemsep0pt \parskip0pt \parsep5pt
@@ -12,7 +12,232 @@ To evaluate \pacora's ability to make real-time decisions in a real operating sy
 \item \tess implements additional resource partitioning mechanisms,
   letting \pacora manage  more resource types
 \end{enumerate}
-This dynamic framework is used to test our implementations of the algorithms, measure the overhead and reaction times, and illustrate \pacora's ability to work in a real system.
+
+ Further, modifying a full-fledged production OS such as Linux to investigate new resources management schemas is complex and
+ requires more implementation effort than developing for our resource-centric OS.  For example, in our OS we wrote an Earliest
+ Deadline First (EDF) scheduler that runs entirely in user-space in about 800 lines of code, contained in four files.  By contrast, support for
+ EDF in Linux requires kernel modifications and substantially more code: the best-known EDF kernel patch for Linux, SCHED\_DEADLINE, has over 3500 modified lines in over 50 files.
+We use the \tess implementation to test our implementations of the algorithms, measure the overhead and reaction times, and illustrate \pacora's ability to work in a real system. 
+
+\section{\tess Overview}
+
+
+
+
+In \tess, resources are distributed to QoS domains called
+\emph{cells}, which are explicitly parallel, light-weight containers
+with guaranteed, user-level access to resources.   \emph{Resources}, in this context,
+include \emph{physical resources} such as CPU cycles or energy and
+\emph{services} such as file storage or network communication.  Services, which can be viewed as composite resources, are constructed by wrapping cells around
+existing resources and exporting service interfaces with QoS contracts.
+Cells provide our essential mechanism for QoS enforcement.  
+
+Scheduling within cells functions purely at the user-level, as
+close to the \emph{bare metal} as possible, improving efficiency and
+eliminating unpredictable OS interference.  Our framework for preemptive
+scheduling, called \emph{Pulse}, enables customization and support for a wide
+variety of application-specific runtimes and schedulers without
+kernel-level modifications.  Pulse is highly efficient; for instance we
+wrote an Earliest Deadline First (EDF) scheduler~\cite{liu73} that runs
+entirely in user-space in about 800 lines of code.\footnote{In contrast,
+  the best-known EDF kernel patch for Linux (SCHED\_DEADLINE) has over
+  3500 modified lines in over 50 files~\cite{sched-deadline}.}  
+In addition to support for timer interrupts, the Pulse API provides callbacks
+for adaptation events to notify schedulers when the number of available cores
+changes.  
+These notifications permit resource-aware, application-specific management,
+which is impossible with a centralized OS approach.
+This capability eliminates the need
+to build a \emph{one-size-fits-all} scheduler, thus sidestepping a difficult
+design challenge~\cite{cfs-vs-bfs}.
+
+By separating resource management into dynamic allocation and QoS
+enforcement, we are essentially adopting \emph{two-level
+scheduling}~\cite{leiner07,ober08,tess10}.
+While two-level scheduling has been investigated in the past,
+leveraging this concept to address the issues that emerge in the dynamic
+execution scenarios we outlined in this introduction raises complex challenges
+that are often underestimated.  For this
+reason, we evaluate a complete, detailed solution that incorporates
+parallelism, QoS guarantees, and dynamic optimization with two-level
+scheduling.  We directly address many of the issues that arise from this
+challenge, such as timing for interacting control loops, application
+resizing, and efficient gang scheduling.
+
+The decision of how to allocate
+resources to applications is computed by a policy service, which uses models of
+application behavior to predict how resources map to performance. The actual
+distribution of resources to applications is carried out by the kernel, which
+receives allocations from the policy service. Once applications are running,
+performance counters and application heartbeats are used by the policy service
+to adjust the resource allocations according to the application models.
+
+
+This section briefly describes the key components of \tess OS~\cite{tess10,tess:dac2013,tess:jaes2013}.
+The \tess kernel is a thin, hypervisor-like layer that provides support
+for ARCC.  It implements cell along with interfaces for user-level scheduling, resource
+adaptation, and cell composition.  \tess currently runs on x86 hardware
+platforms (\emph{e.g.,} with Intel's Sandy Bridge CPUs). 
+% such as Nehalem$^{TM}$ or Sandybridge$^{TM}$ workstations.
+
+
+\subsection{The Cell Model}\label{sec:cell-model}
+
+
+Cells are the basic unit of computation and protection in \tess.  They
+are performance-isolated resource containers that export their 
+resources to user level.  The software running within each cell has full
+user-level control of the cell's resources (\eg CPU cores, memory pages,
+and I/O devices).  
+
+
+\begin{figure}[tp]
+%\vspace*{-0.2in}
+\centering
+%\rule{4cm}{3cm}
+\includegraphics[width=1.0\columnwidth]{Figures/app-split-into-cells}
+%\vspace*{-0.4in}
+\caption{
+Applications in \tess are created as sets of interacting components
+hosted in different cells that communicate over channels.
+Standard OS services (\eg the file service) are also hosted in cells and
+accessed via channels.
+}
+\label{fig:app-split-into-cells}
+%\vspace*{-0.15in}
+\end{figure}
+
+
+%% The Aha moment: Applications are built as a graph of cells.
+As depicted in Figure~\ref{fig:app-split-into-cells}, applications
+in \tess are created by composing cells via \emph{channels}, which
+provide fast, user-level asynchronous message-passing between cells.
+%Cells are the basis of a component-based model with composable performance. 
+Applications can then be split into performance-incompatible and
+mutually distrusting cells with controlled communication.  Cells provide
+our basic mechanism for QoS enforcement; when combined with adaptive
+resource allocation, they provide a complete platform on which to
+build a multi-application environment.
+
+\subsection{Implementing Cells}\label{sec:cell-implementation}
+
+% Space-Time Partitioning 
+\tess OS implements cells on x86 platforms by partitioning resources
+using \emph{space-time partitioning}~\cite{rushby99,lei03}, 
+%,tess09}, 
+a multiplexing technique that divides the hardware into a sequence of
+simultaneously-resident spatial partitions. 
+%Figure~\ref{fig:tess-arch} shows support for multiplexing in \tess . 
+Cores and other resources are
+\textit{gang-scheduled}~\cite{gangsched1982,gangschedpatent}, so
+cells provide to their hosted applications an environment that is very
+similar to a dedicated machine.
+
+Partitionable resources include CPU cores, memory pages, and guaranteed
+fractional services from other cells (\emph{e.g.,} a throughput reservation of 150~Mbps
+from the network service).  
+They may also include cache slices, portions of memory bandwidth, and fractions
+of the energy budget, when hardware support is available
+\cite{akesson07,lee08memqos,paolieri09,sanchez11}.
+Section~\ref{sec:mux-layer} provides details about our
+implementation of cells in \tess.
+
+% Two-Level Scheduling 
+%\emph{Two-level scheduling}~\cite{leiner07,ober08} %,tess10} 
+%in \tess separates global decisions about allocation of resources \emph{to}
+%cells (\emph{first level}) from application-specific usage of resources
+%\emph{within} cells (\emph{second level}). 
+%Resource redistribution occurs at a coarse time scale to amortize the
+%decision-making cost and allow time for second-level scheduling decisions (made
+%by each cell) to become effective.
+
+The user-level runtime within each cell can be tuned for a specific
+application or application domain with a custom scheduling algorithm.
+Using our user-level scheduler framework, \tess provides pre-canned
+implementations for TBB~\cite{tbb07} and a number of scheduling algorithms,
+including Global Round Robin (GRR), Earliest Deadline First
+(EDF), and Speed Balancing~\cite{juggle2013}.  Others may be easily
+constructed if necessary.  Section~\ref{sec:usersched} provides a
+detailed discussion of user-level scheduling in \tess and the Pulse API.
+
+% Note about multiple address spaces within cells.
+%We have plans to extend cells with multiple address spaces managed by the cell
+%user-level runtime.  
+%This facility will enable support for more traditional UNIX-style processes and
+%multi-component device drivers (\eg USB) within a cell.
+
+
+
+\subsection{Service-Oriented Architecture} \label{sec:soa} 
+
+
+Cells provide a convenient abstraction for building OS services with QoS
+guarantees.  Such services reside in dedicated cells, have exclusive
+control over devices, and encapsulate user-level device drivers. 
+% (see Figure~\ref{fig:tess-arch}).  
+Each service can thus arbitrate access to its
+enclosed devices, and leverage its cell's performance isolation and
+customizable scheduler to offer service guarantees to %applications and
+other cells.  Services can shape data and event flows coming from
+external sources with unpredictable behavior and prevent other cells
+from being affected.  In keeping with ARCC, \tess treats the services
+offered by such \emph{service cells} as additional resources, and
+manages them with its adaptive resource allocation architecture.
+
+Two services in \tess that offer QoS guarantees are: 
+the \emph{Network Service}, which provides access to network adapters and
+guarantees that the data flows are processed with the agreed levels of
+throughput; and   %~\cite{tess:jaes2013,tess:dac2013}
+the \emph{GUI Service}, which provides a windowing system with
+response-time guarantees for visual applications.  These %~\cite{kim2012}
+services are utilized in our macro-benchmarks measurements in
+Section~\ref{sec:eval}. 
+
+
+\subsection{Adaptive Resource Allocation} \label{sec:rsc-alloc}
+
+\tess uses an adaptive resource allocation approach to assign resources
+to cells.  This functionality is performed by the \emph{Resource Broker}, as
+shown in Figure~\ref{fig:tess-arch}.  The Resource Broker distributes
+resources to cells while attempting to satisfy competing application
+performance targets and system-wide goals, such as deadlines met, energy
+efficiency, and throughput.  It utilizes resource constraints,
+application models, and current performance measurements as inputs to
+this optimization.  Allocation decisions are communicated to the kernel
+and services for enforcement.  The Resource Brokerabbrv reallocates resources,
+for example, when a cell starts or finishes or when a cell significantly
+changes performance.  It can periodically adjust allocations; the
+reallocation frequency provides a tradeoff between adaptability (to
+changes in state) and stability (of user-level scheduling).
+
+The Resource Broker provides a resource allocation framework that supports
+rapid development and testing of new allocation policies.  This
+framework enables us to explore the potential of an ARCC-based OS for
+providing QoS to individual applications while optimizing resource
+distribution to achieve global objectives.  In
+Section~\ref{sec:rab-service}, we discuss two policies we have
+implemented to demonstrate this potential.
+
+
+\begin{figure}[t]
+\centering
+%\rule{4cm}{3cm}
+\includegraphics[width=0.885\linewidth]{Figures/NewPolicyFig-Tess}
+%\vspace*{-0.1in}
+\caption{
+The \tess kernel implements \emph{cells} through \emph{spatial-partitioning}.
+The \emph{Resource Broker} redistributes resources after consulting application-specific
+\emph{heartbeats} and system-wide \emph{resource reports}.
+}
+\label{fig:tess-arch}
+%\vspace*{-0.175in}
+\end{figure}
+
+
+  
+  
+   
+ 
 
 \section{RTF Creation}\label{rtf_creation}
 To create RTF models either at install time or online we use a convex
