@@ -39,7 +39,7 @@ adaptation, and cell composition.  \tess currently runs on x86 hardware
 platforms (\emph{e.g.,} with Intel's Sandy Bridge CPUs). 
 
 
-\subsection{The Cell Model}\label{sec:cell-model}
+\subsection{Cells}\label{sec:cell-model}
 
 In \tess, resources are distributed to QoS domains called
 \emph{cells}, which are explicitly parallel, light-weight, performance-isolated containers
@@ -86,12 +86,11 @@ They may also include cache slices, portions of memory bandwidth, and fractions
 of the energy budget, when hardware support is available
 \cite{akesson07,lee08memqos,paolieri09,sanchez11}.
 
-\tess also creates \emph{service cells} which have exclusive
-control over devices, and encapsulate user-level device drivers. 
+\tess also creates \emph{service cells} to encapsulate user-level device drivers and control devices.
 Each service can thus arbitrate access to its
 enclosed devices to offer service guarantees to
 other cells. \tess treats the services
-offered by such \emph{service cells} as additional resources to be allocated to applications.
+offered by the service cells as additional resources to be allocated to applications.
 
 \tess currently has two such service cells implemented:
 the \emph{Network Service}, which provides access to network adapters and
@@ -100,85 +99,47 @@ throughput; and the \emph{GUI Service}, which provides a windowing system with
 response-time guarantees for visual applications.  
 
 
-\subsection{Two-Level Scheduling} 
-\emph{Two-level scheduling}~\cite{leiner07,ober08} %,tess10} 
-in \tess separates global decisions about allocation of resources \emph{to}
+\subsection{Resource Management and Scheduling} 
+\tess uses \emph{Two-level scheduling}~\cite{leiner07,ober08} %,tess10} 
+to separate global decisions about allocation of resources \emph{to}
 cells (\emph{first level}) from application-specific usage of resources
 \emph{within} cells (\emph{second level}). 
-Resource redistribution occurs at a coarse time scale to amortize the
-decision-making cost and allow time for second-level scheduling decisions (made
-by each cell) to become effective.
+Resource allocation occurs at a coarse time scale to allow time for cell scheduling decisions to become effective.
 
-By separating resource management into dynamic allocation and QoS
-enforcement, we are essentially adopting \emph{two-level
-scheduling}~\cite{leiner07,ober08,tess_resource}.
-While two-level scheduling has been investigated in the past,
-leveraging this concept to address the issues that emerge in the dynamic
-execution scenarios we outlined in this introduction raises complex challenges
-that are often underestimated.  For this
-reason, we evaluate a complete, detailed solution that incorporates
-parallelism, QoS guarantees, and dynamic optimization with two-level
-scheduling.  We directly address many of the issues that arise from this
-challenge, such as timing for interacting control loops, application
-resizing, and efficient gang scheduling.
-
+\subsubsection{Scheduling}
 Scheduling within cells functions purely at the user-level, as
 close to the \emph{bare metal} as possible, improving efficiency and
-eliminating unpredictable OS interference.  Our framework for preemptive
+eliminating unpredictable OS interference.  \tess provides a framework for preemptive
 scheduling, called \emph{Pulse}, enables customization and support for a wide
 variety of application-specific runtimes and schedulers without
 kernel-level modifications. 
 The user-level runtime within each cell can be tuned for a specific
 application or application domain with a custom scheduling algorithm.
-Using our user-level scheduler framework, \tess provides pre-canned
+Using Pulse, \tess provides pre-canned
 implementations for TBB~\cite{tbb07} and a number of scheduling algorithms,
 including Global Round Robin (GRR), Earliest Deadline First
-(EDF), and Speed Balancing~\cite{juggle2013}.  Others may be easily
-constructed if necessary.  
-
+(EDF), and Speed Balancing~\cite{juggle2013}.  
  
-In addition to support for timer interrupts, the Pulse API provides callbacks
-for adaptation events to notify schedulers when the number of available cores
-changes.  
-These notifications permit resource-aware, application-specific management,
-which is impossible with a centralized OS approach.
-This capability eliminates the need
-to build a \emph{one-size-fits-all} scheduler, thus sidestepping a difficult
-design challenge~\cite{cfs-vs-bfs}.
+Pulse provides support for revoking resource from schedulers. If a core is removed, Pulse's auxiliary scheduler runs the cell's outstanding scheduler contexts in
+a globally \emph{cooperative}, Round Robin manner; \ie a scheduler context runs
+until it either completes and transitions into an application context, or yields
+into Pulse, allowing other contexts to run. Additionally, the Pulse API provides callbacks to notify schedulers when the number of available cores
+changes, enabling resource-aware scheduling. 
 
+\subsubsection{Adaptive Resource Allocation} \label{sec:rsc-alloc}
 
-
-\subsection{Adaptive Resource Allocation} \label{sec:rsc-alloc}
-
-The decision of how to allocate
-resources to applications is computed by a policy service, which uses models of
-application behavior to predict how resources map to performance. The actual
-distribution of resources to applications is carried out by the kernel, which
-receives allocations from the policy service. Once applications are running,
-performance counters and application heartbeats are used by the policy service
-to adjust the resource allocations according to the application models.
-
-\tess uses an adaptive resource allocation approach to assign resources
-to cells.  This functionality is performed by the \emph{Resource Broker}, as
-shown in Figure~\ref{fig:tess-arch}.  The Resource Broker distributes
-resources to cells while attempting to satisfy competing application
-performance targets and system-wide goals, such as deadlines met, energy
-efficiency, and throughput.  It utilizes resource constraints,
-application models, and current performance measurements as inputs to
-this optimization.  Allocation decisions are communicated to the kernel
-and services for enforcement.  The Resource Brokerabbrv reallocates resources,
+Global resource allocation in Tessellation is performed by the \emph{Resource Broker}, as
+shown in Figure~\ref{fig:tess-arch}. The Broker assigns 
+resources to cells and communicates its allocation decisions to the kernel
+and services for enforcement.  It reallocates resources,
 for example, when a cell starts or finishes or when a cell significantly
-changes performance.  It can periodically adjust allocations; the
+changes performance.  The Broker can periodically adjust allocations; the
 reallocation frequency provides a tradeoff between adaptability (to
 changes in state) and stability (of user-level scheduling).
 
-The Resource Broker provides a resource allocation framework that supports
-rapid development and testing of new allocation policies.  This
-framework enables us to explore the potential of an ARCC-based OS for
-providing QoS to individual applications while optimizing resource
-distribution to achieve global objectives.  In
-Section~\ref{sec:rab-service}, we discuss two policies we have
-implemented to demonstrate this potential.
+Rather than implementing a single policy, the Broker is resource allocation framework that supports
+rapid development and testing of new allocation policies. We've implemented \pacora as a resource allocation policy inside the Resource Broker.
+ 
 
 
 \begin{figure}[t]
@@ -197,7 +158,55 @@ The \emph{Resource Broker} redistributes resources after consulting application-
 
 
   
-  
+\section{Interfaces}{
+
+Applications report their own measured response times to \pacora
+through a message-passing interface built into \tess, and \pacora uses
+this information to build models offline or online. 
+\tess enables \pacora to directly measure the system energy.
+
+The Resource Broker runs in its own cell and communicates with
+applications through channels, as shown in Figure~\ref{fig:tess-arch}.
+When a cell is started, it registers with the Resource Broker and provides
+an application-specific performance target, such as desired a
+frame rate.  
+These metrics are provided in the form of a time in milliseconds.  
+For example, an application with a desired rate of
+30 frames per second would specify a performance target of 33~ms
+per frame.  While the cell is running, the Broker receives periodic
+performance reports, called \emph{heartbeats}~\cite{hoffmann2011}, containing
+measured performance values from the cell (\eg the time to render a
+frame for a video application).  These measured values correspond to the
+performance target provided by the cell when it registered with the
+Broker, so a value that is larger than the target would mean that the
+application is not meeting its goals.  The Resource Broker also provides
+an interface for cells to update their performance targets while they are running.
+
+Ideally, performance targets would be inferred by the system or provided by a
+more trusted source than the applications themselves.  
+However, we chose this design point since it was straightforward to implement
+and we wanted to focus our efforts on exploring resource allocation approaches
+that could take advantage of the additional information.
+%\footnote{For cloud systems, applications typically provide
+%  their resource requirements to the system, which necessitates
+%  applications understanding their own performance and requires the
+%  system to trust the application.}.
+
+The Broker also accesses information from system-wide performance
+counters, such as cache-miss statistics and energy measurements, which
+enables policies to take system-wide goals into account in their
+allocations.  For example, the Broker could reduce resource allocations
+of non-critical applications if the system power is too high.
+
+The Broker monitors cells' performance using heartbeats and compares it to
+target rates, adjusting resource allocations as required.  Allocation
+decisions are communicated to the kernel (using \texttt{update\_cells(...)})
+and services (using channels) for enforcement.  The reallocation
+frequency is adjustable.  However, in most of our allocation
+approaches we try to avoid frequent reallocation, leaving the
+user-level scheduler to handle fine-grained resource management.
+
+} 
    
  
 
