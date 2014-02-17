@@ -572,3 +572,470 @@ In addition, penalty function slopes should not differ by more than perhaps two 
 %Figure~\ref{optimization_perf} shows performance of the penalty optimization algorithm implemented in \tess.  
 
 %For our video conferencing scenario the average runtime is \fix{x} and then worst case runtime is \fix{y}.  \fix{explain where the variance comes from}
+
+
+\subsection{Resource allocation}
+
+We follow the notation in \S 7.3 of Boyd et al. \cite{ADMM},
+from which this material is taken almost verbatim.
+We have $n$ resources and $N$ participants.
+We let $x_i \in \reals^n_+$ denote the vector of resources 
+that participant $i$ consumes.  
+The (vector of) total resource consumption is then $x_1 + \cdots + x_N$;
+for future use we let $z$ denote the average resource
+usage per participant, \ie, the total divided by $N$.
+Participant $i$ has a cost function $f_i:\reals^n \to \reals \cup
+\{\infty\}$, where
+$f_i$ is convex.  We let $f_i$ take on the value $+\infty$ to encode
+constraints on the resource allocation.
+
+The total cost function is
+\[
+f_1(x_1) + \cdots + f_N (x_N) + g(Nz),
+\]
+where $g: \reals^n \to \reals \cup \{+\infty\}$ is the cost
+of consuming a total amount of resources (including any limits on total
+available resources).
+Note that the first $N$ terms are the costs associated with the
+participants, and the last term is the cost of providing the total
+resources.
+The problem is to choose the allocations $x_i$ to minimize the total cost,
+which is a convex optimization problem \cite{BoVa,ADMM}.
+
+We will solve this problem using the \emph{sharing ADMM algorithm}
+from \cite{ADMM}:
+\begin{eqnarray*}
+x_i^{k+1} &:=&  \argmin_{x_i} \left( f_i(x_i) + (\rho/2)
+\|x_i-x_i^k+\overline x^k-z^k+u^k\|^2_2\right)\\
+z^{k+1} &:=&  \argmin_{z} \left( g(Nz) + (N\rho/2)
+\|z - u^k - \overline x^{k+1} \|_2^2 \right)\\
+u^{k+1} &:=&  u^k + \overline x^{k+1}- z^{k+1}.
+\end{eqnarray*}
+Here $\rho>0$ is an algorithm parameter,
+$k$ is the iteration number,
+and $\overline x^k$ is the average of the consumption vectors
+$x^k_1, \ldots, x^k_N$.
+We interpret $x_i^k$ as the (proposed) resource consumption of 
+participant $i$,
+$z^k$ as the (proposed) average resource consumption,
+and $u^k$ as a dual variable, all at iteration $k$.
+This algorithm converges to an optimal allocation,
+and $(1/\rho)u^k$ converges
+to the optimal dual variables (prices) for the resources.
+
+The $x$-update can be carried out in parallel, for $i=1, \ldots, N$.
+Each participant, in each iteration, must minimize a function of the form
+\[
+f_i(x_i) + (\rho/2) \|x_i - v\|_2^2,
+\]
+\ie, each participant evaluates a proximal operator; see
+\cite{ProxAlgs}.
+
+The $z$-update step requires
+gathering $x_i^{k+1}$ to form the averages, and then solving a problem
+with $n$ variables.  This step is also a proximal evaluation.
+
+After the $u$-update, the new value of $\overline x^{k+1}-
+z^{k+1}+u^{k+1}$ is scattered to the subsystems.
+
+\subsection{Excess latency minimization}
+
+We now specialize to a latency minimization problem,
+where the participants are processes and the participant costs 
+are related to their latencies.
+
+\subsubsection{Participants}
+
+The latency (time delay) of each process depends on the 
+resources allocated to the process.
+Our model of the latency of process $i$ is
+\[
+l_i(x_i) = a_i + \sum_{j=1}^n (w_i)_j/(x_i)_j
+\]
+for $x_i >0$, and $+\infty$ otherwise, where $a_i \in \reals_+$ and 
+$w_i \in \reals_{++}^n$ are given latency model parameters.
+The participant cost is given by
+\[
+f_i(x_i) = \alpha_i (l_i(x_i) - t_i)_+,
+\]
+where $\alpha >0$ is a parameter and $t_i$ is a target latency.
+Note that $l_i(x_i)-t_i$ is the excess latency.
+
+We commment that the target latency in the cost function here is
+probably not the actual target latency for our system, but rather
+a target latency below which we do not impose a cost.  If the system
+specification is for process $i$ to have (to the extent possible) latency
+not exceeding $T_i$, then we might choose, for example, $t_i= 0.9T_i$.
+In this case, there is no latency cost as long as the process latency is
+less than the specification latency, with at least $10\%$ margin.
+
+In each iteration of the sharing algorithm, 
+we need to evaluate the proximal operator of $f_i$.
+To simply notation, we drop the subscript $i$ and consider one
+participant.
+We need to minimize
+\[
+\alpha \left(a + \sum_{j=1}^n w_j/x_j - t\right)_+ + 
+(\rho/2)\sum_{j=1}^n (x_j - v_j)^2
+\]
+over $x_j\geq 0$.
+Note that we can combine $\alpha$ and $\rho$ (say, by dividing by 
+$\alpha$) and we can combine $a$ and $t$.  So we now 
+assume that $\alpha =1$ and $a=0$, with the understanding that
+$\alpha$ and $a$ have been incorporated into $\rho$ and $t$.
+
+We work out several cases.  First suppose that the excess latency
+is negative.  
+The first term above is zero and we must have $x=v$.  So $x=v$ is
+the solution when $v>0$ and
+\[
+\sum_{j=1}^n w_j/v_j - t \leq 0.
+\]
+
+Now consider the case when the excess latency is positive.  In this case
+we simply minimize
+\[
+\sum_{j=1}^n w_j/x_j +
+(\rho/2)\sum_{j=1}^n (x_j - v_j)^2,
+\]
+which can be done for each $x_j$ separately.
+Each $x_j$ must satisfy
+\[
+w_j/x_j^2  = \rho(x_j - v_j).
+\]
+This can be solved extremely quickly, using a bisection method, Newton's
+method, or many others to find the unique (positive) 
+values $x_j^\star$ that satisfy
+the equation.
+We then check if the resulting values of $x_j$ give nonnegative
+excess latency, \ie, if 
+\[
+\sum_{j=1}^n w_j/x_j^\star - t  \geq 0.
+\]
+If so, we are done: $x^\star$ is the value of the proximal operator.
+
+Finally, we consider the special case (which occurs often) when
+the optimal values have zero excess latency, \ie,
+\[
+\sum_{j=1}^n w_j/x_j - t  = 0.
+\]
+The optimality condition in this case is that exists a $\theta \in [0,1]$
+for which
+\[
+\theta w_j/x_j^2 = \rho(x_j - v_j)
+\]
+(along with the condition $\sum_{j=1}^n w_j/x_j - t  = 0$).
+This we solve by bisection on $\theta$.  For each value of $\theta$,
+we use the same method as above to find $x_j$.  We then check if
+$\sum_{j=1}^n w_j/x_j - t  = 0$ is positive or negative.
+If it is positive, we increase $\theta$; otherwise we decrease it.
+(We could also apply a Newton method to solve the two equations for
+$x_j$ and $\theta$.)
+
+\paragraph{Summary.} 
+We can write a little C code that computes the proximal operator
+for each participant very fast.
+A naive implementation will be fast; an optimized one (say,
+in whcih we precompute the solution with a lookup table) will be very very
+fast.
+
+\subsubsection{Total resource cost}
+
+We take the resource cost to have the form
+\[
+g(z) = \sum_{i=1}^n g_i(z_i).
+\]
+Here $g_i(z_i)$ is the cost of providing resource $i$ at level $z_i$.
+A simple model is 
+\[
+g_i(z_i) = \left\{ \begin{array}{ll} 
+c_i z_i & z_i \leq Z_i\\
++ \infty & z_i > Z_i ~\mbox{or}~z_i<0,
+\end{array} \right.
+\]
+where $Z_i>0$ is the maximum available, and $c_i>0$ is the price for
+resource $i$.
+Since $g$ is separable, we can minimize over each resource 
+separately; these are scalar problems.
+
+We need to minimize 
+\[
+g_i(Nz_i)  +(N\rho/2)(z_i - v_i)^2
+\]
+over the (scalar) $z_i$. (Here $v_i = u^k_i + \overline x^{k+1}_i$.)
+The solution is simple:
+\[
+    z_i = \max \{0, \min \{ v_i - c_i/\rho, Z_i/N\} \}.
+\]
+Note that $N$ drops out, but we need to scale the bound accordingly.
+Also note that when the average $z_i = Z_i/N$, the total amount of
+resource is $N z_i=Z_i$, meaning 
+that resource $i$ is at its maximum possible level.
+
+%\paragraph{Summary.} We can write a few lines of C code that carries out
+%the $z$ update step.  It will be exceedingly fast.
+
+\subsubsection{Total resource cost with free zone}
+We model the resource cost in terms of energy consumed with a function 
+of the form
+\[
+    g(z) = \lambda \left(\sum_{i=1}^n c_i z_i - b\right)_+,
+\]
+where $c_i>0$ represents the amount of energy consumed by
+unit amount of resource~$i$, 
+the constant~$b>0$ is a threshold below which power consumption is free,
+and~$\lambda>0$ is the price charged for excess energy used
+(or relative weight used to tradeoff between latency and energy).
+We also impose lower and upper bounds on~$z$, \ie, $0\leq z_i\leq Z_i$
+for $i=1,\ldots, n$.
+
+To evaluate the proximal operator, we need to minimize
+\[
+    g(Nz) + \frac{N\rho}{2}\sum_{i=1}^n (z_i-v_i)^2,
+\]
+where $z$ is the averge resource vector, and
+$v_i = u^k_i + \overline x^{k+1}_i$.
+This is equivalent to
+\[
+\begin{array}{ll}
+\mbox{minimize} &  \lambda\left(\sum_{i=1}^n c_i z_i - b/N\right)_+
+     + (\rho/2)\sum_{i=1}^n (z_i-v_i)^2 \\
+\mbox{subject to} & 0\leq z_i \leq Z_i/N, \quad i=1,\ldots,n.
+\end{array}
+\]
+The solution can be obtained in a way similar to that used for evaluating 
+the proximal operator of the latency penalty functions.
+
+We work out several cases. 
+First suppose that the excess energy is negative. 
+The first term in the objective function is zero. 
+So the solution is
+\[
+    z_i = \max\{0, \min\{v_i, Z_i/N\}\}, \quad i=1,\ldots, n
+\]
+provided that
+\[
+    \sum_{i=1}^n c_i z_i - b/N \leq 0.
+\]
+
+Next we consider the case when the excess energy is positive.
+In this case, we simply minimize
+\[
+    \lambda \left(\sum_{i=1}^n c_i z_i - b/N \right) 
+    + (\rho/2)\sum_{i=1}^n (z_i-v_i)^2,
+\]
+which can be solved for each $z_i$ separately and the solutions are
+\[
+    z_i = \max\{0, \min\{v_i - \lambda c_i/\rho, Z_i/N\}\}, \quad i=1,\ldots, n.
+\]
+We then need to check
+\[
+    \sum_{i=1}^n c_i z_i - b/N \geq 0.
+\]
+If so, we are done.
+
+Finally we consider the case when the optimal allocations have zero excess
+enerty, \ie,
+\[
+    \sum_{i=1}^n c_i z_i - b/N = 0.
+\]
+The solution takes the form
+\[
+    z_i = \max\{0, \min\{v_i - \theta c_i/\rho, Z_i/N\}\}, \quad i=1,\ldots, n.
+\]
+where $0\leq\theta\leq\lambda$.
+We can do a bisection on $\theta$ to make the solution satisfy
+$\sum_{i=1}^n c_i z_i-b/N=0$.
+Basically, if the excess energy is positive, then we increase~$\theta$;
+otherwise we decrease it.
+
+
+
+
+\subsubsection{Smoothing regularization}
+
+Suppose we need to do resource allocation repeatedly over time.
+We can add a term of the form
+\[
+\mu \| x_i - x_i^\mathrm{prev}\|_1,
+\]
+where $\mu > 0$ is a parameter, to the latency cost function.
+This adds a cost for changing the resource allocation from its
+previous value.
+The larger $\mu$ is, the less frequently the resource allocations change
+over time (which comes at the cost of higher objective cost).
+As an extension, we can have different values of $\mu_i$ for each
+resource; this allows some resource levels to be adjusted more often than
+others.
+
+The addition of smoothing regularization would require a few 
+changes to the proximal operator evaluation described above.
+
+\subsection{Real-time resource allocation}
+
+Here we describe how the sharing algorithm is used in a real-time 
+resource allocation system.
+Resources are (possibly) re-allocated in time epochs.
+In each time epoch, we (possibly) 
+(re-)estimate the latency model parameters $a_i$, $w_i$, and
+obtain (possibly) updated values for the resource usage cost 
+parameters $c_i$ and $Z_i$.
+These new values are used for the next round of sharing algorithm iteration,
+starting from the values in the previous time epoch.  (This is called
+\emph{warm start}.
+The converged values are then used for the allocations in the 
+current epoch.
+
+\subsection{implementation details}
+
+\subsubsection{Stopping criteria}
+Here we describe a stopping criterion that is similar to the one
+in \S3.3 of \cite{ADMM} applied the resource allocatoin problem.
+
+For our resource allocation problem, the primal residuals at iteration~$k$ are
+\[
+    r_i^k = x_i^k - z_i^k, \quad i=1,\ldots,N,
+\]
+and the dual residuals are
+\[
+    s_i^k = \rho (z_i^{k-1}-z_i^{k}), \quad i=1,\ldots,N.
+\]
+Here $z_i$ for $i=1,\ldots, N$ are the variables that were eliminated
+to simplify the $z$-update in the sharing problem 
+(see \S7.3 of \cite{ADMM}).
+The variable~$z$ in the  simplified update is actually 
+their average $\overline z=(1/N)\sum_{i=1}^N z_i$.
+Based on the derivation in \cite[\S7.3]{ADMM}, 
+\[
+    z_i^k = x_i^k -\overline x^k + \overline z^k , \quad i=1,\ldots,N.
+\]
+Therefore we have
+\[
+    r_i^k = x_i^k - z_i^k = \overline x^k - \overline z^k, \quad i=1,\ldots,N,
+\]
+\ie, the primal residuals for the processes are the same as the average
+primal residue.
+The dual residuals become
+\begin{eqnarray*}
+    s_i^k &=& \rho(z_i^{k-1} - z_i^k) \\
+    &=&\rho\bigl( (x_i^{k-1}-x_i^k) +(\overline x^k-\overline z^k)
+    -(\overline x^{k-1} - \overline z^{k-1})\bigr)\\
+    &=& \rho\bigl( (x_i^{k-1}-x_i^k) + r^k - r^{k-1} \bigr),
+    \quad i=1,\ldots, N.
+\end{eqnarray*}
+So the dual residuals are different for different processes.
+
+The following termination criterion is similar to the one proposed in
+\cite[\S3.3]{ADMM}:
+\begin{eqnarray*}
+\|r^k\|_2 = \|\overline x^k - \overline z^k\|_2 &\leq& \epsilon^\mathrm{pri},\\
+\max \{\|s_1^k\|_2,\ldots,\|s_N^k\|_2 \} &\leq& \epsilon^\mathrm{dual},
+\end{eqnarray*}
+with
+\begin{eqnarray*}
+\epsilon^\mathrm{pri} &=& \sqrt{n}\epsilon^\mathrm{abs} + \epsilon^\mathrm{rel}
+    \max\{\|x_1\|_2,\ldots,\|x_N\|_2,\|z_1\|_2,\ldots,\|z_N\|_2\} ,\\
+\epsilon^\mathrm{dual} &=& \sqrt{n}\epsilon^\mathrm{abs} +\epsilon^\mathrm{rel}
+    \rho\|u^k\|_2.
+\end{eqnarray*}
+
+
+Since the computation involved in the above stopping criterion are 
+rather heavy, and we also experimented with simplified conditions.
+In particular, we tried the following conditions 
+which only uses the average vectors:
+\begin{eqnarray*}
+\|r^k\|_2=\|\overline x^k - \overline z^k\|_2 
+&\leq& \sqrt{n}\epsilon^\mathrm{abs}+\epsilon^\mathrm{rel}\|\overline z^k\|_2,\\
+\|s^k\|_2 = \rho(\overline z^{k-1}-\overline z^k\|_2)
+&\leq& \sqrt{n}\epsilon^\mathrm{abs} +\epsilon^\mathrm{rel}\rho \|u^k\|_2 .
+\end{eqnarray*}
+Basically we simplified the calculation of $\epsilon^\mathrm{pri}$ and
+the dual residual, while leave the calculation of primal residual and
+$\epsilon^\mathrm{dual}$ unchanged.
+
+Figure~\ref{fig:residual-e} shows both the accurate calculations and their
+simplified counterparts.
+We see that the simple primal $\epsilon^\mathrm{pri}$ is slightly smaller
+than the more accurate calculation, making primal residual a little harder to
+satisfy the termination condition. 
+On the other hand, the simple dual residual calculation is smaller than
+the accurate dual residual calculation, making thedual residual easier to
+satisfy the termination condition.
+Figure~\ref{fig:allocation-e} illustrate the optimal resource allocation 
+and resulting latency for each of the processes.
+
+It looks that the simplified stopping criterion is effective and 
+sufficient.
+However, when we vary the parameters in the resource allocation problem, 
+the simple conditions may breakdown.
+Figure~\ref{fig:residual-c} and~\ref{fig:allocation-c} 
+plot the same quantities but in the case of cheap energy (meaning that
+price $\lambda$ in the total resource cost function is small).
+In this case, the total resouces allocated all reach their bounds, 
+and most of the process latency are within their deadlines.
+Notice that the simplified dual residual becomes exactly zero 
+(discontinued in the right plot of Figure~\ref{fig:residual-c}) 
+after 10 iterations.
+The reason is that since the enerygy is cheap, the resource allocations 
+reach their bounds easily,
+so the simple dual residual $\|s^k\|_2=\rho\|z^{k}-z^{k+1}\|_2=0$ 
+become zero quickly, therefore can \emph{not} serve as a stopping criterion.
+
+In our implementation, we use the simplfied calculation of 
+$\epsilon^\mathrm{pri}$,
+but do not simplify the calculation of the dual residual.
+
+\begin{figure}[th]
+\centering
+\includegraphics[width=0.49\textwidth]{figures/test_primal_e.eps}
+\includegraphics[width=0.49\textwidth]{figures/test_dual_e.eps}
+\caption{Progress of reducing primal and dual residual norms in ADMM.
+    This is the case of expensive energy, notice that the simple dual
+residual often work as well as the accurate dual residual. Since
+the resource allocations are not reaching their bounds, so the simple
+dual residual $\|s^k\|_2=\rho\|z^{k}-z^{k+1}\|_2$ converges to zero 
+only asymptotically, and can serve as a stopping criterion.}
+\label{fig:residual-e}
+\end{figure}
+
+\begin{figure}[th]
+\centering
+\includegraphics[width=0.49\textwidth]{figures/test_resource_e.eps}
+\includegraphics[width=0.49\textwidth]{figures/test_latency_e.eps}
+\caption{Visualization of optimal resource allocation (left) and 
+    resulting latency for each process (right).
+    There are $n=10$ resources and $N=20$ processes.
+    This is the case of expensive energy, so the total resouces allocated
+    are mostly well below their bounds, but the process latency are mostly
+exceeding the deadlines.}
+\label{fig:allocation-e}
+\end{figure}
+
+
+\begin{figure}[th]
+\centering
+\includegraphics[width=0.49\textwidth]{figures/test_primal_c.eps}
+\includegraphics[width=0.49\textwidth]{figures/test_dual_c.eps}
+\caption{Progress of reducing primal and dual residual norms in ADMM.
+    This is the case of cheap energy, notice that the simple dual
+residual becomes exactly zero (discontinued in the plot) after 10 iterations, 
+Since the enerygy is cheap, the resource allocations reach their bounds easily,
+so the simple dual residual $\|s^k\|_2=\rho\|z^{k}-z^{k+1}\|_2=0$ 
+become zero quickly, therefore can \emph{not} serve as a stopping criterion.}
+\label{fig:residual-c}
+\end{figure}
+
+\begin{figure}[th]
+\centering
+\includegraphics[width=0.49\textwidth]{figures/test_resource_c.eps}
+\includegraphics[width=0.49\textwidth]{figures/test_latency_c.eps}
+\caption{Visualization of optimal resource allocation (left) and 
+    resulting latency for each process (right).
+    There are $n=10$ resources and $N=20$ processes.
+    This is the case of cheap energy, so the total resouces allocated
+    all reach their bounds, and most of the process latency are 
+within their deadlines.}
+\label{fig:allocation-c}
+\end{figure}
+
