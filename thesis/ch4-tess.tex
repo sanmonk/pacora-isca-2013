@@ -3,6 +3,17 @@ In this chapter, we present our implementation of \pacora in \tess OS, a manycor
 
 
 
+\section{Motivation}
+
+We believe \pacora is applicable to many resource-allocation
+scenarios cloud computing to distributed embedded systems. For our initial prototype, we chose to study
+\pacora implemented in a general-purpose operating system for client
+systems, because we believe this scenario has some of the most
+difficult resource allocation challenges: a constantly changing
+application mix requiring low overhead and fast response times, shared
+resources that create more interference among the applications, and
+platforms that are too diverse to allow \emph{a priori} performance
+prediction.
 
 To evaluate \pacora's ability to make real-time decisions in a real operating system, we implemented it in an in-house research operating system, \tess. We chose to implement in \tess rather than Linux for three reasons:
  \begin{enumerate}\itemsep0pt \parskip0pt \parsep5pt
@@ -14,9 +25,9 @@ To evaluate \pacora's ability to make real-time decisions in a real operating sy
 \end{enumerate}
 
  Further, modifying a full-fledged production OS such as Linux to investigate new resources management schemas is complex and
- requires more implementation effort than developing for our resource-centric OS.  For example, in our OS we wrote an Earliest
- Deadline First (EDF) scheduler that runs entirely in user-space in about 800 lines of code, contained in four files.  By contrast, support for
- EDF in Linux requires kernel modifications and substantially more code: the best-known EDF kernel patch for Linux, SCHED\_DEADLINE, has over 3500 modified lines in over 50 files.
+ requires more implementation effort than developing for \tess's resource-centric OS\footnote{For example, the Earliest
+ Deadline First (EDF) scheduler in \tess is only 800 lines of user-space code, contained in four files.  By contrast, support for
+ EDF in Linux requires kernel modifications and substantially more code: the best-known EDF kernel patch for Linux, SCHED\_DEADLINE, has over 3500 modified lines in over 50 files.}.
 We use the \tess implementation to test our implementations of the algorithms, measure the overhead and reaction times, and illustrate \pacora's ability to work in a real system. 
 
 \section{\tess Overview}
@@ -26,12 +37,6 @@ The \tess kernel is a thin, hypervisor-like layer that provides support
 for dynamic resource management.  It implements cell along with interfaces for user-level scheduling, resource
 adaptation, and cell composition.  \tess currently runs on x86 hardware
 platforms (\emph{e.g.,} with Intel's Sandy Bridge CPUs). 
-
-
-
-
-
-
 
 
 \subsection{The Cell Model}\label{sec:cell-model}
