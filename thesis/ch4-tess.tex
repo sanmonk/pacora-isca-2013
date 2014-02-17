@@ -6,7 +6,7 @@ In this chapter, we present our implementation of \pacora in \tess OS, a manycor
 \section{Motivation}
 
 We believe \pacora is applicable to many resource-allocation
-scenarios cloud computing to distributed embedded systems. For our initial prototype, we chose to study
+scenarios from cloud computing to distributed embedded systems. For our initial prototype, we chose to study
 \pacora implemented in a general-purpose operating system for client
 systems, because we believe this scenario has some of the most
 difficult resource allocation challenges: a constantly changing
@@ -158,8 +158,23 @@ The \emph{Resource Broker} redistributes resources after consulting application-
 
 
   
-\section{Interfaces}{
+\section{\pacora in \tess}{
 
+\begin{figure}[t]
+\centering
+%\rule{4cm}{3cm}
+\includegraphics[width=0.885\linewidth]{Figures/pacora-in-tess}
+%\vspace*{-0.1in}
+\caption{
+The \tess kernel implements \emph{cells} through \emph{spatial-partitioning}.
+The \emph{Resource Broker} redistributes resources after consulting application-specific
+\emph{heartbeats} and system-wide \emph{resource reports}.
+}
+\label{fig:tess-arch}
+%\vspace*{-0.175in}
+\end{figure}
+
+\subsection{Interfaces}
 Applications report their own measured response times to \pacora
 through a message-passing interface built into \tess, and \pacora uses
 this information to build models offline or online. 
