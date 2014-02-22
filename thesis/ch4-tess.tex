@@ -180,7 +180,7 @@ The registration message contains the deadline and slope for \pacora's penalty f
 
 
 Ideally, penalty functions would be inferred by the system or provided by a
-more trusted source than the applications themselves.  The simplest approach to implement this functionality in current operating systems would be to use an application's priority as the penalty slope and its interaction class~\cite{interaction_class} for the deadline. However, for our prototype the direct approach was straightforward to implement, and we believe does not detract from the validity of the resource allocation experiments\footnote{For cloud systems, this approach is, in fact, common practice: applications typically provide their resource requirements to the system.}.  
+more trusted source than the applications themselves.  The simplest approach to implement this functionality in current operating systems would be to use an application's priority as the penalty slope and its interaction class~\cite{} for the deadline. However, for our prototype the direct approach was straightforward to implement, and we believe does not detract from the validity of the resource allocation experiments\footnote{For cloud systems, this approach is, in fact, common practice: applications typically provide their resource requirements to the system.}.  
 
 
 The Resource Broker also provides an interface for cells to update their penalty function or RTF while they are running, which we currently use to change RTF functions when an application changes phase or update the penalty function of application 0 when the computer changes operating mode (\ie from battery to power source).  The message formats for updating RTFs or Penalty Functions are shown below.
@@ -201,20 +201,24 @@ Applications report their own measured response times to \pacora by periodically
 \texttt{measure\_energy\_counter}
 
 
-
-
-
-
-
 \subsection{Resource Allocation}
+\pacora periodically optimizes the system penalty and produces resource allocations.  Details of this process are described in Section~\ref{dyn_opt}.  Allocation decisions are communicated to the kernel and services for enforcement.  Updates are sent to the kernel the update\_cells system call, which adjusts the Space-Time Resource Graph.  The system call is shown below.
 
-The Broker monitors cells' performance using heartbeats and compares it to
-target rates, adjusting resource allocations as required.  Allocation
-decisions are communicated to the kernel (using \texttt{update\_cells(...)})
-and services (using channels) for enforcement.  The reallocation
-frequency is adjustable.  However, in most of our allocation
-approaches we try to avoid frequent reallocation, leaving the
-user-level scheduler to handle fine-grained resource management.
+\texttt{update\_cells(...)}
+
+The Resource Broker has a channel with each service to communicate allocations.  To update an allocation, \pacora sends a QoS Specification message to the service.  These messages are service-specific.  The network service QoS specification message is shown below.
+
+\texttt{update\_NS\_alloc(...)}
+
+The Resource Broker design provides an adjustable reallocation frequency; the reallocation frequency provides a tradeoff
+between adaptability (to changes in state) and stability (of user-level
+scheduling).  
+
+If \pacora is using offline models then it only makes sense to reallocate resources when a cell starts or finishes or when a cell updates its penalty function or RTF, since those are only points at which the inputs to the optimization change.  The exception to this is if optimization is terminated early for latency reasons, then each successive reallocation would move the allocations closer to optimal~\footnote{We found early termination to be unnecessary since the complete optimization runs so quickly.  (This data is shown in Section~\ref{tess_eval}.)}. 
+
+With online modeling reallocation could, in theory, be performed more frequently since the RTF functions can change as a cell runs.  However, the models will only change significantly as a result of an application phase change or application input change and so, in practice, it is similar to the offline modeling case\footnote{In the cloud, RTFs for applications such as web services may also change as a result of the incoming request load and thus require more frequent reallocation.}.
+
+In our experiments (See Section~\ref{tess_eval}), we run \pacora continuously so that we can observe more resource allocation decisions. However, the allocations rarely change outside of the cases described above (\ie cell start, stop and phase change), so in practice it performs the same (in terms of resulting allocations) as if it were run periodically but with a higher overhead since it occupies at hardware thread for all time instead of for only the length of a single optimization. 
 
 \subsection{Application Requirements}
  
