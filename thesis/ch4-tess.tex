@@ -218,7 +218,7 @@ If \pacora is using offline models then it only makes sense to reallocate resour
 
 With online modeling reallocation could, in theory, be performed more frequently since the RTF functions can change as a cell runs.  However, the models will only change significantly as a result of an application phase change or application input change and so, in practice, it is similar to the offline modeling case\footnote{In the cloud, RTFs for applications such as web services may also change as a result of the incoming request load and thus require more frequent reallocation.}.
 
-In our experiments (See Section~\ref{tess_eval}), we run \pacora continuously so that we can observe more resource allocation decisions. However, the allocations rarely change outside of the cases described above (\ie cell start, stop and phase change), so in practice it performs the same (in terms of resulting allocations) as if it were run periodically but with a higher overhead since it occupies at hardware thread for all time instead for only a single optimization at a time. 
+In our experiments (See Section~\ref{tess_eval}), we run \pacora continuously so that we can observe more resource allocation decisions. However, the allocations rarely change outside of the cases described above (\ie cell start/stop or phase/penalty change), so in practice it performs the same (in terms of resulting allocations) as if it were run periodically but with a higher overhead since it occupies at hardware thread for all time instead for only a single optimization at a time. 
 
 \subsection{Application Requirements}
 Our \tess implementation of \pacora requires minor modifications to applications~\footnote{In addition to the modifications already required for an application to run on \tess}.  First, during the application initialization phase where the cell registers with \tess, a cell creation call must be added to open a channel with the Resource Broker and send the application's penalty function.  Second, the application must be modified to measure its response time and send these results to \pacora using the heartbeat interface.  For our applications, this simply required adding two timer calls and one message send.  Finally, if the system is using offline modeling and the application has multiple phases with different RTFs then an update RTF message must be sent when the application changes phase.  
@@ -226,15 +226,7 @@ Our \tess implementation of \pacora requires minor modifications to applications
 These modifications are mostly a product of our prototype implementation decisions more than \pacora's fundamental design, and we hope that more advanced future implementations would eliminate the need to modify applications.   This is discussed further in Section~\ref{discuss}.
 
 \section{RTF Creation}\label{rtf_creation}
-To create RTF models either at install time or online we use a convex
-least-squares approach described below.  At install time, we use a
-genetic algorithm, Audze-Eglasis Design of
-Experiments\cite{bates-aes03}, to select the resource vectors to use
-for training.  These vectors and their response times are fed into the
-convex least-squares algorithm. Online model building uses data
-from the application's response time history.
 
-\subsection*{Data Collection and Model Creation Time}
 There are many ways to collect the response time data for
 applications. The user-level runtime scheduler is one possible source,
 or the operating system could measure progress using performance
@@ -244,13 +236,15 @@ test the validity of the concept.  In a production operating system it
 may not be a good idea because applications could lie about their
 performance.  In a single-operator datacenter environment this might be less of a concern.
 
-There are also many different possible moments to create response time functions.  RTFs could be created in advance and distributed with the application. This approach could make lots of sense for app stores since most of them cater to just a few platforms. RTFs could also be crowd-sourced and built in the cloud, which has the advantage making it easy to collect a diverse set of training points.  However, all of these approaches lack adaptability.  As a result, we have chosen to implement two solutions that collect data directly from the user's machine.  The first approach is to adapt to the system by collecting all of the training points at application install time and building the model then.  The most highly adaptive approach collects data continuously as the application runs, uses the data to modify the model training set, and rebuilds the model.  A hybrid approach may be the most effective: applications can begin with a generic model and improve it over time. The remainder of this Section describes our model creation process in detail.
+There are also many different possible moments to create response time functions.  RTFs could be created in advance and distributed with the application. This approach could make lots of sense for app stores since most of them cater to just a few platforms. RTFs could also be crowd-sourced and built in the cloud, which has the advantage making it easy to collect a diverse set of training points.  However, all of these approaches lack adaptability.  As a result, we have chosen to implement two solutions that collect data directly from the user's machine.  The first approach is to adapt to the system by collecting all of the training points at application install time and building the model then.  The most highly adaptive approach collects data continuously as the application runs, uses the data to modify the model training set, and rebuilds the model.  A hybrid approach may be the most effective: applications can begin with a generic model or crowdsourced and personalize it over time. The remainder of this section describes our model creation process in detail.
 
-In a client operating system, management of penalty function modifications
-should be highly automated by the system to avoid unduly burdening the user.
-As an application grows or diminishes in importance, its penalty function can be modified accordingly.
-Adjustment is also likely to occur in transitions between operating scenarios.
-For example, when unplugging a device all of the background activities could have their slopes significantly reduced to save battery life.
+\subsection{Install Time Data Collection}
+To create RTF models either at install time or online, we use a convex
+least-squares approach described below.  At install time, we use a
+genetic algorithm, Audze-Eglasis Design of
+Experiments~\cite{bates-aes03}, to select the resource allocation vectors to use
+for training.  The application is run with each resource vector for a configurable number of heartbeats to record the response time.  We average the response times collected for an allocation and use that result as the response time for the model\footnote{The \tess OS and our applications both have very little variability so average works fine for our purposes; however, Section~\ref{discuss} discusses why average may not be the right choice in other situations.}.  These vectors and their response times are fed into the
+convex least-squares algorithm. Offline models are built entirely from this install time data.  Online modeling uses the response times measured as the application runs in the models, but it could also start with a model built at install time.
 
 \subsection*{Least-Squares Minimization}
 After enough measurements, discovery of the model parameters $w$ that define the function $\tau$
