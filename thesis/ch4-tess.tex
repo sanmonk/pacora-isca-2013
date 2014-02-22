@@ -293,14 +293,6 @@ will be at least twice the number of columns $n$.
 Rows selected for downdating will always be in the lower $m - n$ rows of $R$,
 guaranteeing that the most recent $n$ updates are always part of the model.
 
-%\subsubsection*{Non-Negativity}
-%\begin{figure*}[!t]
-%	\begin{center}	
-%%		\includegraphics[width=.45\textwidth]{cluster_decision_points.pdf}
-%		\caption{Performance of \pacora's NNLS algorithm}
-%		\label{model_build_perf}
-%	\end{center}
-%\end{figure*}
 
 To guarantee convexity of the RTF, the solution $w$ to $t \approx QRw$ must have no negative components.
 Intuitively, when a resource is associated with more than a single $w_j$
