@@ -271,12 +271,11 @@ that triangularize $R$ by progressively zeroing out $D$'s sub-diagonal elements 
 %and each reciprocal bandwidth term in $D$ and then follow the foregoing procedure.
 %The elements of the result $w$ will be squares as well, and the 2-norm of the difference in the squared quantities will be %minimized.  This is not the same as minimizing the 4-norm; what is being minimized is $1/2\|\mbox{diag}(Dww^TD^T - tt^T)\|^2_2$.
 
-\subsection{On-line Response Time Modeling}
+\subsection*{Incremental Least-Squares}
 As resource allocation continues, more measurements will become available to augment $t$ and $D$.
 Moreover, older data may poorly represent the current behavior of the application.
 \pacora uses an incremental approach described below to replace old data and efficiently update RTFs.
 
-\subsubsection*{Incremental Least-Squares}
 What is needed is a factorization $\tilde{Q}\tilde{R}$ of a new matrix $\tilde{D}$
 derived from $D$ by dropping a row, perhaps from the bottom,
 and adding a row, perhaps at the top.
@@ -322,52 +321,6 @@ The memory used in maintaining a model with $n$ weights is modest, $24n^2 + 21n 
 For $n = 8$ this is under 2 KB, fitting nicely in L1 cache.
 Our NNLS implementation takes \SI{4}{\micro\second} per update-downdate pair in \tess.
 %Figure~\ref{model_build_perf} shows the performance of \pacora's NNLS algorithm.
-
-\subsubsection*{Model Rank Preservation}
-If care is not taken in downdating $R$, its rows may become so linearly dependent,
-perhaps from repetitive resource allocations,
-that determining a unique $w$ is impossible.
-The rank of $R$ depends on both the resource optimization trajectory and the
-choices made in the row downdate-update algorithm.
-\pacora exploits the latter idea and simply avoids downdating any row that will make $R$ rank-deficient.
-
-\subsubsection*{Outliers and Phase Changes}
-
-%\begin{figure*}[!t]
-%	\begin{center}	
-%%		\includegraphics[width=.45\textwidth]{cluster_decision_points.pdf}
-%		\caption{\pacora's online model creation algorithm adapting to a video application changing phases}
-%		\label{phase_change}
-%	\end{center}
-%\end{figure*}
-
-Some response time measurements may be ``noisy'' or even erroneous.
-A weakness of least-squares modeling is the high importance it gives to outlying values.
-On the other hand, when an application changes phase it is important to adapt quickly,
-and what looks like an outlier when it first appears may be a harbinger of change.
-What is needed is a way to discard either old or outlying data
-with a judicious balance between age and anomaly.
-
-The downdating algorithm accomplishes this by weighting the errors in $\varepsilon = Q(Q^Tt - Rw)$
-between the predicted response times $\tau$ and the measured ones $t$ by a factor
-that increases exponentially with the age $g(i)$ of the error $\varepsilon_i$.
-Age can be modeled coarsely by the number of time quanta of some size since the measurement;
-\pacora simply lets $g(i) = i$.
-The weighting factor for the $i$th row is then $\eta^{g(i)}$ where $\eta$ is a constant somewhat greater than 1.
-The candidate row to downdate is the row with the largest weighted error, \emph{i.e.,}
-$dd = \arg\max_i |\varepsilon_i| \cdot \eta^{g(i)}$ and that does not reduce the rank of $R$.
-%Figure~\ref{phase_change} shows \pacora's model creation algorithm adapting to a video application changing phases.
-
-
-\subsubsection*{Power Response Modeling}
-Recall that we manage power and battery energy with an artificial application named application 0 which receives all resources not allocated to other applications. Application 0's "response time" function is similar to the other applications' RTFs.  The function inputs are resource allocations just as with the other applications.  However, the function output is system power rather than response time.   To create the RTF, system power can be measured directly from on-chip energy counters in systems where they are available or from a power meter.  These models can be built in advance, during a training phase or online while the system runs, just as with the application RTFs.  Alternatively, the model could be part of the operating system's platform-specific information.
-
-Although system power may not be perfectly convex in reality, forcing it to be convex is reasonable because idling a resource should not increase power.  As a result, application 0 still fufills its purpose of keeping applications from using additional resources that have poor performance/power ratios.
-
-
-
-\subsection{Model Update and Downdate Algorithms}
-
 \subsubsection{Row Update and Downdate}
 
 Downdating makes an instructive example. A row downdate operation applies
@@ -427,6 +380,13 @@ Then $R$ is made upper triangular once more by a sequence of Givens rotations th
 These rotations are applied not just to $R$ but also to $Q^Tt$ and of course to $Q^T$ itself.
 
 \subsubsection{Rank Preservation}
+
+If care is not taken in downdating $R$, its rows may become so linearly dependent,
+perhaps from repetitive resource allocations,
+that determining a unique $w$ is impossible.
+The rank of $R$ depends on both the resource optimization trajectory and the
+choices made in the row downdate-update algorithm.
+\pacora exploits the latter idea and simply avoids downdating any row that will make $R$ rank-deficient.
 
 Deciding in advance whether downdating a row of $R$ will reduce its rank
 is equivalent to predicting whether one of the Givens rotations, when applied to $R$,
@@ -524,6 +484,28 @@ These rotations conveniently extend the columns to the right of $m$ in $R^p$ by 
 thus restoring $R^p$ to upper triangular form. Once again, the rotations are also applied to $Q^T$ and $Q^Tt$.
 
 A new gradient computation and new back-solve for $w$ are clearly necessary after either downdates or updates to columns of $R$.
+
+
+
+
+\subsubsection*{Outliers and Phase Changes}
+
+
+Some response time measurements may be ``noisy'' or even erroneous.
+A weakness of least-squares modeling is the high importance it gives to outlying values.
+On the other hand, when an application changes phase it is important to adapt quickly,
+and what looks like an outlier when it first appears may be a harbinger of change.
+What is needed is a way to discard either old or outlying data
+with a judicious balance between age and anomaly.
+
+The downdating algorithm accomplishes this by weighting the errors in $\varepsilon = Q(Q^Tt - Rw)$
+between the predicted response times $\tau$ and the measured ones $t$ by a factor
+that increases exponentially with the age $g(i)$ of the error $\varepsilon_i$.
+Age can be modeled coarsely by the number of time quanta of some size since the measurement;
+\pacora simply lets $g(i) = i$.
+The weighting factor for the $i$th row is then $\eta^{g(i)}$ where $\eta$ is a constant somewhat greater than 1.
+The candidate row to downdate is the row with the largest weighted error, \emph{i.e.,}
+$dd = \arg\max_i |\varepsilon_i| \cdot \eta^{g(i)}$ and that does not reduce the rank of $R$.
 
 
 
