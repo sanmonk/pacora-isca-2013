@@ -169,30 +169,27 @@ Overview of \pacora implementation in \tess.  \pacora leverages the existing Res
 %\vspace*{-0.175in}
 \end{figure}
 
-In this section, we provide details of \pacora's implementation in \tess's Resource Broker. Figure~\ref{fig:pacora-in-tess} shows the design. \pacora leverages the existing Resource Broker interfaces to communicate with the cells, services, and kernel.  The RTF Creation and Dynamic Penalty Optimization modules contain \pacora's model creation and resource allocation functions and are described in Sections~\ref{rtf_creation} and~\ref{dyn_opt} respectively.
+In this section, we provide details of \pacora's implementation in \tess's Resource Broker. Figure~\ref{fig:pacora-in-tess} shows the design. The Resource Broker runs in its own cell and communicates with applications and services through channels. \pacora leverages the existing Resource Broker interfaces to communicate with the cells, services, and kernel.  The RTF Creation and Dynamic Penalty Optimization modules contain \pacora's model creation and resource allocation functions and are described in Sections~\ref{rtf_creation} and~\ref{dyn_opt} respectively.
 
 \subsection{Cell Creation}
 
-The Resource Broker runs in its own cell and communicates with
-applications through channels, as shown in Figure~\ref{fig:tess-arch}.
-When a cell is started, it registers with the Resource Broker and provides
-an application-specific performance target, such as desired a
-frame rate.  These metrics are provided in the form of a time in milliseconds.  
-For example, an application with a desired rate of
-30 frames per second would specify a performance target of 33~ms
-per frame. 
-The Resource Broker also provides
-an interface for cells to update their performance targets while they are running.
+When a cell is started, it opens its own channel with the Resource Broker and sends a cell creation message to register.
+The registration message contains the deadline and slope for \pacora's penalty function and optionally, a starting RTF model.  The message format is shown below.
 
-Ideally, performance targets would be inferred by the system or provided by a
-more trusted source than the applications themselves.  
-However, we chose this design point since it was straightforward to implement
-and we wanted to focus our efforts on exploring resource allocation approaches
-that could take advantage of the additional information.
-%\footnote{For cloud systems, applications typically provide
-%  their resource requirements to the system, which necessitates
-%  applications understanding their own performance and requires the
-%  system to trust the application.}.
+\texttt{register\_cell(...)}
+
+
+Ideally, penalty functions would be inferred by the system or provided by a
+more trusted source than the applications themselves.  The simplest approach to implement this functionality in current operating systems would be to use an application's priority as the penalty slope and its interaction class~\cite{interaction_class} for the deadline. However, for our prototype the direct approach was straightforward to implement, and we believe does not detract from the validity of the resource allocation experiments\footnote{For cloud systems, this approach is, in fact, common practice: applications typically provide their resource requirements to the system.}.  
+
+
+The Resource Broker also provides an interface for cells to update their penalty function or RTF while they are running, which we currently use to change RTF functions when an application changes phase or update the penalty function of application 0 when the computer changes operating mode (\ie from battery to power source).  The message formats for updating RTFs or Penalty Functions are shown below.
+
+\texttt{update\_rtf}
+
+\texttt{update\_pf}
+
+
 
 \subsection{Resource Allocation}
 
