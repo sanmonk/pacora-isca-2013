@@ -273,8 +273,7 @@ The elements of the result $w$ will be squares as well, and the 2-norm of the di
 
 \subsection*{Incremental Least-Squares}
 As resource allocation continues, more measurements will become available to augment $t$ and $D$.
-Moreover, older data may poorly represent the current behavior of the application.
-\pacora uses an incremental approach described below to replace old data and efficiently update RTFs.
+Moreover, older data may poorly represent the current behavior of the application.  Rather than periodically rebuilding the RTFs functions completely, we've implemented an incremental approach described below to replace old data and efficiently update RTFs with each new data value.
 
 What is needed is a factorization $\tilde{Q}\tilde{R}$ of a new matrix $\tilde{D}$
 derived from $D$ by dropping a row,
