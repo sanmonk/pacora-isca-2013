@@ -174,47 +174,93 @@ In this section, we provide details of \pacora's implementation in \tess's Resou
 \subsection{Cell Creation}
 
 When a cell is started, it opens its own channel with the Resource Broker and sends a cell creation message to register.
-The registration message contains the deadline and slope for \pacora's penalty function and optionally, a starting RTF model.  The message format is shown below.
+The registration message contains the deadline and slope for \pacora's penalty function and optionally, a starting RTF model.  The message format is shown below.  \pacora uses the \texttt{message\_type} field to determine how to unpack each of the message formats.
 
-\texttt{register\_cell(...)}
+\begin{lstlisting}
+typedef struct perf_function {
 
+    char message_type;
+    uint64_t runtime_target;
+    float penalty_slope;
+    float model_constants[MODEL_SIZE];
+
+  } perf_func_t;  
+                                                             
+\end{lstlisting}
 
 Ideally, penalty functions would be inferred by the system or provided by a
 more trusted source than the applications themselves.  The simplest approach to implement this functionality in current operating systems would be to use an application's priority as the penalty slope and its interaction class~\cite{interaction_class} for the deadline. However, for our prototype the direct approach was straightforward to implement, and we believe does not detract from the validity of the resource allocation experiments\footnote{For cloud systems, this approach is, in fact, common practice: applications typically provide their resource requirements to the system.}.  
 
 
-The Resource Broker also provides an interface for cells to update their penalty function or RTF while they are running, which we currently use to change RTF functions when an application changes phase or update the penalty function of application 0 when the computer changes operating mode (\ie from battery to power source).  The message formats for updating RTFs or Penalty Functions are shown below.
+The Resource Broker also provides an interface for cells to update their penalty function or RTF while they are running, which we currently use to change RTF functions when an application changes phase or update the penalty function of application 0 when the computer changes operating mode (\ie from battery to power source).  The message formats for updating RTFs or Penalty Functions are shown below. 
 
-\texttt{update\_rtf}
+\begin{lstlisting}
+typedef struct penalty_update{
 
-\texttt{update\_pf}
+    char message_type;
+    float penalty_slope;
+
+} penalty_update_t;
+
+typedef struct deadline_update{
+
+    char message_type;
+    uint64_t runtime_target;
+
+} deadline_update_t;
+
+typedef struct model_update{
+
+    char message_type;
+    float model_constants[MODEL_SIZE];
+
+} model_update_t;
+\end{lstlisting}
 
 \subsection{Performance and Power Measurement}
-Applications report their own measured response times to \pacora by periodically sending performance report messages, called \emph{heartbeats}~\cite{hoffmann2011}.  Messages may contain the value for a single heartbeat or heartbeats may be batched together.  The batch size is configurable, but is bounded by a maximum size, \texttt{MAX\_REPORT\_SIZE}, set by the system.   The code below shows the heartbeat message format.
+Applications report their own measured response times to \pacora by periodically sending performance report messages, called \emph{heartbeats}~\cite{hoffmann2011}.  Messages may contain the value for a single heartbeat or heartbeats may be batched together.  The batch size is configurable, but is bounded by a maximum size, \texttt{MAX\_VALUES\_IN\_PERF\_REPORT}, set by the system.   The code below shows the heartbeat message format.
 
-\texttt{send\_performance\_report}
+\begin{lstlisting}
+typedef struct perf_report {
+
+    char message_type;
+    uint64_t data_values[MAX_VALUES_IN_PERF_REPORT];
+    int32_t num_values;
+    
+} perf_report_t;
+\end{lstlisting}
 
 \pacora uses this information to build RTFs offline or online.  This process is described in Section~\ref{rtf_creation}.  As with the cell creation interface, it would be better for the system to directly measure application heartbeats rather than needing to trust the application's measurements.  However, measuring application-specific heartbeats in a general-purpose way is a challenging problem, and we chose not to address it in this work.  We instead focus exploring the value of resource allocation using application-specific measurements first.  Heartbeat measurement options are discussed further in Section~\ref{discuss}.
 
 \tess provides a system call (show below) for \pacora to directly measure the system energy using the energy counters available on current x86 systems.  \pacora uses this information to build application 0's RTF.
 
-\texttt{measure\_energy\_counter}
-
+\begin{lstlisting}
+int sys_read_energy_counter(int32_t counter_id);
+\end{lstlisting}
 
 \subsection{Resource Allocation}
-\pacora periodically optimizes the system penalty and produces resource allocations.  Details of this process are described in Section~\ref{dyn_opt}.  Allocation decisions are communicated to the kernel and services for enforcement.  Updates are sent to the kernel the update\_cells system call, which adjusts the Space-Time Resource Graph.  The system call is shown below.
+\pacora periodically optimizes the system penalty and produces resource allocations.  Details of this process are described in Section~\ref{dyn_opt}.  Allocation decisions are communicated to the kernel and services for enforcement.  Updates are sent to the kernel the update\_cells system call, which adjusts the Space-Time Resource Graph.  The function prototype for the system call is shown below.
 
-\texttt{update\_cells(...)}
+\begin{lstlisting}
+int sys_update_cells(cell_spec_t* updated_cell_specs, 
+		    int32_t num_of_updated_cell_specs,
+                     start_cell_params_t* new_cell_params,
+                     int32_t* new_cell_ids,
+                     int32_t num_of_new_cells);
+\end{lstlisting}
 
-The Resource Broker has a channel with each service to communicate allocations.  To update an allocation, \pacora sends a QoS Specification message to the service.  These messages are service-specific.  The network service QoS specification message is shown below.
+The Resource Broker has a channel with each service to communicate allocations.  To update an allocation, \pacora sends a QoS Specification message to the service.  The function prototype to send the message is shown below.  The data field is service specific. 
 
-\texttt{update\_NS\_alloc(...)}
+\begin{lstlisting}
+int change_allocation(int service_id, int cell_id, void *data,
+ 			size_t len, channel_gate_t* service_ch);
+\end{lstlisting}
 
 The Resource Broker design provides an adjustable reallocation frequency; the reallocation frequency provides a tradeoff
 between adaptability (to changes in state) and stability (of user-level
 scheduling).  
 
-If \pacora is using offline models then it only makes sense to reallocate resources when a cell starts or finishes or when a cell updates its penalty function or RTF, since those are only points at which the inputs to the optimization change.  The exception to this is if optimization is terminated early for latency reasons, then each successive reallocation would move the allocations closer to optimial\footnote{We found early termination to be unnecessary since the complete optimization runs so quickly.  (This data is shown in Section~\ref{tess_eval}.)}. 
+If \pacora is using offline models then it only makes sense to reallocate resources when a cell starts or finishes or when a cell updates its penalty function or RTF, since those are only points at which the inputs to the optimization change.  The exception to this is if optimization is terminated early for latency reasons, then each successive reallocation would move the allocations closer to optimal\footnote{We found early termination to be unnecessary since the complete optimization runs so quickly.  (This data is shown in Section~\ref{tess_eval}.)}. 
 
 With online modeling reallocation could, in theory, be performed more frequently since the RTF functions can change as a cell runs.  However, the models will only change significantly as a result of an application phase change or application input change and so, in practice, it is similar to the offline modeling case\footnote{In the cloud, RTFs for applications such as web services may also change as a result of the incoming request load and thus require more frequent reallocation.}.
 
