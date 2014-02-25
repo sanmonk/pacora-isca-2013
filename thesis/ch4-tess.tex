@@ -94,7 +94,7 @@ offered by the service cells as additional resources to be allocated to applicat
 
 \tess currently has two such service cells implemented:
 the \emph{Network Service}, which provides access to network adapters and
-guarantees that the data flows are processed with the agreed levels of
+guarantees that the data flows are applicationed with the agreed levels of
 throughput; and the \emph{GUI Service}, which provides a windowing system with
 response-time guarantees for visual applications.  
 
@@ -230,7 +230,7 @@ typedef struct perf_report {
 } perf_report_t;
 \end{lstlisting}
 
-\pacora uses this information to build RTFs offline or online.  This process is described in Section~\ref{rtf_creation}.  As with the cell creation interface, it would be better for the system to directly measure application heartbeats rather than needing to trust the application's measurements.  However, measuring application-specific heartbeats in a general-purpose way is a challenging problem, and we chose not to address it in this work.  We instead focus exploring the value of resource allocation using application-specific measurements first.  Heartbeat measurement options are discussed further in Section~\ref{discuss}.
+\pacora uses this information to build RTFs offline or online.  This application is described in Section~\ref{rtf_creation}.  As with the cell creation interface, it would be better for the system to directly measure application heartbeats rather than needing to trust the application's measurements.  However, measuring application-specific heartbeats in a general-purpose way is a challenging problem, and we chose not to address it in this work.  We instead focus exploring the value of resource allocation using application-specific measurements first.  Heartbeat measurement options are discussed further in Section~\ref{discuss}.
 
 \tess provides a system call (show below) for \pacora to directly measure the system energy using the energy counters available on current x86 systems.  \pacora uses this information to build application 0's RTF.
 
@@ -239,20 +239,20 @@ int sys_read_energy_counter(int32_t counter_id);
 \end{lstlisting}
 
 \subsection{Resource Allocation}
-\pacora periodically optimizes the system penalty and produces resource allocations.  Details of this process are described in Section~\ref{dyn_opt}.  Allocation decisions are communicated to the kernel and services for enforcement.  Updates are sent to the kernel the update\_cells system call, which adjusts the Space-Time Resource Graph.  The function prototype for the system call is shown below.
+\pacora periodically optimizes the system penalty and produces resource allocations.  Details of this application are described in Section~\ref{dyn_opt}.  Allocation decisions are communicated to the kernel and services for enforcement.  Updates are sent to the kernel the update\_cells system call, which adjusts the Space-Time Resource Graph.  The function prototype for the system call is shown below.
 
 \begin{lstlisting}
 int sys_update_cells(cell_spec_t* updated_cell_specs, 
 		    int32_t num_of_updated_cell_specs,
                      start_cell_params_t* new_cell_params,
-                     int32_t* new_cell_ids,
+                     int32_t* new_cel\tau_ids,
                      int32_t num_of_new_cells);
 \end{lstlisting}
 
 The Resource Broker has a channel with each service to communicate allocations.  To update an allocation, \pacora sends a QoS Specification message to the service.  The function prototype to send the message is shown below.  The data field is service specific. 
 
 \begin{lstlisting}
-int change_allocation(int service_id, int cell_id, void *data,
+int change_allocation(int service_id, int cel\tau_id, void *data,
  			size_t len, channel_gate_t* service_ch);
 \end{lstlisting}
 
@@ -282,7 +282,7 @@ test the validity of the concept.  In a production operating system it
 may not be a good idea because applications could lie about their
 performance.  In a single-operator datacenter environment this might be less of a concern.
 
-There are also many different possible moments to create response time functions.  RTFs could be created in advance and distributed with the application. This approach could make lots of sense for app stores since most of them cater to just a few platforms. RTFs could also be crowd-sourced and built in the cloud, which has the advantage making it easy to collect a diverse set of training points.  However, all of these approaches lack adaptability.  As a result, we have chosen to implement two solutions that collect data directly from the user's machine.  The first approach is to adapt to the system by collecting all of the training points at application install time and building the model then.  The most highly adaptive approach collects data continuously as the application runs, uses the data to modify the model training set, and rebuilds the model.  A hybrid approach may be the most effective: applications can begin with a generic model or crowdsourced and personalize it over time. The remainder of this section describes our model creation process in detail.
+There are also many different possible moments to create response time functions.  RTFs could be created in advance and distributed with the application. This approach could make lots of sense for app stores since most of them cater to just a few platforms. RTFs could also be crowd-sourced and built in the cloud, which has the advantage making it easy to collect a diverse set of training points.  However, all of these approaches lack adaptability.  As a result, we have chosen to implement two solutions that collect data directly from the user's machine.  The first approach is to adapt to the system by collecting all of the training points at application install time and building the model then.  The most highly adaptive approach collects data continuously as the application runs, uses the data to modify the model training set, and rebuilds the model.  A hybrid approach may be the most effective: applications can begin with a generic model or crowdsourced and personalize it over time. The remainder of this section describes our model creation application in detail.
 
 \subsection{Install Time Data Collection}
 To create RTF models either at install time or online, we use a convex
@@ -411,7 +411,7 @@ The following is the result:
 \end{displaymath}
 The top row has thus been decoupled from the rest of the factorization and may either be deleted or updated with new data.
 
-The update process more or less reverses these steps, adding a new top row to $R$ and $t$ and a row and column to $Q^T$.
+The update application more or less reverses these steps, adding a new top row to $R$ and $t$ and a row and column to $Q^T$.
 Then $R$ is made upper triangular once more by a sequence of Givens rotations that zero its sub-diagonal elements
 (formerly the diagonal elements of $\tilde{R}$) one at a time.
 These rotations are applied not just to $R$ but also to $Q^Tt$ and of course to $Q^T$ itself.
@@ -548,115 +548,50 @@ $dd = \arg\max_i |\varepsilon_i| \cdot \eta^{g(i)}$ and that does not reduce the
 
 \section{Dynamic Penalty Optimization}\label{dyn_opt}
 
-%IV.	Dynamic Optimization
-%	a.	Gradient Descent w/ Backtracking Search
-%		i. boundary conditions clean up
-%	b.	Dealing with Fractional Results
+We chose to implement \pacora's resource allocation optimization using an Alternating Direction Method of Multipliers (ADMM) algorithm~\cite{ADMM}.  We selected ADMM for two reasons. First, it works well with \pacora's RTF and penalty functions\footnote{Since \pacora's penalty functions contain a discontinuity in the gradient, other approaches such as gradient decent don't behave appropriately.}.  Second, it provides a natural way to distribute the algorithm.  Using ADMM only the resource quantities and costs need to be known to the global optimization problem.  The RTF and penally functions can be stored locally, and their gradients computation can be performed locally.  While this feature may be less important in a current client operating systems, it is very natural for the cloud.  Running in a distributed fashion the algorithm looks like a resource market expressed as an exchange problem.  Each round the applications send their resource requirements.  The global leader applications these and returns the resource costs.  The applications adjust their resource requirements based on the new cost.  The cycle continues until there is an agreed upon resource cost and thus a resource allocation.   The advantage of this is that very little information needs to be communicated.  In addition to the performance benefits, this can also be seen potentially as security or privacy benefit since application's RTF models need never leave the local machine.  The remainder of this section describes our ADMM formulation in more detail.
 
-\pacora's penalty optimization algorithm dynamically decides resource allocations. The algorithm can be run periodically, when applications start or stop, when an application changes phase or when the system changes operating scenarios.  One of the advantages of convex optimization is that it enables fast, incremental solutions.  As shown in our experiments, the algorithm can terminate earlier to decrease overhead and still be moving towards an optimal solution as it runs.  %However we found in our implementation that the algorithm was fast enough to run to completion every time. 
+\subsection{ADMM Overview}
 
-Convex optimization is simplest when it is unconstrained, so we reformulated \pacora's construction to be unconstrained.
-Extending the response time model functions to all of $\Re^n$
-moves the requirement that allocations must be positive into the objective function,
-and introducing application 0 for slack resources turns the affine inequalities into equalities:
-\begin{eqnarray*}
-& \makebox[1in][r]{Minimize}   & \sum_{p\in P} {\pi_p(\tau_p(a_{p,1}\ldots a_{p,n}))}  \\
-& \makebox[1in][r]{Subject to} & \sum_{p\in P} a_{p,r} = A_r, r = 1,\ldots n           \\
-\end{eqnarray*}
-
-The only remaining constraints are those on the $a_{p,r}$.
-These can be removed by letting the $a_{p,r}$ be unbounded above for $p \neq 0$
-and changing the domain of $\tau_0$  to be the whole resource allocation matrix.
-The definition of $\tau_0$ might take the form
-\begin{eqnarray*}
-\tau_0 &=& \sum_r \Delta_r \sum_{p \neq 0} a_{p,r}     \\
-       &=& \sum_r \Delta_r (A_r - a_{0,r})
-\end{eqnarray*}
-where $\Delta_r$ is the (constant) power dissipation of one unit of resource $r$.
-However, if any of the allocations $a_{0,r}$ turns out to be negative then $\tau_0$  should instead return the value $+\infty$.
-%This modification of the objective function transforms the resource allocation problem
-%to unconstrained convex optimization.  
-
-The penalty optimization algorithm used in \pacora is gradient descent via backtracking line search along the negative gradient direction \cite{BoVa}.
-This algorithm rejects and refines any step that yields insufficient relative improvement in the objective function,
-so infinite values from infeasible allocations will automatically be avoided by the search.
-The negative gradient $-\nabla\pi$ of the overall objective function $\pi$
-with respect to the resource allocations $a$
-is computed analytically from the response time models and penalty functions.
-When a component of this overall gradient is negative,
-it means the penalty will be reduced by increasing the associated allocation if possible.
-The gradient search at the boundaries of the feasible region
-must ignore components that lead in infeasible directions;
-these can be detected by noting whether for some $p$ and $r$, $a_{p,r} = 0$ with $(-\nabla\pi)_{p,r} > 0$.
-In such cases, the associated step component is set to zero.
-
-We added an additional optimization to move along boundaries more rapidly in the scenario when a completely allocated resource had a large gradient.  We scale all the allocations of that resource type down to satisfy resource constraint while leaving the allocations of other resources untouched.
-
-The rate of convergence of gradient descent depends on how well the sub-level sets of the objective function
-are conditioned (basically, how ``spherical'' they are).
-Conditioning will improve if resource allocation units are scaled to make their relative effects similar.
-For example, when compared with processor allocation units,
-memory allocation units of 4 MB are probably a better choice than 4 KB.
-In addition, penalty function slopes should not differ by more than perhaps two orders of magnitude. If these measures prove insufficient, stronger preconditioners can be used. Our implementation conditions all resource allocations to be in the range of 0-100.
-
-%\begin{figure}[!t]
-%	\begin{center}	
-%		\includegraphics[bb=0 0 576 432,width=\columnwidth]{opt_time.pdf}
-%%		\includegraphics[width=.45\textwidth]{parsec_decision_points.pdf}
-%		\caption{Performance of our penalty optimization algorithm}
-%		\label{optimization_perf}
-%	\end{center}
-%\end{figure}
-
-
-%Figure~\ref{optimization_perf} shows performance of the penalty optimization algorithm implemented in \tess.  
-
-%For our video conferencing scenario the average runtime is \fix{x} and then worst case runtime is \fix{y}.  \fix{explain where the variance comes from}
-
-
-\subsection{Resource allocation}
-
-We follow the notation in \S 7.3 of Boyd et al. \cite{ADMM},
-from which this material is taken almost verbatim.
-We have $n$ resources and $N$ participants.
-We let $x_i \in \reals^n_+$ denote the vector of resources 
-that participant $i$ consumes.  
-The (vector of) total resource consumption is then $x_1 + \cdots + x_N$;
+We follow the notation in \S 7.3 of Boyd et al. \cite{ADMM}.
+We have $n$ resources and $N$ applications.
+We let $a_i \in \reals^n_+$ denote the vector of resources 
+that application $i$ consumes.  
+The (vector of) total resource consumption is then $a_1 + \cdots + a_N$;
 for future use we let $z$ denote the average resource
-usage per participant, \ie, the total divided by $N$.
-Participant $i$ has a cost function $f_i:\reals^n \to \reals \cup
+usage per application, \ie, the total divided by $N$.
+Application $i$ has a cost (penalty in \pacora) function $\pi_i:\reals^n \to \reals \cup
 \{\infty\}$, where
-$f_i$ is convex.  We let $f_i$ take on the value $+\infty$ to encode
+$\pi_i$ is convex.  We let $\pi_i$ take on the value $+\infty$ to encode
 constraints on the resource allocation.
 
 The total cost function is
 \[
-f_1(x_1) + \cdots + f_N (x_N) + g(Nz),
+\pi_1(a_1) + \cdots + \pi_N (a_N) + g(Nz),
 \]
 where $g: \reals^n \to \reals \cup \{+\infty\}$ is the cost
 of consuming a total amount of resources (including any limits on total
 available resources).
 Note that the first $N$ terms are the costs associated with the
-participants, and the last term is the cost of providing the total
-resources.
-The problem is to choose the allocations $x_i$ to minimize the total cost,
+applications (\ie their penalty contribution to the system), and the last term is the cost of providing the total
+resources (\ie penalty from application 0 for using the system power/energy).
+The problem is to choose the allocations $a_i$ to minimize the total cost (in terms of penalty),
 which is a convex optimization problem \cite{BoVa,ADMM}.
 
 We will solve this problem using the \emph{sharing ADMM algorithm}
 from \cite{ADMM}:
 \begin{eqnarray*}
-x_i^{k+1} &:=&  \argmin_{x_i} \left( f_i(x_i) + (\rho/2)
-\|x_i-x_i^k+\overline x^k-z^k+u^k\|^2_2\right)\\
+a_i^{k+1} &:=&  \argmin_{a_i} \left( \pi_i(a_i) + (\rho/2)
+\|a_i-a_i^k+\overline a^k-z^k+u^k\|^2_2\right)\\
 z^{k+1} &:=&  \argmin_{z} \left( g(Nz) + (N\rho/2)
-\|z - u^k - \overline x^{k+1} \|_2^2 \right)\\
-u^{k+1} &:=&  u^k + \overline x^{k+1}- z^{k+1}.
+\|z - u^k - \overline a^{k+1} \|_2^2 \right)\\
+u^{k+1} &:=&  u^k + \overline a^{k+1}- z^{k+1}.
 \end{eqnarray*}
 Here $\rho>0$ is an algorithm parameter,
 $k$ is the iteration number,
-and $\overline x^k$ is the average of the consumption vectors
-$x^k_1, \ldots, x^k_N$.
-We interpret $x_i^k$ as the (proposed) resource consumption of 
-participant $i$,
+and $\overline a^k$ is the average of the consumption vectors
+$a^k_1, \ldots, a^k_N$.
+We interpret $a_i^k$ as the (proposed) resource consumption of 
+application $i$,
 $z^k$ as the (proposed) average resource consumption,
 and $u^k$ as a dual variable, all at iteration $k$.
 This algorithm converges to an optimal allocation,
@@ -664,122 +599,98 @@ and $(1/\rho)u^k$ converges
 to the optimal dual variables (prices) for the resources.
 
 The $x$-update can be carried out in parallel, for $i=1, \ldots, N$.
-Each participant, in each iteration, must minimize a function of the form
+Each application, in each iteration, must minimize a function of the form
 \[
-f_i(x_i) + (\rho/2) \|x_i - v\|_2^2,
+\pi_i(a_i) + (\rho/2) \|a_i - v\|_2^2,
 \]
-\ie, each participant evaluates a proximal operator; see
-\cite{ProxAlgs}.
+\ie, each application evaluates a proximal operator; see~\cite{ProxAlgs}.
 
 The $z$-update step requires
-gathering $x_i^{k+1}$ to form the averages, and then solving a problem
+gathering $a_i^{k+1}$ to form the averages, and then solving a problem
 with $n$ variables.  This step is also a proximal evaluation.
 
-After the $u$-update, the new value of $\overline x^{k+1}-
+After the $u$-update, the new value of $\overline a^{k+1}-
 z^{k+1}+u^{k+1}$ is scattered to the subsystems.
 
-\subsection{Excess latency minimization}
+\subsection{Applications}
 
-We now specialize to a latency minimization problem,
-where the participants are processes and the participant costs 
-are related to their latencies.
-
-\subsubsection{Participants}
-
-The latency (time delay) of each process depends on the 
-resources allocated to the process.
-Our model of the latency of process $i$ is
+We disregard the interaction terms in our RTFs for this implementation as we found them rarely useful and therefore did not seem worth the cost of the increased computation. Thus, our RTF model of application $i$ is
 \[
-l_i(x_i) = a_i + \sum_{j=1}^n (w_i)_j/(x_i)_j
+\tau_i(a_i) = \tau_{0,i} + \sum_{j=1}^n (w_i)_j/(a_i)_j
 \]
-for $x_i >0$, and $+\infty$ otherwise, where $a_i \in \reals_+$ and 
-$w_i \in \reals_{++}^n$ are given latency model parameters.
-The participant cost is given by
+for $a_i >0$, and $+\infty$ otherwise, where $\tau_{0,i} \in \reals_+$ and 
+$w_i \in \reals_{++}^n$ are given response time model parameters.
+Recall the application cost is given by \pacora's penalty function
 \[
-f_i(x_i) = \alpha_i (l_i(x_i) - t_i)_+,
+\pi_i(a_i) = s_i (\tau_i(a_i) - d_i)_+,
 \]
-where $\alpha >0$ is a parameter and $t_i$ is a target latency.
-Note that $l_i(x_i)-t_i$ is the excess latency.
-
-We commment that the target latency in the cost function here is
-probably not the actual target latency for our system, but rather
-a target latency below which we do not impose a cost.  If the system
-specification is for process $i$ to have (to the extent possible) latency
-not exceeding $T_i$, then we might choose, for example, $t_i= 0.9T_i$.
-In this case, there is no latency cost as long as the process latency is
-less than the specification latency, with at least $10\%$ margin.
+where $s >0$ is a parameter and $d_i$ is the deadline.
+Note that $\tau_i(a_i)-d_i$ is the excess response time.
 
 In each iteration of the sharing algorithm, 
-we need to evaluate the proximal operator of $f_i$.
+we need to evaluate the proximal operator of $\pi_i$.
 To simply notation, we drop the subscript $i$ and consider one
-participant.
+application.
 We need to minimize
 \[
-\alpha \left(a + \sum_{j=1}^n w_j/x_j - t\right)_+ + 
-(\rho/2)\sum_{j=1}^n (x_j - v_j)^2
+s \left(\tau_0 + \sum_{j=1}^n w_j/a_j - d\right)_+ + 
+(\rho/2)\sum_{j=1}^n (a_j - v_j)^2
 \]
-over $x_j\geq 0$.
-Note that we can combine $\alpha$ and $\rho$ (say, by dividing by 
-$\alpha$) and we can combine $a$ and $t$.  So we now 
-assume that $\alpha =1$ and $a=0$, with the understanding that
-$\alpha$ and $a$ have been incorporated into $\rho$ and $t$.
+over $a_j\geq 0$.
+Note that we can combine $s$ and $\rho$ (say, by dividing by
+$s$) and we can combine $\tau_0$ and $d$.  So we now 
+assume that $s =1$ and $\tau_0=0$, with the understanding that
+$s$ and $\tau_0$ have been incorporated into $\rho$ and $d$.
 
-We work out several cases.  First suppose that the excess latency
+We work out several cases.  First suppose that the excess response time
 is negative.  
-The first term above is zero and we must have $x=v$.  So $x=v$ is
+The first term above is zero and we must have $a=v$.  So $a=v$ is
 the solution when $v>0$ and
 \[
-\sum_{j=1}^n w_j/v_j - t \leq 0.
+\sum_{j=1}^n w_j/v_j - d \leq 0.
 \]
 
-Now consider the case when the excess latency is positive.  In this case
+Now consider the case when the excess response time is positive.  In this case
 we simply minimize
 \[
-\sum_{j=1}^n w_j/x_j +
-(\rho/2)\sum_{j=1}^n (x_j - v_j)^2,
+\sum_{j=1}^n w_j/a_j +
+(\rho/2)\sum_{j=1}^n (a_j - v_j)^2,
 \]
-which can be done for each $x_j$ separately.
-Each $x_j$ must satisfy
+which can be done for each $a_j$ separately.
+Each $a_j$ must satisfy
 \[
-w_j/x_j^2  = \rho(x_j - v_j).
+w_j/a_j^2  = \rho(a_j - v_j).
 \]
 This can be solved extremely quickly, using a bisection method, Newton's
 method, or many others to find the unique (positive) 
-values $x_j^\star$ that satisfy
+values $a_j^\star$ that satisfy
 the equation.
-We then check if the resulting values of $x_j$ give nonnegative
-excess latency, \ie, if 
+We then check if the resulting values of $a_j$ give nonnegative
+excess response time, \ie, if 
 \[
-\sum_{j=1}^n w_j/x_j^\star - t  \geq 0.
+\sum_{j=1}^n w_j/a_j^\star - d  \geq 0.
 \]
-If so, we are done: $x^\star$ is the value of the proximal operator.
+If so, we are done: $a^\star$ is the value of the proximal operator.
 
 Finally, we consider the special case (which occurs often) when
-the optimal values have zero excess latency, \ie,
+the optimal values have zero excess response time, \ie,
 \[
-\sum_{j=1}^n w_j/x_j - t  = 0.
+\sum_{j=1}^n w_j/a_j - d  = 0.
 \]
 The optimality condition in this case is that exists a $\theta \in [0,1]$
 for which
 \[
-\theta w_j/x_j^2 = \rho(x_j - v_j)
+\theta w_j/a_j^2 = \rho(a_j - v_j)
 \]
-(along with the condition $\sum_{j=1}^n w_j/x_j - t  = 0$).
+(along with the condition $\sum_{j=1}^n w_j/a_j - d  = 0$).
 This we solve by bisection on $\theta$.  For each value of $\theta$,
-we use the same method as above to find $x_j$.  We then check if
-$\sum_{j=1}^n w_j/x_j - t  = 0$ is positive or negative.
+we use the same method as above to find $a_j$.  We then check if
+$\sum_{j=1}^n w_j/a_j - d  = 0$ is positive or negative.
 If it is positive, we increase $\theta$; otherwise we decrease it.
-(We could also apply a Newton method to solve the two equations for
-$x_j$ and $\theta$.)
+%(We could also apply a Newton method to solve the two equations for
+%$a_j$ and $\theta$.)
 
-\paragraph{Summary.} 
-We can write a little C code that computes the proximal operator
-for each participant very fast.
-A naive implementation will be fast; an optimized one (say,
-in whcih we precompute the solution with a lookup table) will be very very
-fast.
-
-\subsubsection{Total resource cost}
+\subsection{Total Resource Cost}
 
 We take the resource cost to have the form
 \[
@@ -802,7 +713,7 @@ We need to minimize
 \[
 g_i(Nz_i)  +(N\rho/2)(z_i - v_i)^2
 \]
-over the (scalar) $z_i$. (Here $v_i = u^k_i + \overline x^{k+1}_i$.)
+over the (scalar) $z_i$. (Here $v_i = u^k_i + \overline a^{k+1}_i$.)
 The solution is simple:
 \[
     z_i = \max \{0, \min \{ v_i - c_i/\rho, Z_i/N\} \}.
@@ -812,10 +723,7 @@ Also note that when the average $z_i = Z_i/N$, the total amount of
 resource is $N z_i=Z_i$, meaning 
 that resource $i$ is at its maximum possible level.
 
-%\paragraph{Summary.} We can write a few lines of C code that carries out
-%the $z$ update step.  It will be exceedingly fast.
-
-\subsubsection{Total resource cost with free zone}
+\subsubsection{Total Resource Cost with Free Zone}
 We model the resource cost in terms of energy consumed with a function 
 of the form
 \[
@@ -825,7 +733,7 @@ where $c_i>0$ represents the amount of energy consumed by
 unit amount of resource~$i$, 
 the constant~$b>0$ is a threshold below which power consumption is free,
 and~$\lambda>0$ is the price charged for excess energy used
-(or relative weight used to tradeoff between latency and energy).
+(or relative weight used to tradeoff between response time and energy).
 We also impose lower and upper bounds on~$z$, \ie, $0\leq z_i\leq Z_i$
 for $i=1,\ldots, n$.
 
@@ -844,7 +752,7 @@ This is equivalent to
 \end{array}
 \]
 The solution can be obtained in a way similar to that used for evaluating 
-the proximal operator of the latency penalty functions.
+the proximal operator of the response time penalty functions.
 
 We work out several cases. 
 First suppose that the excess energy is negative. 
@@ -875,7 +783,7 @@ We then need to check
 If so, we are done.
 
 Finally we consider the case when the optimal allocations have zero excess
-enerty, \ie,
+energy, \ie,
 \[
     \sum_{i=1}^n c_i z_i - b/N = 0.
 \]
@@ -892,49 +800,102 @@ otherwise we decrease it.
 
 
 
-\subsubsection{Smoothing regularization}
+%\subsubsection{Smoothing regularization}
+%
+%Suppose we need to do resource allocation repeatedly over time.
+%We can add a term of the form
+%\[
+%\mu \| a_i - a_i^\mathrm{prev}\|_1,
+%\]
+%where $\mu > 0$ is a parameter, to the response time cost function.
+%This adds a cost for changing the resource allocation from its
+%previous value.
+%The larger $\mu$ is, the less frequently the resource allocations change
+%over time (which comes at the cost of higher objective cost).
+%As an extension, we can have different values of $\mu_i$ for each
+%resource; this allows some resource levels to be adjusted more often than
+%others.
+%
+%The addition of smoothing regularization would require a few 
+%changes to the proximal operator evaluation described above.
+%
+%\subsection{Real-time resource allocation}
+%
+%Here we describe how the sharing algorithm is used in a real-time 
+%resource allocation system.
+%Resources are (possibly) re-allocated in time epochs.
+%In each time epoch, we (possibly) 
+%(re-)estimate the response time model parameters $\tau_{0,i}$, $w_i$, and
+%obtain (possibly) updated values for the resource usage cost 
+%parameters $c_i$ and $Z_i$.
+%These new values are used for the next round of sharing algorithm iteration,
+%starting from the values in the previous time epoch.  (This is called
+%\emph{warm start}.
+%The converged values are then used for the allocations in the 
+%current epoch.
 
-Suppose we need to do resource allocation repeatedly over time.
-We can add a term of the form
-\[
-\mu \| x_i - x_i^\mathrm{prev}\|_1,
-\]
-where $\mu > 0$ is a parameter, to the latency cost function.
-This adds a cost for changing the resource allocation from its
-previous value.
-The larger $\mu$ is, the less frequently the resource allocations change
-over time (which comes at the cost of higher objective cost).
-As an extension, we can have different values of $\mu_i$ for each
-resource; this allows some resource levels to be adjusted more often than
-others.
-
-The addition of smoothing regularization would require a few 
-changes to the proximal operator evaluation described above.
-
-\subsection{Real-time resource allocation}
-
-Here we describe how the sharing algorithm is used in a real-time 
-resource allocation system.
-Resources are (possibly) re-allocated in time epochs.
-In each time epoch, we (possibly) 
-(re-)estimate the latency model parameters $a_i$, $w_i$, and
-obtain (possibly) updated values for the resource usage cost 
-parameters $c_i$ and $Z_i$.
-These new values are used for the next round of sharing algorithm iteration,
-starting from the values in the previous time epoch.  (This is called
-\emph{warm start}.
-The converged values are then used for the allocations in the 
-current epoch.
-
-\subsection{implementation details}
+%\subsection{implementation details}
 
 \subsubsection{Stopping criteria}
+\begin{figure}[th]
+\centering
+\includegraphics[width=0.49\textwidth]{figures/test_primal_e.eps}
+\includegraphics[width=0.49\textwidth]{figures/test_dual_e.eps}
+\caption{Progress of reducing primal and dual residual norms in ADMM.
+    This is the case of expensive energy, notice that the simple dual
+residual often work as well as the accurate dual residual. Since
+the resource allocations are not reaching their bounds, so the simple
+dual residual $\|s^k\|_2=\rho\|z^{k}-z^{k+1}\|_2$ converges to zero 
+only asymptotically, and can serve as a stopping criterion.}
+\label{fig:residual-e}
+\end{figure}
+
+\begin{figure}[th]
+\centering
+\includegraphics[width=0.49\textwidth]{figures/test_resource_e.eps}
+\includegraphics[width=0.49\textwidth]{figures/test_latency_e.eps}
+\caption{Visualization of optimal resource allocation (left) and 
+    resulting response time for each application (right).
+    There are $n=10$ resources and $N=20$ applications.
+    This is the case of expensive energy, so the total resouces allocated
+    are mostly well below their bounds, but the application response time are mostly
+exceeding the deadlines.}
+\label{fig:allocation-e}
+\end{figure}
+
+
+\begin{figure}[th]
+\centering
+\includegraphics[width=0.49\textwidth]{figures/test_primal_c.eps}
+\includegraphics[width=0.49\textwidth]{figures/test_dual_c.eps}
+\caption{Progress of reducing primal and dual residual norms in ADMM.
+    This is the case of cheap energy, notice that the simple dual
+residual becomes exactly zero (discontinued in the plot) after 10 iterations, 
+Since the energy is cheap, the resource allocations reach their bounds easily,
+so the simple dual residual $\|s^k\|_2=\rho\|z^{k}-z^{k+1}\|_2=0$ 
+become zero quickly, therefore can \emph{not} serve as a stopping criterion.}
+\label{fig:residual-c}
+\end{figure}
+
+\begin{figure}[th]
+\centering
+\includegraphics[width=0.49\textwidth]{figures/test_resource_c.eps}
+\includegraphics[width=0.49\textwidth]{figures/test_latency_c.eps}
+\caption{Visualization of optimal resource allocation (left) and 
+    resulting response time for each application (right).
+    There are $n=10$ resources and $N=20$ applications.
+    This is the case of cheap energy, so the total resources allocated
+    all reach their bounds, and most of the application response time are 
+within their deadlines.}
+\label{fig:allocation-c}
+\end{figure}
+
 Here we describe a stopping criterion that is similar to the one
-in \S3.3 of \cite{ADMM} applied the resource allocatoin problem.
+in \S3.3 of \cite{ADMM}.
 
 For our resource allocation problem, the primal residuals at iteration~$k$ are
 \[
-    r_i^k = x_i^k - z_i^k, \quad i=1,\ldots,N,
+    r_i^k = a_i^k - z_i^k, \quad i=1,\ldots,N,
 \]
 and the dual residuals are
 \[
@@ -947,23 +908,23 @@ The variable~$z$ in the  simplified update is actually
 their average $\overline z=(1/N)\sum_{i=1}^N z_i$.
 Based on the derivation in \cite[\S7.3]{ADMM}, 
 \[
-    z_i^k = x_i^k -\overline x^k + \overline z^k , \quad i=1,\ldots,N.
+    z_i^k = a_i^k -\overline a^k + \overline z^k , \quad i=1,\ldots,N.
 \]
 Therefore we have
 \[
-    r_i^k = x_i^k - z_i^k = \overline x^k - \overline z^k, \quad i=1,\ldots,N,
+    r_i^k = a_i^k - z_i^k = \overline a^k - \overline z^k, \quad i=1,\ldots,N,
 \]
-\ie, the primal residuals for the processes are the same as the average
+\ie, the primal residuals for the applications are the same as the average
 primal residue.
 The dual residuals become
 \begin{eqnarray*}
     s_i^k &=& \rho(z_i^{k-1} - z_i^k) \\
-    &=&\rho\bigl( (x_i^{k-1}-x_i^k) +(\overline x^k-\overline z^k)
-    -(\overline x^{k-1} - \overline z^{k-1})\bigr)\\
-    &=& \rho\bigl( (x_i^{k-1}-x_i^k) + r^k - r^{k-1} \bigr),
+    &=&\rho\bigl( (a_i^{k-1}-a_i^k) +(\overline a^k-\overline z^k)
+    -(\overline a^{k-1} - \overline z^{k-1})\bigr)\\
+    &=& \rho\bigl( (a_i^{k-1}-a_i^k) + r^k - r^{k-1} \bigr),
     \quad i=1,\ldots, N.
 \end{eqnarray*}
-So the dual residuals are different for different processes.
+So the dual residuals are different for different applications.
 
 The following termination criterion is similar to the one proposed in
 \cite[\S3.3]{ADMM}:
@@ -1000,10 +961,10 @@ We see that the simple primal $\epsilon^\mathrm{pri}$ is slightly smaller
 than the more accurate calculation, making primal residual a little harder to
 satisfy the termination condition. 
 On the other hand, the simple dual residual calculation is smaller than
-the accurate dual residual calculation, making thedual residual easier to
+the accurate dual residual calculation, making the dual residual easier to
 satisfy the termination condition.
 Figure~\ref{fig:allocation-e} illustrate the optimal resource allocation 
-and resulting latency for each of the processes.
+and resulting response time for each of the applications.
 
 It looks that the simplified stopping criterion is effective and 
 sufficient.
@@ -1012,72 +973,76 @@ the simple conditions may breakdown.
 Figure~\ref{fig:residual-c} and~\ref{fig:allocation-c} 
 plot the same quantities but in the case of cheap energy (meaning that
 price $\lambda$ in the total resource cost function is small).
-In this case, the total resouces allocated all reach their bounds, 
-and most of the process latency are within their deadlines.
+In this case, the total resources allocated all reach their bounds, 
+and most of the application response time are within their deadlines.
 Notice that the simplified dual residual becomes exactly zero 
 (discontinued in the right plot of Figure~\ref{fig:residual-c}) 
 after 10 iterations.
-The reason is that since the enerygy is cheap, the resource allocations 
+The reason is that since the energy is cheap, the resource allocations 
 reach their bounds easily,
 so the simple dual residual $\|s^k\|_2=\rho\|z^{k}-z^{k+1}\|_2=0$ 
 become zero quickly, therefore can \emph{not} serve as a stopping criterion.
 
-In our implementation, we use the simplfied calculation of 
+In our implementation, we use the simplified calculation of 
 $\epsilon^\mathrm{pri}$,
 but do not simplify the calculation of the dual residual.
 
-\begin{figure}[th]
-\centering
-\includegraphics[width=0.49\textwidth]{figures/test_primal_e.eps}
-\includegraphics[width=0.49\textwidth]{figures/test_dual_e.eps}
-\caption{Progress of reducing primal and dual residual norms in ADMM.
-    This is the case of expensive energy, notice that the simple dual
-residual often work as well as the accurate dual residual. Since
-the resource allocations are not reaching their bounds, so the simple
-dual residual $\|s^k\|_2=\rho\|z^{k}-z^{k+1}\|_2$ converges to zero 
-only asymptotically, and can serve as a stopping criterion.}
-\label{fig:residual-e}
-\end{figure}
 
-\begin{figure}[th]
-\centering
-\includegraphics[width=0.49\textwidth]{figures/test_resource_e.eps}
-\includegraphics[width=0.49\textwidth]{figures/test_latency_e.eps}
-\caption{Visualization of optimal resource allocation (left) and 
-    resulting latency for each process (right).
-    There are $n=10$ resources and $N=20$ processes.
-    This is the case of expensive energy, so the total resouces allocated
-    are mostly well below their bounds, but the process latency are mostly
-exceeding the deadlines.}
-\label{fig:allocation-e}
-\end{figure}
-
-
-\begin{figure}[th]
-\centering
-\includegraphics[width=0.49\textwidth]{figures/test_primal_c.eps}
-\includegraphics[width=0.49\textwidth]{figures/test_dual_c.eps}
-\caption{Progress of reducing primal and dual residual norms in ADMM.
-    This is the case of cheap energy, notice that the simple dual
-residual becomes exactly zero (discontinued in the plot) after 10 iterations, 
-Since the enerygy is cheap, the resource allocations reach their bounds easily,
-so the simple dual residual $\|s^k\|_2=\rho\|z^{k}-z^{k+1}\|_2=0$ 
-become zero quickly, therefore can \emph{not} serve as a stopping criterion.}
-\label{fig:residual-c}
-\end{figure}
-
-\begin{figure}[th]
-\centering
-\includegraphics[width=0.49\textwidth]{figures/test_resource_c.eps}
-\includegraphics[width=0.49\textwidth]{figures/test_latency_c.eps}
-\caption{Visualization of optimal resource allocation (left) and 
-    resulting latency for each process (right).
-    There are $n=10$ resources and $N=20$ processes.
-    This is the case of cheap energy, so the total resouces allocated
-    all reach their bounds, and most of the process latency are 
-within their deadlines.}
-\label{fig:allocation-c}
-\end{figure}
 
 \section{Summary}
+
+In this chapter, we presented details of \pacora's implementation in \tess, a manycore research OS. We gave an overview of \tess and our rational for selecting it.  We provided the interfaces for applications and \tess to communicate with \pacora.  We then presented the mathematical details for our online RTF creation using incremental non-negative least squares and our penalty optimization using sharing ADMM.
+
+
+
+%%IV.	Dynamic Optimization
+%%	a.	Gradient Descent w/ Backtracking Search
+%%		i. boundary conditions clean up
+%%	b.	Dealing with Fractional Results
+%
+%\pacora's penalty optimization algorithm dynamically decides resource allocations. The algorithm can be run periodically, when applications start or stop, when an application changes phase or when the system changes operating scenarios.  One of the advantages of convex optimization is that it enables fast, incremental solutions.  As shown in our experiments, the algorithm can terminate earlier to decrease overhead and still be moving towards an optimal solution as it runs.  %However we found in our implementation that the algorithm was fast enough to run to completion every time. 
+%
+%Convex optimization is simplest when it is unconstrained, so we reformulated \pacora's construction to be unconstrained.
+%Extending the response time model functions to all of $\Re^n$
+%moves the requirement that allocations must be positive into the objective function,
+%and introducing application 0 for slack resources turns the affine inequalities into equalities:
+%\begin{eqnarray*}
+%& \makebox[1in][r]{Minimize}   & \sum_{p\in P} {\pi_p(\tau_p(a_{p,1}\ldots a_{p,n}))}  \\
+%& \makebox[1in][r]{Subject to} & \sum_{p\in P} a_{p,r} = A_r, r = 1,\ldots n           \\
+%\end{eqnarray*}
+%
+%The only remaining constraints are those on the $a_{p,r}$.
+%These can be removed by letting the $a_{p,r}$ be unbounded above for $p \neq 0$
+%and changing the domain of $\tau_0$  to be the whole resource allocation matrix.
+%The definition of $\tau_0$ might take the form
+%\begin{eqnarray*}
+%\tau_0 &=& \sum_r \Delta_r \sum_{p \neq 0} a_{p,r}     \\
+%       &=& \sum_r \Delta_r (A_r - a_{0,r})
+%\end{eqnarray*}
+%where $\Delta_r$ is the (constant) power dissipation of one unit of resource $r$.
+%However, if any of the allocations $a_{0,r}$ turns out to be negative then $\tau_0$  should instead return the value $+\infty$.
+%%This modification of the objective function transforms the resource allocation problem
+%%to unconstrained convex optimization.  
+%
+%The penalty optimization algorithm used in \pacora is gradient descent via backtracking line search along the negative gradient direction \cite{BoVa}.
+%This algorithm rejects and refines any step that yields insufficient relative improvement in the objective function,
+%so infinite values from infeasible allocations will automatically be avoided by the search.
+%The negative gradient $-\nabla\pi$ of the overall objective function $\pi$
+%with respect to the resource allocations $a$
+%is computed analytically from the response time models and penalty functions.
+%When a component of this overall gradient is negative,
+%it means the penalty will be reduced by increasing the associated allocation if possible.
+%The gradient search at the boundaries of the feasible region
+%must ignore components that lead in infeasible directions;
+%these can be detected by noting whether for some $p$ and $r$, $a_{p,r} = 0$ with $(-\nabla\pi)_{p,r} > 0$.
+%In such cases, the associated step component is set to zero.
+%
+%We added an additional optimization to move along boundaries more rapidly in the scenario when a completely allocated resource had a large gradient.  We scale all the allocations of that resource type down to satisfy resource constraint while leaving the allocations of other resources untouched.
+%
+%The rate of convergence of gradient descent depends on how well the sub-level sets of the objective function
+%are conditioned (basically, how ``spherical'' they are).
+%Conditioning will improve if resource allocation units are scaled to make their relative effects similar.
+%For example, when compared with applicationor allocation units,
+%memory allocation units of 4 MB are probably a better choice than 4 KB.
+%In addition, penalty function slopes should not differ by more than perhaps two orders of magnitude. If these measures prove insufficient, stronger preconditioners can be used. Our implementation conditions all resource allocations to be in the range of 0-100.
 
